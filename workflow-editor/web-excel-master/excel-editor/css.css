@@ -1,0 +1,16 @@
+#diffSelector{
+	border-top:1px solid gray;
+	border-left:1px solid gray;
+	border-right:1px solid gray;
+	box-shadow:2px 2px 5px	;
+}
+#diffSelector li{
+	height:24px;
+	line-height:24px;
+	cursor:pointer;
+	color:gray;
+	border-bottom:1px solid gray;
+}
+#diffSelector li:hover{
+	background-color:#a0cefe;
+}
