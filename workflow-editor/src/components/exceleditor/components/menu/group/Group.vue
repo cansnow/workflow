@@ -21,6 +21,11 @@
     position: relative;
     vertical-align:top;
 	display: flex;
+	button{
+		border: 0;
+		background: transparent;
+	}
+	.el-input__inner{border: 0;}
   }
 
   .meg-menu-groupname {
