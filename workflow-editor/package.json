@@ -10,11 +10,13 @@
   "dependencies": {
     "@datagridxl/datagridxl2": "^2.0.8",
     "@mdi/font": "^6.7.96",
+    "@vue/composition-api": "^1.6.2",
     "axios": "^0.27.2",
     "babel-eslint": "^10.1.0",
     "core-js": "^3.8.3",
     "element-ui": "^2.15.9",
     "handsontable-secure-open-source": "^6.2.3",
+    "pinia": "^2.0.0-rc.10",
     "popper.js": "^1.16.1",
     "sass": "^1.52.2",
     "sass-loader": "^13.0.0",

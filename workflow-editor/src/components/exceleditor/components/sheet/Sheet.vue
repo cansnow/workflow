@@ -122,9 +122,11 @@ function parseStyle1(styles) {
 
 function parseMerges(merges) {
 	let result = {};
-	merges.forEach(merge => {
-		result[`${merge.start.rowIndex}_${merge.start.columnIndex}`] = merge;
-	});
+	if(merges){
+		merges.forEach(merge => {
+			result[`${merge.start.rowIndex}_${merge.start.columnIndex}`] = merge;
+		});
+	}
 	return result;
 }
 
@@ -149,12 +151,12 @@ export default {
 		Block
 	},
 	props: {
-		options: {
-			type: Object,
-			default() {
-				return {};
-			}
-		},
+		// options: {
+		// 	type: Object,
+		// 	default() {
+		// 		return {};
+		// 	}
+		// },
 
 		autoCreate: {
 			type: Boolean,
@@ -183,8 +185,14 @@ export default {
 			//允许的最大行
 			maxRowCount: 10000,
 			//允许的最大列
-			maxColumnCount: 200
+			maxColumnCount: 200,
+			options :{
+				merges:[]
+			}
 		};
+	},
+	created() {
+		this.init();
 	},
 	computed: {
 		relMaxRowCount() {
@@ -239,6 +247,16 @@ export default {
 		}
 	},
 	methods:{
+		init(){
+			let _this = this;
+			_this.update(this.$piniastore.$state);
+			this.$piniastore.$subscribe((mutation,state)=>{
+				_this.update(state);
+			})
+		},
+		update(state){
+			this.options = state.data;
+		},
 		gridContentClick(e){
 			console.log(this.getSelectionCells());
 		},

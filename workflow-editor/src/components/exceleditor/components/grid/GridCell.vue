@@ -59,6 +59,7 @@ export default {
 	inject: ['$sheet'],
 	data(){
 		return {
+			data:{},
 			props:this.cell,
 			checkboxValue:[],
 		}
@@ -67,12 +68,23 @@ export default {
 		cell: Object
 	},
 	created() {
+		this.init();
 		if(this.isCtrl('checkbox')){
 			this.checkboxValue = this.props.option.v.split(',');
 			console.log(this.checkboxValue)
 		}
 	},
 	methods: {
+		init(){
+			let _this = this;
+			_this.update(this.$piniastore.$state);
+			this.$piniastore.$subscribe((mutation,state)=>{
+				_this.update(state);
+			})
+		},
+		update(state){
+			this.options = state.data;
+		},
 		isCtrl(v){
 			if(v){
 				return this.cell.option && this.cell.option.c==v;
