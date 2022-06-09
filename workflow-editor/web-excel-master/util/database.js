@@ -1,6 +1,6 @@
 var mongodb = require("mongodb"),
-	mongoserver = new mongodb.Server('localhost', '27017', {'auto_reconnect ':1,socketOptions :{'keepAlive':1 }}),
-	db_connector = new mongodb.Db('web-excel', mongoserver,{w:1}),
+	//mongoserver = new mongodb.Server('localhost', '27017', {'auto_reconnect ':1,socketOptions :{'keepAlive':1 }}),
+	db_connector = new mongodb.Db('web-excel','web-excel', '127.0.0.1',{w:1}),
 	g_db = null;
 
 

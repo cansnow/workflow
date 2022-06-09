@@ -25,9 +25,6 @@ target/
 *.iml
 *.ipr
 
-### JRebel ###
-rebel.xml
-
 ### NetBeans ###
 nbproject/private/
 build/*
@@ -36,12 +33,18 @@ dist/
 nbdist/
 .nb-gradle/
 
+### IntelliJ IDEA ###
+.scannerwork
+sonar-project.properties
+
+
 ######################################################################
 # Others
 *.log
 *.xml.versionsBackup
-*.swp
+logs
 
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+ruoyi-ant

@@ -15,8 +15,10 @@ module.exports = {
     rules: {
         indent: [0, 4],
         'space-before-function-paren': 0,
+		'vue/multi-word-component-names':"off",
         // allow async-await
         'generator-star-spacing': 'off',
+		"vue/no-unused-components": "off",
         // allow debugger during development
         'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
         'vue/no-parsing-error': [
