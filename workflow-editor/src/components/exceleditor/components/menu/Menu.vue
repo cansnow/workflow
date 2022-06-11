@@ -1,24 +1,32 @@
 <template>
 	<div class="meg-menu">
-		<Undo-Group></Undo-Group>
-		<Clipboard-Group></Clipboard-Group>
-		<Font-Group></Font-Group>
-		<Alignment-Group></Alignment-Group>
-		<Merge-Group></Merge-Group>
+		<a-tooltip :title="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name">
+			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor'">
+				<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
+				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
+				<Colorpick slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
+			</Dropdown>	
+			<Dropdown class="meg-menu-op" v-else-if="name == 'border'">
+				<i @click="toolbarEvent(name,$event)" class="mdi mdi-border-all"></i>
+				<m-Select slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></m-Select>
+			</Dropdown>
+
+			<a-select :default-value="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择" v-else-if="tool.options">
+				<a-select-option v-for="(option) in tool.options" :key="option.value ? option.value :option"
+					>{{option.label ? option.label : option}}
+				</a-select-option>
+			</a-select>
+			<a-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
+				<i :class="tool.icon"></i>
+			</a-button>
+		</a-tooltip>
 	</div>
 </template>
 
 <script>
-import Tabs from './tabs/Tabs.vue';
-import TabPane from './tabs/TabPane.vue';
-import FontGroup from './group/FontGroup.vue';
-import UndoGroup from './group/UndoGroup.vue';
-import ClipboardGroup from './group/ClipboardGroup.vue';
-import AlignmentGroup from './group/AlignmentGroup.vue';
-import MergeGroup from './group/MergeGroup.vue';
-import NumGroup from './group/NumGroup.vue';
-import ImgGroup from './group/ImgGroup.vue';
-
+import Dropdown from './dropdown/Dropdown.vue';
+import mSelect from './select/Select.vue';
+import Colorpick from './colorpick/Colorpick.vue';
 export default {
 	provide() {
 		return {
@@ -26,18 +34,143 @@ export default {
 		};
 	},
 	components: {
-		Tabs,
-		TabPane,
-		FontGroup,
-		UndoGroup,
-		ClipboardGroup,
-		AlignmentGroup,
-		MergeGroup,
-		NumGroup,
-		ImgGroup
+		Dropdown,
+		mSelect,
+		Colorpick
 	},
 	data() {
 		return {
+			value:"",
+			toolbars: {
+				undo:{
+					icon: 'mdi mdi-undo',
+					title: '撤销',
+					name: 'undo',
+					disabled:false
+				},
+				redo:{
+					icon: 'mdi mdi-redo',
+					title: '恢复',
+					name: 'redo',
+					disabled:false
+				},
+				paste:{
+					icon: 'mdi mdi-content-paste',
+					title: '粘贴',
+					name: 'paste'
+				},
+				cut:{
+					icon: 'mdi mdi-content-cut',
+					title: '剪切',
+					name: 'cut'
+				},
+				copy:{
+					icon: 'mdi mdi-content-copy',
+					title: '复制',
+					name: 'copy'
+				},
+				openFormatpainter:{
+					icon: 'mdi mdi-brush-variant',
+					title: '格式刷',
+					name: 'openFormatpainter',
+					selected: false
+				},
+				fontFamily:{
+					title: '字体',
+					name: 'fontFamily',
+					value: 'fontFamily',
+					options: ['宋体', '楷体', '仿宋', '微软雅黑', '黑体', 'Calibri', 'Consolas']
+				},
+				fontSize:{
+					title: '字号',
+					name: 'fontSize',
+					options: [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 36, 48, 72]
+				},
+				bold:{
+					icon: 'mdi mdi-format-bold',
+					title: '加粗',
+					name: 'bold',
+					checked: false
+				},
+				italic:{
+					icon: 'mdi mdi-format-italic',
+					title: '倾斜',
+					name: 'italic',
+					checked: false
+				},
+				underline:{
+					icon: 'mdi mdi-format-underline',
+					title: '下划线',
+					name: 'underline',
+					checked: false
+				},
+				strikethrough:{
+					icon: 'mdi mdi-format-strikethrough-variant',
+					title: '删除线',
+					name: 'strikethrough',
+					checked: false
+				},
+				bgColor:{
+					icon: 'mdi mdi-format-color-fill',
+					title: '背景颜色',
+					name: 'bgColor'
+				},
+				color:{
+					icon: 'mdi mdi-format-text-variant',
+					title: '前景颜色',
+					name: 'color'
+				},
+				border: {
+					title:"边框",
+					icon:"mdi mdi-border-all",
+					value:"t",
+					options:[
+						{
+							label: '上边框',
+							value: 't'
+						},
+						{
+							label: '下边框',
+							value: 'b'
+						},
+						{
+							label: '左边框',
+							value: 'l'
+						},
+						{
+							label: '右边框',
+							value: 'r'
+						},
+						{
+							label: '无边框',
+							value: ''
+						},
+						{
+							label: '全边框',
+							value: 'blrt'
+						}
+					]
+				},
+				
+				valigntop:{ title: '顶端对齐', name: 'valigntop', checked: false, icon: 'mdi mdi-align-vertical-top' },
+				valignmiddle:{ title: '垂直居中', name: 'valignmiddle', checked: false, icon: 'mdi mdi-align-vertical-center' },
+				valignbottom:{ title: '底端对齐', name: 'valignbottom', checked: false, icon: 'mdi mdi-align-vertical-bottom' },
+				alignleft:{ title: '左对齐', name: 'alignleft', checked: false, icon: 'mdi mdi-align-horizontal-left' },
+				aligncenter:{ title: '水平居中', name: 'aligncenter', checked: false, icon: 'mdi mdi-align-horizontal-center' },
+				alignright:{ title: '右对齐', name: 'alignright', checked: false, icon: 'mdi mdi-align-horizontal-right' },
+
+				whiteSpace:{
+					icon: 'mdi mdi-format-text-wrapping-wrap',
+					title: '自动换行',
+					name: 'whiteSpace',
+					checked: false
+				},
+				merge:{
+					icon: 'mdi mdi-table-merge-cells',
+					title: '合并后居中',
+					name: 'merge'
+				}
+			},
 			curCell: null
 		};
 	},
@@ -47,7 +180,7 @@ export default {
 		},
 		start() {
 			return this.$sheet.selection.start;
-		}
+		},
 		//      $cell(){
 		//        const cell = this.$sheet.getCurCell();
 		//        return cell;
@@ -56,24 +189,133 @@ export default {
 	watch: {
 		start() {
 			this.curCell = this.$sheet.getCurCell();
-		}
+			console.log(this.$sheet.selection.start);
+		},
+		
+		curCell() {
+		    let style;
+		    if (this.$cell) {
+		        style = this.$sheet.getStyle(this.$cell.s);
+		    }
+		
+		    if (this.items) {
+		        this.items.map(item => {
+					console.log(item);
+					if (typeof item == 'string') {
+					    this[item] = style ? style.getOption(item) : undefined;
+					} else {
+					    this[item.key] = style ? ( style.getOption(item.key) || item.value ) : item.value;
+					}
+		        });
+		    }
+		
+		},
 	},
-	methods: {}
+	methods: {
+		toolbarEvent(e) {
+			if(this.hasOwnProperty(e)){
+				let args = Object.assign([],arguments);
+				args.shift();
+				this[e].apply(args)
+			}else{
+				if(e.substr(0,6)=='valign'){
+					this.setVerticalAlign(e.substr(6));
+					this.toolbars['valigntop'].checked = e.substr(6) == 'top';
+					this.toolbars['valignmiddle'].checked = e.substr(6) == 'middle';
+					this.toolbars['valignbottom'].checked = e.substr(6) == 'bottom';
+					return ;
+				}
+				if(e.substr(0,5)=='align'){
+					this.setTextAlign(e.substr(5));
+					this.toolbars['alignleft'].checked = e.substr(5) == 'left';
+					this.toolbars['aligncenter'].checked = e.substr(5) == 'center';
+					this.toolbars['alignright'].checked = e.substr(5) == 'right';
+					return ;
+				}
+				console.log(e);
+			}
+		},
+		undo() {
+			this.$sheet.doUndo();
+			this.toolbars['undo'].disabled = !(this.$sheet.undoList.length > 0);
+			this.toolbars['redo'].disabled = !(this.$sheet.redoList.length > 0);
+		},
+		redo() {
+			this.$sheet.doRedo();
+			this.toolbars['undo'].disabled = !(this.$sheet.undoList.length > 0);
+			this.toolbars['redo'].disabled = !(this.$sheet.redoList.length > 0);
+		},
+		copy() {
+			this.$sheet.doCopySelection();
+		},
+		cut() {
+			this.$sheet.doCutSelection();
+		},
+		paste() {
+			this.$sheet.doPasteSelection();
+		},
+		openFormatpainter() {
+			this.$sheet.doOpenFormatpainter();
+			this.toolbars['openFormatpainter'].selected = this.$sheet.curAction == 'formatpainter';
+		},
+		fontFamily(){
+			this.$sheet.setFontFamily(this.toolbars['fontFamily'].value);
+		},
+		fontSize() {
+			this.$sheet.setFontSize(this.toolbars['fontSize'].value);
+		},
+		bold() {
+			this.toolbars['bold'].value = this.toolbars['bold'].value ? undefined : 'bold';
+			this.$sheet.setFontWeight(this.toolbars['bold'].value);
+		},
+		italic() {
+			this.toolbars['italic'].value = this.toolbars['italic'].value ? undefined : 'italic';
+			this.$sheet.setFontStyle(this.toolbars['italic'].value);
+		},
+		underline(){
+			console.log('under')
+			this.setTextDecoration('underline');
+		},
+		strikethrough(){
+			this.setTextDecoration('line-through');
+		},
+		setTextDecoration(decoration) {
+			let key = decoration == 'line-through' ? 'strikethrough' : decoration;
+			this.toolbars[key].value = this.toolbars[key].value === decoration ? undefined : decoration;
+			this.$sheet.setTextDecoration(this.toolbars[key].value);
+		},
+		bgColor() {
+			this.$sheet.setBackground(this.toolbars['bgColor'].value);
+		},
+		color() {
+			this.$sheet.setFillColor(this.toolbars['color'].value);
+		},
+		border() {
+			this.$sheet.setBorder(this.toolbars['border'].value);
+		},
+		
+		setTextAlign(type) {
+			this.textAlign = type;
+			this.$sheet.setTextAlign(this.textAlign);
+		},
+		setVerticalAlign(type) {
+			this.verticalAlign = type;
+			this.$sheet.setVerticalAlign(this.verticalAlign);
+		},
+		whiteSpace() {
+			this.toolbars['whiteSpace'].value = this.toolbars['whiteSpace'].value == 'normal' ? undefined : 'normal';
+			this.$sheet.setSelctionExpandStyle({
+				whiteSpace: this.toolbars['whiteSpace'].value
+			});
+		},
+		merge() {
+			this.$sheet.doMergeCell('center');
+		},
+	}
 };
 </script>
 
 <style lang="scss">
-.meg-menu {
-	height: 40px;
-	font-size: 12px;
-	color: #666;
-	user-select: none;
-	display: flex;
-	border-bottom: 1px solid #ddd;
-}
-.meg-menu * {
-	vertical-align: top;
-}
 .meg-menu-op-color {
 	position: relative;
 }
@@ -109,99 +351,54 @@ export default {
 	}
 }
 
-.meg-menu-select {
-	border: 1px solid #ccc;
-	padding: 0px;
-	input {
-		border: none;
-		padding: 2px;
-		height: 16px;
-		&:focus {
-			outline: none;
+.meg-menu {
+	height: 40px;
+	font-size: 12px;
+	color: #666;
+	user-select: none;
+	border-bottom: 1px solid #ddd;
+	
+	border-right: 1px solid #e1e1e1;
+	padding: 0px 6px;
+	position: relative;
+	align-items: center;
+	display: flex;
+	button {
+		border: 0;
+		min-width: 40px;
+		padding: 0;
+		background: transparent;
+		color: #999;
+		i {
+			font-size: 20px;
+		}
+		&[checked],
+		&[selected],&:hover{
+			color: #409EFF;
 		}
 	}
-}
-
-.meg-iconimg16 {
-	display: inline-block;
-	width: 16px;
-	height: 16px;
-}
-.meg-iconimg32 {
-	display: inline-block;
-	width: 32px;
-	height: 32px;
-}
-
-.meg-iconimg {
-	&-paste32 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABYUlEQVRYR+2XTUrFMBDHJ1kUBEWwuPUc3XgAj9GlKy9Q3kyK4NpD9CYi7xp2KwXBInTzItFG+5FnOiX2obS70vn4zX8mEyrgwI84cH6YBUBEGwBQA3gkopxb0FwA7UpEROx4bAeTmIg+AGzC4TtHhRFAtUWlhb4WGs5NoDjJxR7JRwCullTbTavWrgaQWZzk9127EcDzY9ZIKSNr1AI4JfdVahT6BjDWuzpObk9+BOg7fCkQCOAz3t8CsHPgk9v1faimK5ZjCO3QzEnp92G3wB+SZ/ErAMOgHKQgLZh6VLXWl0qpB9YpmFKNBUDEveZKKYiiqG6a5qoLEVQBH0CaplAURQ9iUQADWJZlD2JxANOjLsSiAK4BCQnwhohHU4bW2pjBDAaAiC9EdLoCrAqsCvwHBbJXAHnMqcTchiH3wA0A3AHA5K3WXscVIp5xwJ2bkBOga0tET4h4wfEPDTDr3+EdLoQ02zS3lXEAAAAASUVORK5CYII=);
+	.meg-menu-dropdown {
+		min-width: 40px;
+		padding: 0;
+		.meg-menu-dropdown-handler {
+			font-size: 20px;
+			height: 100%;
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-around;
+			.meg-menu-op .meg-menu-pcol {
+				left: 19px;
+				bottom: 2px;
+			}
+		}
 	}
-	&-edit-undo16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABfElEQVQ4T6WRzysEcRjGn/edtbukSPkPlJNyopQLyq9tv+uAopSL8hc4+DXNUK5K/gDKYS/7o92xktqyOStXcVUiipTM99UMsy1lh8xhLtPzmefzvIR/PlSbH13JDwhJgYFGALeugb4jU13W+0cVkFjO9Aj4RBjNWuMVoMHSZrISVtAHjK1mu6C5DJa2j4DMOnbqICzsfadhM9dhuDgD0P5jQNO9ZlwzScVl7NRq0chKrpMJp3UBNWRPj1nWHTu15TfwXp7/G3P5czyAaM6xkvtBbthMt/FbvJuABZBM+0FComipYnVE/wIih8yIasCNkEwWrFTmu9b4Wm5XBItEqBQt1f/ljGOr2RkN2mPA8KsaSDiWOq6FeG0MN3angZeSrZq+AH6zegAA8OjYqvXPgEBBgPyhrdSvAENL6ZaGaLybBIveiL5eg+51zInzUIAXjkZjD4Ge1nLDRPPOhipVz1jP3QdE4lcguSDI8XPkdbtsTj0FmdAGYcP+G/AOHzONERjQiSoAAAAASUVORK5CYII=);
+	.ant-select {
+		min-width: 100px;
 	}
-	&-edit-redo16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABdUlEQVQ4T6WSwUpCURCG/zmaEAVFEbQt2gY9gIEQkt7EdOMiqAeIoFWrUiRt0RMIbYKgoFrkFTOCahMEtRJ6iSCQgki96kzcUzc0MC94tjPzzf//cwh9Puo1v5g2ZzwtPACYYKBKQpGrbPTOmesJsBtD2wU/ILdKwUeMDwIvFPfiT3bNFcBuNJL5FYCO9WamChQHSpnYcwdAy2VssJBfMaagZKybRWZ5kQGa/wUYO+YWC7K2zF65/NRfWfANWEqZSyIo6oLQqQAH7K2Vr9OJigMzUoVViBxpB0DVyxywc3AA9yLwEyF3ubu8/ldBJJWPN4XOFeBhhkVEYecSGhBKmp8KGGx56uPtW3V4KTPILRRtawy0FGStlImddJzRSJpvAEYsqz56s594d5mBbtMKwknTJCDazcJ/QA0w0hdz3FCP+gJ2iIRcw6qV3ahpP2OIRQ6VoklnoxtLHR8pkD4bHmr6NgUUhNCs1axN91Lh+it3y6FvwBfCbZlJrD77kwAAAABJRU5ErkJggg==);
-	}
-	&-cut16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACAElEQVQ4T42SQWgTURCG/3lJo2AiKFTEnHr1IBZEKbQoHgRttQdRoXqo6MVb3i6IpVhCq1Qku29vXgrmoD3Ug6gxeLEILRRFKCh47SkgFhRMhJpmZ+Rtm7LWjbqnff/MfG/mf0OIfVrro0qpk57n3Yvr7X/XdW8x87wx5l1bo3ii4zijAGaUUqdKpdL8NvhxInoN4Lrv++VEgOu6/SKyAGBVRHqNMTWbqLXOE9EygG4iGvA8bzERYMVCobCglOonoqVcLnfCavV6/Y2I9DHzYhAEA/HOfhvBBlzXPSgibwFkmfmB1ZRSNwA0iOiY53mf/grYbHmEiB7HE0XksjFmdru5f3TQTnAcZwbANXtm5nIQBFeTXiYRoLXeC+A9EfXYIhFZAXDEGPP1vzrQWleIaBCALQit+wBe+b5/OhFwoTiXafDOCZHWaAqU2bNe293dXElDeCgqIFVZzfS0vnXlv4eQJlG6nFVrk0+KF5vRCGduP5+GSJ8Svhm1TORn0Kg9vXPlkj2fH380t0bZAyTiRJ6Qug+iperUubFNwLMvSKUPVYuDnyNg8eV+hK0P1anhfRsXdI5vARSr3srds9HmDY2/yLPi5TigU3xrBAYfVqmu6Kk4XH+oiD5WJ4ejkeyIneIRwJr4I9wxzSwjG5tHs7tSP8esSf+Kd1ykpKVJ0n4BswPwEUEaE9oAAAAASUVORK5CYII=);
-	}
-	&-parse16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAArklEQVQ4T2NkoBAwFhUV/cdmxv///837+/tPETIfbEBvby+KuuLiYhD/9f///30IGYLVAJBuRkZGRkK2g9XBXOBdtwmsfmuTH5iGugLDDHSv4XQByABivIbhApgrcBmQkpLCMGfOHHj4EHQBstfQvdXX18dIkguQAwRkGIoB6KEF8wLMBcjyoIAm2gBcUYliALoikNPQoxenC3DZgC2FYg0DmhpAKCmDY4GQIkLyAIfImxGYQhs1AAAAAElFTkSuQmCC);
-	}
-	&-formatpainter16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABgElEQVQ4T6WTu0oDQRSG/zObRFJZSNAHSCcKNoLgpbBRhIiCrY2FWIiQYGGja4yKQiaprK2DRuMLGKOkFgSxt1AS8RIFQTbnyApZ1mQXCU4xDDPn/851CP9c1K7eNM1QrVYrAJjQWlNbALe44dgX0GR8o7XuTyQS+yKy6oiJrn0B8Xg8D2CmYSwiR4FAYJmZ8yIyRETXzDzeAqhcpoY7DOs2efy+IiLr7hox81UwGJyzLGsTwFomk3l2ALaQmVOKMCaM26BRn9w+/VhohgA40VrPOmlUS5sHAlry6MajgpreLbxMeUWSzWZHbA1JLmdUeu7yBMRaIMyfUMb8XuG1zw2x80+n0wM/AHu7L+twyHovEmjQcy4Ea3tnb2Eb0iienb8DsA8PpZ2IAasMIOo9XHwY6cIi9Zpf7vdfXaicm1EQylAq0gwRINk9ur7RfN/SxqdSapDZKkKpsDMDPuJfKbjJ1YutWJ3qeQVl+Hn+c5Srl8k4Czq9wvatQbs/07b/BgCJrfOMmCfnAAAAAElFTkSuQmCC);
-	}
-	&-bold16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABR0lEQVQ4T2NkoBAwouv///8/C7IYIyPjH3x2oBjw9+/fmbgUMzExdTEyMt5Fl4cbALL5379/U4ODg9PQFD1SU1M73tTU9J6dnb2VkZHxCYoLYRx0A4qLi6edOnWK48iRIyH////n09TUXNbS0vKFmZk5nSgD1q5dOwukMCkpSenjx48uioqKq3t6et4TbQDIBZcvX2bbsWNHNBsb28MJEybsl5aWnsLIyHiNKBfAFP379++vqKjorurq6vuKiop3GBkZ+4kyAOSFO3fu/GlpadH8/PmzIysr6/kVK1acJtoLIAOYmJiebNmyRXLu3LmZjIyMn9asWbOCaANsbW3ngZx64sQJ49+/f+sLCgrunjNnzn2iDUCK3ifS0tJnpk2bFvj//39fRkbGzVjDACRIICXOZmRkPIMzJSInKLLzAjkZEyM3kmoIACAUvxErQ//XAAAAAElFTkSuQmCC);
-	}
-	&-italic16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABEUlEQVQ4T2NkoBAw4tL///9/FnQ5RkbGPxhi2Az4+/fvTFwGMzMzpyPLYbgAZPO/f/+mBgcHp6Ebsnbt2llMTEzZyC7B6gWYC6Kjo/V+/Phh0dnZOU1FRQXsJYIuACn6//8/75cvX7qjo6PjGBkZ365bt24bus0w12F1wf///3127drlOX369CwhIaGds2fPfohuM14D/v79O7W+vp7/ypUr0ba2tvOKiooeMDIyNmMLWJxhEBcXp/P161erlpaWadra2rMYGRkvEmXA////2f7+/TspKCgI5P8P69at24zL+SADUVwAC/39+/f/mTJlCtz/2EIfIwxIjX+sgUhKCsQZC8TmAbzRSEoGxZkbiTUEACK1fRF/fq/OAAAAAElFTkSuQmCC);
-	}
-	&-underline16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABP0lEQVQ4T9WTP0rEQBTG580YSRGsBPEImsbKE1ili4kgphECSlawTZMLpBYNKwo2KcT8uYEHsLKJabyA1TYLpti8JyNEkpDNip3Tzfe++b2Zb2aA9QYRrUkJABbtktT72revbarretqeCyHOh7S25wcgOyDitWVZZ9KQJMlUCHGJiFe2bR8T0Uaaprec84v2TpYCGrOE/kMAItZ5nt83If7qCDI4mbhpmqeMMZFl2V0TommaJ4yx9TzPHyR08BYagG3bh0S06bpuZBiGKMtyEQTBBABmSZI8rQQ4jrNXVdU+In4qivKOiNsSqKrqSxzHr6MAIpoURaGHYbgzn893iWgLAD40TSt933/Tdb0AgJulR5AFIjpCxIP+E+ecPwPAY1/vPGXP86hv6M+jKOqsGf0LQ7DRDFZ1H6p3dvAXwBc+ueYRVS40gQAAAABJRU5ErkJggg==);
-	}
-	&-strikethrough16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABmElEQVQ4T7VTMUjDQBT9d+kgAaGLQXBQxMXBdujkEMcKDlrspINDkUCdSnEJhawuFrJoq4hQu0k7NDgVnBIQhA7i0tFJpKEitWTK3ckvTYhQpFC8LT/vv//ev3cEZjxkxn6YSMAYOweAeQD4liTp9K8hIYEQIoZAQojPGLvKZrPbqqo+FovFNwA4w3qUKMQjeNKEgKBQKISNlNJnzvn6WN2ojbiue6lp2oEQIo4FVVVvsQkJFEV5cV13C//JsvxUr9dfLctitVptBwCWRwRRBaZpxhzH2W80GvdIIEnSoFqtOv1+X+i6fphKpVqdTmcvkUg8GIbhhQpKpdJSMAmLzWbzGgmSyaRtGMYnAMzlcrlVz/Pivu+v4QBKqQ4AA5LJZMQsV0k0TWsNh8MF9JfP5xd7vd5uoCCw0O12RblcPkmn0zftdvs42NPIgm3bF6ZpqoyxDVyU53mbAYEsy+/4jUBFUaxKpfKBe7JtOze+8i8ihNA55yvT2KCU3nHOj6LYX0HCsGBAoqGJBixojNb+5y1MYyfAzKzgB5ww1BOuqSvEAAAAAElFTkSuQmCC);
-	}
-	&-bottomborder16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAU0lEQVQ4T2NkoBAwgvQXFRX97+3tZSguLmYglu7r6wPrBRP/////T6pDGBkZEQbAXIBuCMxF2MSHqwtGY6EXIy3RNx2QmpRRUiKpmpHVgzMEJQAAfDRwEbshf7sAAAAASUVORK5CYII=);
-	}
-	&-fillcolor16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB2klEQVQ4T2NkwAIKCgp2MTExuYKk/v37t3vChAlu2NSBxBixSRQVFf35+/evNgMDg/r///83/vv3T2nKlCn3sanFakBBQcGHb9++6bGysm5nYWHRYmNje/n161ebadOm3UE3BKsB+fn5n/7+/fswPz9ffPr06aLZ2dkMM2bMwGoIhgFpaWlyrKys9yoqKt6KiIiIVVdXM/T29jLcu3ePYfr06a9vsRn9/M3MfY6RkWHKtib/3SgGgDSzsbFtLS8vF5ORkREDORdkQGtrK9jlIEN6J834+oTbiPsPMxcD4///NXADsGnGFmj7Dx7+uWL1evZngtYM/xhZX8MNyMzMvBEfH89nbm4uiSvKnj59+rOru/v1E059mR+swgyM/xi+wA3IyclRZGdn31lcXKwgKSnJim7I06dPf/f09Lz8+Jc15qWAzQFoGliDEQYCAgL7CgoKQIYwwwx58uTJv97e3hc/f/70u83neIeNjf0Dwz/Gd0wsDIZYY0FISOggyBBxcXGGZ8+eMfT09Lz48eOHz/Tp08+6lK/iZ2Fjf87IwOi5vdnvINZ0AApQAQGBIxEREbLLli179fXrVy+QZpCLHBpW8XD9ZfPb1hywDOyNv39F/+MKNGLEh4EBAMY6ycYcMdolAAAAAElFTkSuQmCC);
-	}
-	&-fontcolor16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABqElEQVQ4T2NkwAL+///P/e/fvz6YFBMT03lGRsYZ2NQyYhP8+/dv37x58yy2bt1qKSsr+2zChAlbmJmZ00kxYGZ8fHwkSMOXL194e3t7lyspKbUwMjJeQzcEwwX///8POHjwYPKECRN8vL29j4Nc4eTkdDY7O/ssNldgGPD379+ZDQ0NDrdu3VJYtmzZgvT09OAfP36wLVy4cDlBA/7//y/+7t27jqysrCg1NbUHDQ0NB1auXKm2atUqh4KCgi329vZzGRkZNyB7A8UF////L1u+fLknTIOtre2zDx8+sCUnJyfo6ureAhmI7goUA0DOLygo8Hn8+LEUthCfO3fuAiEhoQpGRsaXMHm4Af///9e/d+9eeXFxcSQo6lRVVZ/DFL1+/Zr38uXLamFhYQciIyP3MDIytmIYALK9s7PT8tSpU7p1dXVr9fX138IUwbwhIiLydubMmWuRvQF3ASz0v337xtbV1bULWRFIburUqca3b9+WbGho2IXsDWQvOP379y8cZCsTExPImathLvj//7/Mv3//aqFyKMma0at2439sAUas2DAwAACipc7tErZi9wAAAABJRU5ErkJggg==);
-	}
-	&-growfont16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABUUlEQVQ4T6WSvU4CQRSFz90FrTHxAVxqK2iNFlhoYgkFCTsbGh4BLExoTOARpCB72YSCTYyFsZDE3gQr67WztrIAZK7ZxInITwCZcubc755zMoQtD205j38B8vXeTlgvjOLlGwPOr+4OScstIXFyf33xvhHg7PJhnxLDZ8A6APA6Gg2P1gbEtj+/dh9BOP7tTT8tBbiumyOifiy2bTvdbrffFhW+FFAqlW4A5CzLckSk1ul0mpsCItu2QxHJAEgxc3ZtgOd5eRHpicgpgAwRNQBkmfllFrIwglKqp7XOBEGQLpfLzmQyiYio6ft+bSWgWCymkslkpLUOgyCoxANKqb7W2omBKwGu61Z/LM9FJqKC7/vh9MNcBKXUAIDDzHtGaGIACJm5sBSglIobH2itW8a+ERvweDxOd7vdD3P/x4HneQ0RqQKoMHNrepOJNvsnvgHFz4i4VgcyFQAAAABJRU5ErkJggg==);
-	}
-	&-shrinkfont16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABH0lEQVQ4T6XTsU7DMBAG4P8cAnMrsTKUF0BiRjDAABIjGSrZ3uARClsWpPIIMES5DBnIwIIYAPEEYWKmGyudGJogB1kiIqoacKknD77Pd+czYcFFrvFH4fXyx+fKPQjbPzHmyRmwQftnd6vwJjmRWAPwUhSTrbkAixyENxtUIiMs7dyeH77NDVjElpOFQWH3/wKafWsF+v1+x/f9dwBjZu62NbsVUEoNiGgAoENEQRzH2SykFdBa58aYZyHEJoARMwfOgNbaBuX2ZmNMj4iGZVl20zQdTyMzM6jTt7XXGIATZr5yAqSUr0KI3tThR2be+xNQSu0S0UOzcd8ZDT3PW4+iaPTrM0opL4UQx82a6zKqqjpNkuTCaQ5cP9nCk/gFbMdeuP1liLgAAAAASUVORK5CYII=);
-	}
-	&-topalign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAQklEQVQ4T2NkYGBgKCoq+g+iSQV9fX2MjKRqQldPPQNI9QbI+SDXUM8F5IYF2AWkOh9m2SCLBYrCgFzNgygah7YXAFvyDBGSGfbzAAAAAElFTkSuQmCC);
-	}
-	&-middlealign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAOUlEQVQ4T2NkoBAwUqifYbgYUFRU9J+csOjr62McRGFAqjdAzgd5e5B4gVTnw2JskMUCOQmJKrEAAB8RDBFlTKheAAAAAElFTkSuQmCC);
-	}
-	&-bottomalign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAANklEQVQ4T2NkoBAwUqifYdQAhmETBkVFRf/JSQ99fX2MgygdkOoNkPNB3h4kXiDV+bAYA3kDAO5ODBGzYLwOAAAAAElFTkSuQmCC);
-	}
-	&-leftalign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVQ4T2NkoBAwUqifgToGFBUV/SfHJX19fYzUcQE5tsP0gF1ArBdATka3bIh5Ad35o7EACZGBj0YACEcQEe5MwxUAAAAASUVORK5CYII=);
-	}
-	&-centeralign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARUlEQVQ4T2NkoBAwUqifgToGFBUV/SfHJX19fYzUcQE5tsP0oLiAWK+AnI7VAHJcQp0wINbp6C4cjQVIiFAnFsiJf5geAMg4EBEQCPGkAAAAAElFTkSuQmCC);
-	}
-	&-rightalign16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAQElEQVQ4T2NkoBAwUqifgToGFBUV/SfHJX19fYzUcQE5tsP0YHUBsV4aRF4g1snoYTWIvIDuNGK9NIi9QErKBACIOBARHNn1IwAAAABJRU5ErkJggg==);
-	}
-	&-wraptext16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABVUlEQVQ4T62Ty23CQBCGZxcbHxPSQKSkBFICnCzZaymkBFMCuaNIoQRcApHstQ8oUlxCaAEp1xzyOAbQDhq0i9ZgZA7xbefxzcw/YwYNnxACAWAopUzqQtm/AYQQXQB4A4AOQRGxn+d5qTsoAaBHdqVUUhTF0BTed0AAzvl3mqbLIAimnPOulPJOAxbr9brvOE7MGHtmjD1kWfZCkApAKRVzzmNdaVkUxS0BEPExz/MJ2Q/fNuCdAkwlRIwNwIjo+37Hdd0vG2gDyDHZbDZJq9XawSzAgsYJw3BEIxh9KiMYpxanVErd2AAAIJFJ3P04FUDTOk/5K3dgd6GU2onYBN4DoigaIOLssEUb0BvNLtpt72M+Di+P7kDvfiClvDqsahJXq79rx/E+X59C72yATv7RCb8AWM7H4r7uEumApnU/Tl3rRwAyRFFEOx7Zl3i2iE2Bp/xbRGnNEU0Ec8EAAAAASUVORK5CYII=);
-	}
-	&-centeracross16 {
-		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAYklEQVQ4T2MsKir6z0Am6OvrY2QEGdDb24vViOLiYgZ8ctQzgEwfMBB0AT6DQd6jvgHedZsYtjb54bQYWR7DBSBJYgHIEqxeoMgFxNoOU0fdQCTVdph6gtE4RJIyuf6H6QMAzjB4EZxbDFQAAAAASUVORK5CYII=);
+	.el-input__inner {
+		border: 0;
 	}
 }
 </style>
