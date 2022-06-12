@@ -1,57 +1,105 @@
 package com.ruoyi.common.core.domain;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
+import com.ruoyi.common.core.constant.Constants;
 
-public class R extends HashMap<String, Object> {
-	//
-	private static final long serialVersionUID = -8157613083634272196L;
+/**
+ * 响应信息主体
+ *
+ * @author ruoyi
+ */
+public class R<T> implements Serializable
+{
+    private static final long serialVersionUID = 1L;
 
-	public R() {
-		put("code", 0);
-		put("msg", "success");
-	}
+    /** 成功 */
+    public static final int SUCCESS = Constants.SUCCESS;
 
-	public static R error() {
-		return error(500, "未知异常，请联系管理员");
-	}
+    /** 失败 */
+    public static final int FAIL = Constants.FAIL;
 
-	public static R error(String msg) {
-		return error(500, msg);
-	}
+    private int code;
 
-	public static R error(int code, String msg) {
-		R r = new R();
-		r.put("code", code);
-		r.put("msg", msg);
-		return r;
-	}
+    private String msg;
 
-	public static R ok(String msg) {
-		R r = new R();
-		r.put("msg", msg);
-		return r;
-	}
+    private T data;
 
-	public static R data(Object obj) {
-		R r = new R();
-		r.put("data", obj);
-		return r;
-	}
+    public static <T> R<T> ok()
+    {
+        return restResult(null, SUCCESS, null);
+    }
 
-	public static R ok(Map<String, Object> map) {
-		R r = new R();
-		r.putAll(map);
-		return r;
-	}
+    public static <T> R<T> ok(T data)
+    {
+        return restResult(data, SUCCESS, null);
+    }
 
-	public static R ok() {
-		return new R();
-	}
+    public static <T> R<T> ok(T data, String msg)
+    {
+        return restResult(data, SUCCESS, msg);
+    }
 
-	@Override
-	public R put(String key, Object value) {
-		super.put(key, value);
-		return this;
-	}
+    public static <T> R<T> fail()
+    {
+        return restResult(null, FAIL, null);
+    }
+
+    public static <T> R<T> fail(String msg)
+    {
+        return restResult(null, FAIL, msg);
+    }
+
+    public static <T> R<T> fail(T data)
+    {
+        return restResult(data, FAIL, null);
+    }
+
+    public static <T> R<T> fail(T data, String msg)
+    {
+        return restResult(data, FAIL, msg);
+    }
+
+    public static <T> R<T> fail(int code, String msg)
+    {
+        return restResult(null, code, msg);
+    }
+
+    private static <T> R<T> restResult(T data, int code, String msg)
+    {
+        R<T> apiResult = new R<>();
+        apiResult.setCode(code);
+        apiResult.setData(data);
+        apiResult.setMsg(msg);
+        return apiResult;
+    }
+
+    public int getCode()
+    {
+        return code;
+    }
+
+    public void setCode(int code)
+    {
+        this.code = code;
+    }
+
+    public String getMsg()
+    {
+        return msg;
+    }
+
+    public void setMsg(String msg)
+    {
+        this.msg = msg;
+    }
+
+    public T getData()
+    {
+        return data;
+    }
+
+    public void setData(T data)
+    {
+        this.data = data;
+    }
 }

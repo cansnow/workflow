@@ -1,6 +1,6 @@
 package com.ruoyi.common.core.text;
 
-import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.core.utils.StringUtils;
 
 /**
  * 字符串格式化

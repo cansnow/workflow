@@ -51,9 +51,9 @@ public enum BusinessType
      * 生成代码
      */
     GENCODE,
-    
+
     /**
-     * 清空
+     * 清空数据
      */
     CLEAN,
 }

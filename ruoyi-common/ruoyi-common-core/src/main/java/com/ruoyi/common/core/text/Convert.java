@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 import java.util.Set;
-import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.core.utils.StringUtils;
 
 /**
  * 类型转换器
@@ -561,17 +561,12 @@ public class Convert
         switch (valueStr)
         {
             case "true":
-                return true;
-            case "false":
-                return false;
             case "yes":
-                return true;
             case "ok":
-                return true;
-            case "no":
-                return false;
             case "1":
                 return true;
+            case "false":
+            case "no":
             case "0":
                 return false;
             default:
@@ -797,7 +792,21 @@ public class Convert
         }
         else if (obj instanceof byte[] || obj instanceof Byte[])
         {
-            return str((Byte[]) obj, charset);
+            if (obj instanceof byte[])
+            {
+                return str((byte[]) obj, charset);
+            }
+            else
+            {
+                Byte[] bytes = (Byte[]) obj;
+                int length = bytes.length;
+                byte[] dest = new byte[length];
+                for (int i = 0; i < length; i++)
+                {
+                    dest[i] = bytes[i];
+                }
+                return str(dest, charset);
+            }
         }
         else if (obj instanceof ByteBuffer)
         {

@@ -2,7 +2,7 @@ package com.ruoyi.common.core.text;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.core.utils.StringUtils;
 
 /**
  * 字符集工具类
@@ -66,7 +66,7 @@ public class CharsetKit
 
         if (null == destCharset)
         {
-            srcCharset = StandardCharsets.UTF_8;
+            destCharset = StandardCharsets.UTF_8;
         }
 
         if (StringUtils.isEmpty(source) || srcCharset.equals(destCharset))

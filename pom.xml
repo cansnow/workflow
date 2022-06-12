@@ -4,52 +4,48 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ruoyi.cloud</groupId>
-    <artifactId>ruoyi-cloud</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <groupId>com.ruoyi</groupId>
+    <artifactId>ruoyi</artifactId>
+    <version>3.5.0</version>
 
-    <name>ruoyi-cloud</name>
+    <name>ruoyi</name>
     <url>http://www.ruoyi.vip</url>
-    <description>若依管理系统</description>
+    <description>若依微服务系统</description>
 
     <properties>
-        <ruoyi.version>1.1.0-SNAPSHOT</ruoyi.version>
+        <ruoyi.version>3.5.0</ruoyi.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
-        <spring-cloud.version>Hoxton.SR7</spring-cloud.version>
-        <spring-boot-admin.version>2.2.2</spring-boot-admin.version>
-        <druid.version>1.1.14</druid.version>
-        <bitwalker.version>1.19</bitwalker.version>
+        <spring-boot.version>2.6.7</spring-boot.version>
+        <spring-cloud.version>2021.0.1</spring-cloud.version>
+        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
+        <alibaba.nacos.version>2.0.4</alibaba.nacos.version>
+        <spring-boot-admin.version>2.6.7</spring-boot-admin.version>
+        <spring-boot.mybatis>2.2.2</spring-boot.mybatis>
+        <swagger.fox.version>3.0.0</swagger.fox.version>
+        <swagger.core.version>1.6.2</swagger.core.version>
+        <tobato.version>1.27.2</tobato.version>
         <kaptcha.version>2.3.2</kaptcha.version>
-        <swagger.version>2.7.0</swagger.version>
-        <pagehelper.boot.version>1.2.12</pagehelper.boot.version>
-        <mapper.starter.version>2.1.5</mapper.starter.version>
-        <oshi.version>3.9.1</oshi.version>
-        <commons.io.version>2.5</commons.io.version>
-        <commons.fileupload.version>1.3.3</commons.fileupload.version>
-        <jsoup.version>1.11.3</jsoup.version>
-        <poi.version>3.17</poi.version>
-        <velocity.version>1.7</velocity.version>
-        <qiniu.version>[7.2.0, 7.2.99]</qiniu.version>
-        <aliyun.oss.version>3.5.0</aliyun.oss.version>
-        <qcloud.cos.version>5.6.3</qcloud.cos.version>
-        <fastjson.version>1.2.70</fastjson.version>
-        <lombok.version>1.18.4</lombok.version>
-        <hutool.version>4.1.19</hutool.version>
-        <common-pool.version>2.6.2</common-pool.version>
-        <swagger.version>2.9.2</swagger.version>
-        <swagger-ui.version>1.9.5</swagger-ui.version>
-        <guava.version>26.0-jre</guava.version>
-		<anji-plus.version>1.2.4</anji-plus.version>
+        <pagehelper.boot.version>1.4.1</pagehelper.boot.version>
+        <druid.version>1.2.8</druid.version>
+        <dynamic-ds.version>3.5.0</dynamic-ds.version>
+        <commons.io.version>2.11.0</commons.io.version>
+        <commons.fileupload.version>1.4</commons.fileupload.version>
+        <velocity.version>2.3</velocity.version>
+        <fastjson.version>2.0.4</fastjson.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <minio.version>8.2.2</minio.version>
+        <poi.version>4.1.2</poi.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <transmittable-thread-local.version>2.12.2</transmittable-thread-local.version>
     </properties>
 
     <!-- 依赖声明 -->
     <dependencyManagement>
         <dependencies>
 
-            <!--cloud -->
+            <!-- SpringCloud 微服务 -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -58,16 +54,23 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- SpringCloud Alibaba 微服务 -->
             <dependency>
-                <groupId>de.codecentric</groupId>
-                <artifactId>spring-boot-admin-dependencies</artifactId>
-                <version>${spring-boot-admin.version}</version>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
 
+            <!-- Alibaba Nacos 配置 -->
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${alibaba.nacos.version}</version>
+            </dependency>
 
-            <!-- SpringBoot的依赖配置 -->
+            <!-- SpringBoot 依赖配置 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -76,26 +79,44 @@
                 <scope>import</scope>
             </dependency>
 
-            <!--阿里数据库连接池 -->
+            <!--  SpringBoot 监控客户端 -->
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-starter</artifactId>
-                <version>${druid.version}</version>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-starter-client</artifactId>
+                <version>${spring-boot-admin.version}</version>
             </dependency>
 
-            <!--验证码 -->
+            <!-- FastDFS 分布式文件系统 -->
+            <dependency>
+                <groupId>com.github.tobato</groupId>
+                <artifactId>fastdfs-client</artifactId>
+                <version>${tobato.version}</version>
+            </dependency>
+
+            <!-- Mybatis 依赖配置 -->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${spring-boot.mybatis}</version>
+            </dependency>
+
+            <!-- Swagger 依赖配置 -->
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger.core.version}</version>
+            </dependency>
+
+            <!-- 验证码 -->
             <dependency>
                 <groupId>com.github.penggle</groupId>
                 <artifactId>kaptcha</artifactId>
                 <version>${kaptcha.version}</version>
-            </dependency>
-
-
-            <!-- 解析客户端操作系统、浏览器等 -->
-            <dependency>
-                <groupId>eu.bitwalker</groupId>
-                <artifactId>UserAgentUtils</artifactId>
-                <version>${bitwalker.version}</version>
             </dependency>
 
             <!-- pagehelper 分页插件 -->
@@ -105,33 +126,11 @@
                 <version>${pagehelper.boot.version}</version>
             </dependency>
 
-            <!-- 获取系统信息 -->
-            <dependency>
-                <groupId>com.github.oshi</groupId>
-                <artifactId>oshi-core</artifactId>
-                <version>${oshi.version}</version>
-            </dependency>
-
-
-            <!--io常用工具类 -->
+            <!-- io常用工具类 -->
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
-            </dependency>
-
-            <!--文件上传工具类 -->
-            <dependency>
-                <groupId>commons-fileupload</groupId>
-                <artifactId>commons-fileupload</artifactId>
-                <version>${commons.fileupload.version}</version>
-            </dependency>
-
-            <!-- HTML解析器 -->
-            <dependency>
-                <groupId>org.jsoup</groupId>
-                <artifactId>jsoup</artifactId>
-                <version>${jsoup.version}</version>
             </dependency>
 
             <!-- excel工具 -->
@@ -141,110 +140,122 @@
                 <version>${poi.version}</version>
             </dependency>
 
-            <!--velocity代码生成使用模板 -->
+            <!-- 文件上传工具类 -->
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${commons.fileupload.version}</version>
+            </dependency>
+
+            <!-- 代码生成使用模板 -->
             <dependency>
                 <groupId>org.apache.velocity</groupId>
-                <artifactId>velocity</artifactId>
+                <artifactId>velocity-engine-core</artifactId>
                 <version>${velocity.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>tk.mybatis</groupId>
-                <artifactId>mapper-spring-boot-starter</artifactId>
-                <version>${mapper.starter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>${hutool.version}</version>
+            <!-- Collection 增强Java集合框架 -->
+            <dependency> 
+                <groupId>commons-collections</groupId> 
+                <artifactId>commons-collections</artifactId> 
+                <version>${commons-collections.version}</version>
             </dependency>
 
+            <!-- JSON 解析器和生成器 -->
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
                 <version>${fastjson.version}</version>
             </dependency>
 
+            <!-- JWT -->
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-pool2</artifactId>
-                <version>${common-pool.version}</version>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
             </dependency>
 
-
-            <!-- oss -->
+            <!-- 线程传递值 -->
             <dependency>
-                <groupId>com.qiniu</groupId>
-                <artifactId>qiniu-java-sdk</artifactId>
-                <version>${qiniu.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aliyun.oss</groupId>
-                <artifactId>aliyun-sdk-oss</artifactId>
-                <version>${aliyun.oss.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.qcloud</groupId>
-                <artifactId>cos_api</artifactId>
-                <version>${qcloud.cos.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <!-- swagger-bootstrap-ui -->
-            <dependency>
-                <groupId>com.github.xiaoymin</groupId>
-                <artifactId>swagger-bootstrap-ui</artifactId>
-                <version>${swagger-ui.version}</version>
+                <groupId>com.alibaba</groupId>
+                <artifactId>transmittable-thread-local</artifactId>
+                <version>${transmittable-thread-local.version}</version>
             </dependency>
 
+            <!-- 核心模块 -->
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger.version}</version>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-core</artifactId>
+                <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- 接口模块 -->
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-bean-validators</artifactId>
-                <version>${swagger.version}</version>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-swagger</artifactId>
+                <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- 安全模块 -->
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-security</artifactId>
+                <version>${ruoyi.version}</version>
             </dependency>
 
-			<dependency>
-				<groupId>com.github.anji-plus</groupId>
-				<artifactId>captcha-spring-boot-starter</artifactId>
-				<version>${anji-plus.version}</version>
-			</dependency>
+            <!-- 权限范围 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-datascope</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- 多数据源 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-datasource</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- 日志记录 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-log</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- 缓存服务 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-common-redis</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- 系统接口 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-api-system</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
     <modules>
-
-        <module>ruoyi-common</module>
-        <module>ruoyi-config</module>
-        <module>ruoyi-eureka</module>
+        <module>ruoyi-auth</module>
         <module>ruoyi-gateway</module>
-        <module>ruoyi-service-api</module>
-        <module>ruoyi-service</module>
-        <module>ruoyi-tool</module>
+        <module>ruoyi-visual</module>
+        <module>ruoyi-modules</module>
+        <module>ruoyi-api</module>
+        <module>ruoyi-common</module>
     </modules>
     <packaging>pom</packaging>
 
-
     <dependencies>
+        <!-- bootstrap 启动器 -->
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
     </dependencies>
 
@@ -253,23 +264,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-                <configuration>
-                    <finalName>${project.build.finalName}</finalName>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
 
 </project>

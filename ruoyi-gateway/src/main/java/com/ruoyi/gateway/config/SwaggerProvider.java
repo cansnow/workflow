@@ -1,54 +1,60 @@
 package com.ruoyi.gateway.config;
 
-import lombok.AllArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.NameUtils;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * @ClassName SwaggerProvider
- * @PackageName com.ruoyi.gateway.config
- * @Description 
- * @Author daiz
- * @Date 2019/8/16 10:04
- * @Version 1.0
+ * 聚合系统接口
+ * 
+ * @author ruoyi
  */
 @Component
-@Primary
-@AllArgsConstructor
-public class SwaggerProvider implements SwaggerResourcesProvider
+public class SwaggerProvider implements SwaggerResourcesProvider, WebFluxConfigurer
 {
-    public static final String      API_URI = "/v2/api-docs";
+    /**
+     * Swagger2默认的url后缀
+     */
+    public static final String SWAGGER2URL = "/v2/api-docs";
+    /**
+     * 网关路由
+     */
+    @Autowired
+    private RouteLocator routeLocator;
 
-    private final RouteLocator      routeLocator;
+    @Autowired
+    private GatewayProperties gatewayProperties;
 
-    private final GatewayProperties gatewayProperties;
-
+    /**
+     * 聚合其他服务接口
+     * 
+     * @return
+     */
     @Override
     public List<SwaggerResource> get()
     {
-        List<SwaggerResource> resources = new ArrayList<>();
+        List<SwaggerResource> resourceList = new ArrayList<>();
         List<String> routes = new ArrayList<>();
-        // 取出gateway的route
+        // 获取网关中配置的route
         routeLocator.getRoutes().subscribe(route -> routes.add(route.getId()));
-        // 结合配置的route-路径(Path)，和route过滤，只获取有效的route节点
-        // 打开下面注释可以自动扫描接入gateway的服务，为了演示，只扫描system
-        // gatewayProperties.getRoutes().stream().filter(routeDefinition ->
-        // routes.contains(routeDefinition.getId()))
-        gatewayProperties.getRoutes().stream().filter(routeDefinition -> routeDefinition.getId().equals("ruoyi-system"))
+        gatewayProperties.getRoutes().stream()
+                .filter(routeDefinition -> routes
+                        .contains(routeDefinition.getId()))
                 .forEach(routeDefinition -> routeDefinition.getPredicates().stream()
-                        .filter(predicateDefinition -> ("Path").equalsIgnoreCase(predicateDefinition.getName()))
-                        .forEach(predicateDefinition -> resources
+                        .filter(predicateDefinition -> "Path".equalsIgnoreCase(predicateDefinition.getName()))
+                        .filter(predicateDefinition -> !"ruoyi-auth".equalsIgnoreCase(routeDefinition.getId()))
+                        .forEach(predicateDefinition -> resourceList
                                 .add(swaggerResource(routeDefinition.getId(), predicateDefinition.getArgs()
-                                        .get(NameUtils.GENERATED_NAME_PREFIX + "0").replace("/**", API_URI)))));
-        return resources;
+                                        .get(NameUtils.GENERATED_NAME_PREFIX + "0").replace("/**", SWAGGER2URL)))));
+        return resourceList;
     }
 
     private SwaggerResource swaggerResource(String name, String location)
@@ -58,5 +64,13 @@ public class SwaggerProvider implements SwaggerResourcesProvider
         swaggerResource.setLocation(location);
         swaggerResource.setSwaggerVersion("2.0");
         return swaggerResource;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry)
+    {
+        /** swagger-ui 地址 */
+        registry.addResourceHandler("/swagger-ui/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/springfox-swagger-ui/");
     }
 }
