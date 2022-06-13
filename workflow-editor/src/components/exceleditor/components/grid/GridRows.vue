@@ -94,7 +94,7 @@ export default {
         getStyle(index) {
             return {
                 top: `${this.getTop(index)}px`,
-                height: `${this.getHeight(index) - 1}px`
+                height: `${this.getHeight(index)}px`
             };
         }
     }
