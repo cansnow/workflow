@@ -87,7 +87,6 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
-@import '../myExcel-master/css/font-awesome.4.6.0.css';
 .flex_row {
 	display: flex;
 	flex-direction: row;
