@@ -49,6 +49,7 @@ export default {
 	computed: {},
 	methods: {
 		updateOptions(value) {
+			debugger;
 			this.options = Object.assign(this.options, value);
 		},
 		//显示当前json
