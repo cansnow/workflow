@@ -16,6 +16,9 @@ export default {
         },
 
         getMerge(pos) {
+            if (!this.merges) {
+                return;
+            }
             return this.merges[getMergeKey(pos)];
         },
 

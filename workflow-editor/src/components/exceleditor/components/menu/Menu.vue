@@ -179,7 +179,8 @@ export default {
 			return this.$parent.getCurSheet();
 		},
 		start() {
-			return this.$sheet.selection.start || {rowIndex:0,columnIndex:0};
+			return {rowIndex:0,columnIndex:0};
+			// return this.$sheet.selection.start || {rowIndex:0,columnIndex:0};
 		},
 		//      $cell(){
 		//        const cell = this.$sheet.getCurCell();

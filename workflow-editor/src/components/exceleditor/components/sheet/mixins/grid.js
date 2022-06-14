@@ -3,6 +3,9 @@ import _ from 'lodash';
 export default {
     methods: {
         getRowInfos(start, end) {
+            // if (!this.rows) {
+            //     return;
+            // }
             if (_.isUndefined(end)) {
                 return this.rows[start];
             }
@@ -12,6 +15,9 @@ export default {
         },
 
         getColumnInfos(start, end) {
+            // if (!this.columns) {
+            //     return;
+            // }
             if (_.isUndefined(end)) {
                 return this.columns[start];
             }
