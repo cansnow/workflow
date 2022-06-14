@@ -108,7 +108,6 @@ export default {
         getAreaLayoutPos(area, info) {
 
             info = info || this.s_getSelectionRect(area);
-
             const h = getAreaCutLeftOrTope(area,
                 info.top,
                 info.height,
@@ -121,6 +120,7 @@ export default {
                 this.fixedWidth, this.fixedColumnIndex,
                 this.scrollLeft, 'columnIndex');
 
+            console.log(h);
             return Object.assign(h, w);
 
         },

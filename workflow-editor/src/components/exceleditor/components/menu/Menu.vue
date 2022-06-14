@@ -1,6 +1,6 @@
 <template>
 	<div class="meg-menu">
-		<a-tooltip :title="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name">
+		<el-tooltip :content="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name">
 			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor'">
 				<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
 				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
@@ -11,15 +11,15 @@
 				<m-Select slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></m-Select>
 			</Dropdown>
 
-			<a-select :default-value="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择" v-else-if="tool.options">
-				<a-select-option v-for="(option) in tool.options" :key="option.value ? option.value :option"
+			<el-select :value="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择" v-else-if="tool.options">
+				<el-option v-for="(option,index) in tool.options" :value="option.value ? option.value :option" :key="index"
 					>{{option.label ? option.label : option}}
-				</a-select-option>
-			</a-select>
-			<a-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
+				</el-option>
+			</el-select>
+			<el-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
 				<i :class="tool.icon"></i>
-			</a-button>
-		</a-tooltip>
+			</el-button>
+		</el-tooltip>
 	</div>
 </template>
 
@@ -179,7 +179,7 @@ export default {
 			return this.$parent.getCurSheet();
 		},
 		start() {
-			return this.$sheet.selection.start;
+			return this.$sheet.selection.start || {rowIndex:0,columnIndex:0};
 		},
 		//      $cell(){
 		//        const cell = this.$sheet.getCurCell();
@@ -189,7 +189,6 @@ export default {
 	watch: {
 		start() {
 			this.curCell = this.$sheet.getCurCell();
-			console.log(this.$sheet.selection.start);
 		},
 		
 		curCell() {
@@ -197,6 +196,7 @@ export default {
 		    if (this.$cell) {
 		        style = this.$sheet.getStyle(this.$cell.s);
 		    }
+			console.log(style);
 		
 		    if (this.items) {
 		        this.items.map(item => {
@@ -394,7 +394,7 @@ export default {
 			}
 		}
 	}
-	.ant-select {
+	.el-select {
 		min-width: 100px;
 	}
 	.el-input__inner {
