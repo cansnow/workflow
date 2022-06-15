@@ -1,6 +1,8 @@
 package com.circleyo.workflow.domain;
 
 import java.util.Date;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -121,6 +123,10 @@ public class WfForm extends BaseEntity
         return lastUpdatedDate;
     }
 
+    private List<WfFormItem> itemList;
+
+    private Long dataId;
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -133,5 +139,21 @@ public class WfForm extends BaseEntity
             .append("lastUpdatedBy", getLastUpdatedBy())
             .append("lastUpdatedDate", getLastUpdatedDate())
             .toString();
+    }
+
+    public List<WfFormItem> getItemList() {
+        return itemList;
+    }
+
+    public void setItemList(List<WfFormItem> itemList) {
+        this.itemList = itemList;
+    }
+
+    public Long getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(Long dataId) {
+        this.dataId = dataId;
     }
 }

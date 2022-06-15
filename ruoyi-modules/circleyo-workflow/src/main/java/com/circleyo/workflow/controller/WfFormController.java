@@ -113,4 +113,36 @@ public class WfFormController extends BaseController
     {
         return getDataTable(wfFormService.findFieldList(table));
     }
+
+    /**
+     * 新增表单业务数据
+     */
+    @RequiresPermissions("workflow:wfForm:addItemData")
+    @Log(title = "工作流表单", businessType = BusinessType.INSERT)
+    @PostMapping("/addItemData")
+    public AjaxResult addItemData(@RequestBody WfForm wfForm)
+    {
+        return toAjax(wfFormService.addItemData(wfForm));
+    }
+    /**
+     * 删除表单业务数据
+     */
+    @RequiresPermissions("workflow:wfForm:deleteItemData")
+    @Log(title = "工作流表单", businessType = BusinessType.INSERT)
+    @PostMapping("/deleteItemData")
+    public AjaxResult deleteItemData(@RequestBody WfForm wfForm)
+    {
+        return toAjax(wfFormService.deleteItemData(wfForm));
+    }
+
+    /**
+     * 更新业务表单数据
+     */
+    @RequiresPermissions("workflow:wfForm:updateItemData")
+    @Log(title = "工作流表单", businessType = BusinessType.UPDATE)
+    @PostMapping("/updateItemData")
+    public AjaxResult updateItemData(@RequestBody WfForm wfForm)
+    {
+        return toAjax(wfFormService.updateItemData(wfForm));
+    }
 }

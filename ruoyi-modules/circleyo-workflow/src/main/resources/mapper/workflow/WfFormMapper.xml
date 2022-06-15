@@ -112,4 +112,34 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		from information_schema.columns where table_schema = (select database()) and table_name = (#{tableName})
 		order by ordinal_position
 	</select>
+
+    <insert id="dynamicInsert" parameterType="com.circleyo.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
+        insert into ${tableName}
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <foreach collection="itemList" item="item"  separator="," >
+               ${item.fieldName}
+            </foreach>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <foreach collection="itemList" item="item"  separator="," >
+                ${item.value}
+            </foreach>
+        </trim>
+    </insert>
+
+    <delete id="deleteItemData" parameterType="com.circleyo.workflow.domain.WfForm">
+        delete from  ${tableName} where id =#{dataId}
+    </delete>
+
+    <update id="updateItemData" parameterType="com.circleyo.workflow.domain.WfForm">
+        update  ${tableName}
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="(" suffix=")">
+                <foreach collection="itemList" item="item"  separator="," >
+                    ${item.fieldName}=${item.value}
+                </foreach>
+            </trim>
+        </trim>
+        where id = #{id}
+    </update>
 </mapper>

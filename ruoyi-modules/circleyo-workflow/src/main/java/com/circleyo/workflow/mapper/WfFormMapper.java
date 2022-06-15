@@ -69,4 +69,25 @@ public interface WfFormMapper
      * @return 表字段
      */
     List<TableColumn> selectDbTableColumnsByName(String table);
+
+    /**
+     * 动态插入表数据
+     * @param wfForm
+     * @return
+     */
+    int dynamicInsert(WfForm wfForm);
+
+    /**
+     * 删除表单业务数据
+     * @param wfForm
+     * @return
+     */
+    int deleteItemData(WfForm wfForm);
+
+    /**
+     * 修改表单业务数据
+     * @param wfForm
+     * @return
+     */
+    int updateItemData(WfForm wfForm);
 }

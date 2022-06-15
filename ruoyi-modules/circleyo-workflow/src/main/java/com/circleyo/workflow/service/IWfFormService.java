@@ -67,4 +67,25 @@ public interface IWfFormService
      * @return 表字段
      */
     List<TableColumn> findFieldList(String table);
+
+    /**
+     * 保存业务数据
+     * @param wfForm
+     * @return
+     */
+    int addItemData(WfForm wfForm);
+
+    /**
+     * 删除表单业务数据
+     * @param wfForm
+     * @return
+     */
+    int deleteItemData(WfForm wfForm);
+
+    /**
+     * 更新表单业务数据
+     * @param wfForm
+     * @return
+     */
+    int updateItemData(WfForm wfForm);
 }

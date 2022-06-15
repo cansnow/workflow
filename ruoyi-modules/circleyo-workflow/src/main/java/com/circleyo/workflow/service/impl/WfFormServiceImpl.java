@@ -18,8 +18,7 @@ import com.circleyo.workflow.service.IWfFormService;
  */
 @Service
 @Repository
-public class WfFormServiceImpl implements IWfFormService
-{
+public class WfFormServiceImpl implements IWfFormService {
     @Autowired
     private WfFormMapper wfFormMapper;
 
@@ -30,8 +29,7 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 工作流表单
      */
     @Override
-    public WfForm selectWfFormById(Long id)
-    {
+    public WfForm selectWfFormById(Long id) {
         return wfFormMapper.selectWfFormById(id);
     }
 
@@ -42,8 +40,7 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 工作流表单
      */
     @Override
-    public List<WfForm> selectWfFormList(WfForm wfForm)
-    {
+    public List<WfForm> selectWfFormList(WfForm wfForm) {
         return wfFormMapper.selectWfFormList(wfForm);
     }
 
@@ -54,8 +51,7 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 结果
      */
     @Override
-    public int insertWfForm(WfForm wfForm)
-    {
+    public int insertWfForm(WfForm wfForm) {
         return wfFormMapper.insertWfForm(wfForm);
     }
 
@@ -66,8 +62,7 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 结果
      */
     @Override
-    public int updateWfForm(WfForm wfForm)
-    {
+    public int updateWfForm(WfForm wfForm) {
         return wfFormMapper.updateWfForm(wfForm);
     }
 
@@ -78,8 +73,7 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 结果
      */
     @Override
-    public int deleteWfFormByIds(Long[] ids)
-    {
+    public int deleteWfFormByIds(Long[] ids) {
         return wfFormMapper.deleteWfFormByIds(ids);
     }
 
@@ -90,13 +84,33 @@ public class WfFormServiceImpl implements IWfFormService
      * @return 结果
      */
     @Override
-    public int deleteWfFormById(Long id)
-    {
+    public int deleteWfFormById(Long id) {
         return wfFormMapper.deleteWfFormById(id);
     }
 
     @Override
     public List<TableColumn> findFieldList(String table) {
-       return wfFormMapper.selectDbTableColumnsByName(table);
+        return wfFormMapper.selectDbTableColumnsByName(table);
+    }
+
+    @Override
+    public int addItemData(WfForm wfForm) {
+        WfForm currentForm = wfFormMapper.selectWfFormById(wfForm.getId());
+        wfForm.setTableName(currentForm.getTableName());
+        return wfFormMapper.dynamicInsert(wfForm);
+    }
+
+    @Override
+    public int deleteItemData(WfForm wfForm) {
+        WfForm currentForm = wfFormMapper.selectWfFormById(wfForm.getId());
+        wfForm.setTableName(currentForm.getTableName());
+        return wfFormMapper.deleteItemData(wfForm);
+    }
+
+    @Override
+    public int updateItemData(WfForm wfForm) {
+        WfForm currentForm = wfFormMapper.selectWfFormById(wfForm.getId());
+        wfForm.setTableName(currentForm.getTableName());
+        return wfFormMapper.updateItemData(wfForm);
     }
 }
