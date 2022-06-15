@@ -3,7 +3,7 @@
         <Menus v-if="menu" class="meg-workbook-menu" />
         <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
-                <Sheet :ref="'sheet_'+index" :options="sheet.data" :sheetIndex="index" :autoCreate="autoCreate" />
+                <Sheet @selectCell="handleSelectCell" :ref="'sheet_'+index" :options="sheet.data" :sheetIndex="index" :autoCreate="autoCreate" />
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -56,6 +56,9 @@ export default {
         getCurSheet() {
             return this.$refs['sheet'+this.sheetIndex];
         },
+        handleSelectCell() {
+            this.$emit('selectCell');
+        }
     },
 };
 </script>

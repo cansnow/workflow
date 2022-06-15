@@ -284,7 +284,7 @@ export default {
 
         setCellValue(pos, val) {
             this.c_addCell(pos.rowIndex, pos.columnIndex);
-            if (_.$isFormula(val)) {
+            if (!_.isPlainObject(val) && _.$isFormula(val)) {
                 this.setCellFormula(pos, val);
                 this.computedCellFormula(pos);
             } else {
@@ -367,7 +367,6 @@ export default {
 
         c_setCellV(pos, val) {
             const cell = this.getPosCell(pos);
-
             if (isOnlyValueCell(cell)) {
                 if (cell !== val) {
                     this.c_setCell({
@@ -381,8 +380,19 @@ export default {
                     });
                 }
             } else {
-                if (cell.v !== val) {
-                    cell.v = val;
+                if (!_.isPlainObject(val)) {
+                    if (cell.v !== val) {
+                        cell.v = val;
+                        this.$emit('on-cellval-change', {
+                            pos,
+                            cell,
+                        });
+                    }
+                } else {
+                    Object.keys(cell).forEach(item => {
+                        delete cell[item];
+                    });
+                    Object.assign(cell, val);
                     this.$emit('on-cellval-change', {
                         pos,
                         cell,
