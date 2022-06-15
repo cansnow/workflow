@@ -81,7 +81,7 @@ export default {
 
     methods: {
         cellClick() {
-            console.log(arguments);
+            //console.log(arguments);
         },
         isShowBackgroudPorxy(cell) {
             if (cell.merge && cell.style.css.backgroundColor == '#fff') {
@@ -150,7 +150,7 @@ export default {
                     baseStyle.left = -this.$sheet.getGapWidth(columnIndex, index + this.startColumnIndex);
                 }
             } else {
-                baseStyle.width = this.getWidth(index) - 1;
+                baseStyle.width = this.getWidth(index);
             }
 
             baseStyle.left += this.getLeft(index);

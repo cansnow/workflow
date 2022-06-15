@@ -48,3 +48,4 @@ logs
 !*/build/*.html
 !*/build/*.xml
 ruoyi-ant
+*.bak

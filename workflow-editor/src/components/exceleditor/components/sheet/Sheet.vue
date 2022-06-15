@@ -148,7 +148,16 @@ export default {
         Block,
     },
     props: {
-
+        sheetIndex:{
+            type:[Number,String],
+            default:0
+        },
+        options:{
+            type:Object,
+            default(){
+                return {};
+            }
+        },
         autoCreate: {
             type: Boolean,
             default: false,
@@ -157,7 +166,9 @@ export default {
     },
     mixins,
     data() {
+        console.log(this.options);
         return {
+            optionsTemp: this.options,
             // 行的信息
             rows: undefined,
             // 列的信息
@@ -189,6 +200,35 @@ export default {
         },
     },
     watch: {
+        // optionsTemp(options){
+        //     console.log(options);
+        //     this.rows = options.rows || [];
+        //     this.columns = options.columns || [];
+        //     this.merges = parseMerges(options.merges);
+        //     this.cells = options.cells || {};
+        //     this.styles = parseStyle(options.styles || {});
+        //     this.RCStyles = parseStyle(options.RCStyles || {});
+        //     this.rowCount = options.rowCount || 200;
+        //     this.columnCount = options.columnCount || 20;
+        //     this.maxRowCount = options.maxRowCount || 10000;
+        //     this.maxColumnCount = options.maxColumnCount || 200;
+        // },
+        optionsTemp: {
+            handler: function(options) {
+                console.log(options);
+                this.rows = options.rows || [];
+                this.columns = options.columns || [];
+                this.merges = parseMerges(options.merges);
+                this.cells = options.cells || {};
+                this.styles = parseStyle(options.styles || {});
+                this.RCStyles = parseStyle(options.RCStyles || {});
+                this.rowCount = options.rowCount || 200;
+                this.columnCount = options.columnCount || 20;
+                this.maxRowCount = options.maxRowCount || 10000;
+                this.maxColumnCount = options.maxColumnCount || 200;
+            },
+            immediate: true,
+        },
         rowCount(rowCount) {
             this.updateData({ rowCount });
         },
@@ -216,43 +256,21 @@ export default {
         rows(rows) {
             this.updateData({ rows });
         },
-
-        updateData(name, value) {
-            this.$piniastore.$state.data[name] = value;
-        }
-    },
-    created() {
-        this.init();
     },
     methods: {
-        init() {
-            let _this = this;
-            _this.update(this.$piniastore.$state);
-            this.$piniastore.$subscribe((mutation, state) => {
-
-                _this.update(state);
-            })
-        },
-        update(state) {
-            let options = state.data;
-            this.rows = options.rows || [];
-            this.columns = options.columns || [];
-            this.merges = parseMerges(options.merges);
-            this.cells = options.cells || {};
-            this.styles = parseStyle(options.styles || {});
-            this.RCStyles = parseStyle(options.RCStyles || {});
-            this.rowCount = options.rowCount || 200;
-            this.columnCount = options.columnCount || 20;
-            this.maxRowCount = options.maxRowCount || 10000;
-            this.maxColumnCount = options.maxColumnCount || 200;
+        updateData(name, value) {
+            let data = this.$piniastore.$state.data;
+            data[this.sheetIndex].data[name] = value;
+		    this.$piniastore.setData(data);
         }
-    }
+    },
 };
 </script>
 <style lang="scss">
 .meg-sheet {
     position: relative;
     overflow: auto;
+    height: calc(100vh - 40px - 40px - 60px - 30px - 15px);
 
     &:focus {
         outline: none;

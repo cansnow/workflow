@@ -34,7 +34,7 @@ export default {
                 const height = this.$grid.heights[index];
                 return {
                     width: `100%`,
-                    height: `${height - 1}px`
+                    height: `${height -1}px`
                 };
             }
         }

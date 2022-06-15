@@ -51,7 +51,7 @@ export default {
             };
 
             if (!this.$sheet.isSelectColumn && !this.$sheet.isSelectRow) {
-                const merge = this.$sheet.getMerge(this.selection.start);
+                const merge = this.$sheet.getMerge(this.selection.start ||{rowIndex:0,columnIndex:0});
                 if (merge) {
                     curArea = merge;
                 }

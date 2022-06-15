@@ -3,28 +3,28 @@
 		<div id="ExcelEditor" ref="ExcelEditor">
 			<div class="header">
 				<div class="flex_row space-between">
-					<a-button type="link" icon="left"></a-button>
-					<a-input v-model="title" class="inputbb" placeholder="请输入内容"></a-input>
+					<el-button type="text" icon="arrow-left"></el-button>
+					<el-input v-model="title" class="inputbb" placeholder="请输入内容"></el-input>
 				</div>
-				<a-button-group>
-					<a-button type="primary">设计</a-button>
-					<a-button type="default">数据</a-button>
-					<a-button type="default">设置</a-button>
-				</a-button-group>
-				<a-button-group>
-					<a-button type="default" @click="viewData">查看代码</a-button>
-					<a-button type="primary">发布</a-button>
-				</a-button-group>
+				<el-button-group>
+					<el-button type="primary">设计</el-button>
+					<el-button type="default">数据</el-button>
+					<el-button type="default">设置</el-button>
+				</el-button-group>
+				<el-button-group>
+					<el-button type="default" @click="viewData">查看代码</el-button>
+					<el-button type="primary">发布</el-button>
+				</el-button-group>
 			</div>
 			<div class="flex_row" style="flex:1;">
-				<vspread :menu="menu" :autoCreate="autoCreate" @updateOptions="updateOptions" style="flex:1;" />
+				<vspread @updateOptions="updateOptions" style="flex:1;" />
 				<rightPanel></rightPanel>
 			</div>
 		</div>
 
-		<a-modal :visible="codeData.show" title="代码" width="600px" @close="codeData.show = false">
-			<a-textarea v-model="codeData.data" :rows="20" type="textarea" readonly placeholder="Please input" />
-		</a-modal>
+		<el-dialog :visible.sync="codeData.show" title="代码" width="600px" @close="codeData.show = false">
+			<el-textarea v-model="codeData.data" :rows="20" type="textarea" readonly placeholder="Please input" />
+		</el-dialog>
 	</div>
 </template>
 
@@ -41,17 +41,15 @@ export default {
 				show: false,
 				data: ''
 			},
+            data:{},
 			title: '未命名表单',
 			options: {},
-			//是否显示菜单
-			menu: true,
-			//是否自动补齐行列
-			autoCreate: true
 		};
 	},
 	computed: {},
 	methods: {
 		updateOptions(value) {
+			debugger;
 			this.options = Object.assign(this.options, value);
 		},
 		//显示当前json
@@ -79,7 +77,7 @@ export default {
 		}
 	},
 	components: { vspread, rightPanel },
-	mounted: function() {
+	created: function() {
 		this.$piniastore.setData(testData);
 	}
 };
@@ -90,7 +88,6 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
-@import '../myExcel-master/css/font-awesome.4.6.0.css';
 .flex_row {
 	display: flex;
 	flex-direction: row;

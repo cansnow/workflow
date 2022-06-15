@@ -1,6 +1,6 @@
 <template>
   <ul class="meg-select">
-    <li v-for="(option,i) in options" :key="i" @click="handlerClick(option)">{{option.text || option}}</li>
+    <li v-for="(option,i) in options" :key="i" @click="handlerClick(option)">{{option.label || option}}</li>
   </ul>
 
 </template>
