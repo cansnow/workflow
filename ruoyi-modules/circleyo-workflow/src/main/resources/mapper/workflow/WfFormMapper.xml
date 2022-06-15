@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.circleyo.workflow.mapper.WfFormMapper">
+
+    <resultMap type="com.circleyo.workflow.domain.WfForm" id="WfFormResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="tableName"    column="table_name"    />
+        <result property="formContent"    column="form_content"    />
+        <result property="createdBy"    column="created_by"    />
+        <result property="createdDate"    column="created_date"    />
+        <result property="lastUpdatedBy"    column="last_updated_by"    />
+        <result property="lastUpdatedDate"    column="last_updated_date"    />
+    </resultMap>
+
+    <sql id="selectWfFormVo">
+        select id, name, table_name, form_content, created_by, created_date, last_updated_by, last_updated_date from wf_form
+    </sql>
+
+    <select id="selectWfFormList" parameterType="com.circleyo.workflow.domain.WfForm" resultMap="WfFormResult">
+        <include refid="selectWfFormVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="tableName != null  and tableName != ''"> and table_name like concat('%', #{tableName}, '%')</if>
+            <if test="formContent != null  and formContent != ''"> and form_content = #{formContent}</if>
+            <if test="createdBy != null  and createdBy != ''"> and created_by = #{createdBy}</if>
+            <if test="createdDate != null "> and created_date = #{createdDate}</if>
+            <if test="lastUpdatedBy != null  and lastUpdatedBy != ''"> and last_updated_by = #{lastUpdatedBy}</if>
+            <if test="lastUpdatedDate != null "> and last_updated_date = #{lastUpdatedDate}</if>
+        </where>
+    </select>
+
+    <select id="selectWfFormById" parameterType="Long" resultMap="WfFormResult">
+        <include refid="selectWfFormVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertWfForm" parameterType="com.circleyo.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_form
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="tableName != null">table_name,</if>
+            <if test="formContent != null">form_content,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdDate != null">created_date,</if>
+            <if test="lastUpdatedBy != null">last_updated_by,</if>
+            <if test="lastUpdatedDate != null">last_updated_date,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="tableName != null">#{tableName},</if>
+            <if test="formContent != null">#{formContent},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdDate != null">#{createdDate},</if>
+            <if test="lastUpdatedBy != null">#{lastUpdatedBy},</if>
+            <if test="lastUpdatedDate != null">#{lastUpdatedDate},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWfForm" parameterType="com.circleyo.workflow.domain.WfForm">
+        update wf_form
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="tableName != null">table_name = #{tableName},</if>
+            <if test="formContent != null">form_content = #{formContent},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdDate != null">created_date = #{createdDate},</if>
+            <if test="lastUpdatedBy != null">last_updated_by = #{lastUpdatedBy},</if>
+            <if test="lastUpdatedDate != null">last_updated_date = #{lastUpdatedDate},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWfFormById" parameterType="Long">
+        delete from wf_form where id = #{id}
+    </delete>
+
+    <delete id="deleteWfFormByIds" parameterType="String">
+        delete from wf_form where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <resultMap type="com.circleyo.workflow.domain.TableColumn" id="TableColumnResult">
+        <id     property="columnId"       column="column_id"      />
+        <result property="tableId"        column="table_id"       />
+        <result property="columnName"     column="column_name"    />
+        <result property="columnComment"  column="column_comment" />
+        <result property="columnType"     column="column_type"    />
+        <result property="javaType"       column="java_type"      />
+        <result property="javaField"      column="java_field"     />
+        <result property="isPk"           column="is_pk"          />
+        <result property="isIncrement"    column="is_increment"   />
+        <result property="isRequired"     column="is_required"    />
+        <result property="isInsert"       column="is_insert"      />
+        <result property="isEdit"         column="is_edit"        />
+        <result property="isList"         column="is_list"        />
+        <result property="isQuery"        column="is_query"       />
+        <result property="queryType"      column="query_type"     />
+        <result property="htmlType"       column="html_type"      />
+        <result property="dictType"       column="dict_type"      />
+        <result property="sort"           column="sort"           />
+        <result property="createBy"       column="create_by"      />
+        <result property="createTime"     column="create_time"    />
+        <result property="updateBy"       column="update_by"      />
+        <result property="updateTime"     column="update_time"    />
+    </resultMap>
+    <select id="selectDbTableColumnsByName" parameterType="String" resultMap="TableColumnResult">
+		select column_name, (case when (is_nullable = 'no' <![CDATA[ && ]]> column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type
+		from information_schema.columns where table_schema = (select database()) and table_name = (#{tableName})
+		order by ordinal_position
+	</select>
+</mapper>
