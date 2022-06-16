@@ -157,18 +157,6 @@ export default {
 						change: this.change,
 					},
 				},
-				// {
-				// 	label: '表单字段',
-				// 	type: 'input',
-				// 	field: 'formFiled',
-				// 	ifShow: false,
-				// 	props: {
-				// 		placeholder: '请选择',
-				// 		style: { width: '100%' },
-				// 		focus: this.focus,
-				// 		change: this.change,
-				// 	},
-				// },
 				{
 					label: '表单字段',
 					type: 'inputPopup',
@@ -352,6 +340,7 @@ export default {
 				case 'checkbox': // 选择
 				case 'radio':
 				case 'select':
+				case 'selectM':
 					let defValue = '';
 					if (data.options.length > 0) {
 						const labels = [];
@@ -360,9 +349,20 @@ export default {
 						});
 						defValue = labels.join(',');
 					}
+					let selectType = '';
+					switch (data.c) {
+						case 'selectM':
+							selectType = 'dropdownCheckbox';
+							break;
+						case 'select':
+							selectType = 'dropdownRadio';
+							break;
+						default:
+							selectType = data.c;
+					}
 					Object.assign(temp, {
 						componentType: 'select',
-						selectType: data.c != 'select' ? data.c : 'dropdownRadio',
+						selectType: selectType,
 						default: { value: defValue, type: 'custom' },
 					});
 					break;

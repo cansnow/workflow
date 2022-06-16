@@ -97,7 +97,13 @@ export default {
 		},
 		// 编辑单元格
 		setCell(data) {
-			this.$refs.vspread.getCurSheet()[0].setCellValue(this.selection.start, data);
+			const curSheet = this.$refs.vspread.getCurSheet()[0];
+			curSheet.doEditCell();
+			setTimeout(function() {
+				curSheet.doCancelEdit();
+				curSheet.doEditCellValue(data);
+			}, 1000);
+			// curSheet.setCellValue(this.selection.start, data);
 		},
 		// 修改表单
 		handleFormChange(data) {
@@ -113,16 +119,19 @@ export default {
 					temp.v = data.default.value;
 					break;
 				case 'select': // TODO 下拉树未做 单元格选择
-					// checkbox radio select
-					temp.c = data.selectType;
-					if (
-						temp.c == 'dropdownRadio' ||
-						temp.c == 'dropdownCheckbox' ||
-						temp.c == 'dropdownRadioTree' ||
-						temp.c == 'dropdownCheckboxTree'
-					) {
-						temp.c = 'select';
-					}
+					// checkbox radio select selectM
+					switch(data.selectType) {
+						case 'dropdownRadio': 
+						case 'dropdownRadioTree': 
+						case 'dropdownCheckboxTree' :
+							temp.c = 'select';
+							break;
+						case 'dropdownCheckbox':
+							temp.c = 'selectM';
+							break;
+						default:
+							temp.c = data.selectType;
+					};
 					const valueList = data.default.value.split(',');
 					const options = [];
 					valueList.forEach(item => {
@@ -147,6 +156,7 @@ export default {
 					temp = null;
 					break;
 			}
+			debugger;
 			if (temp != null) {
 				this.setCell(temp);
 			} else {
