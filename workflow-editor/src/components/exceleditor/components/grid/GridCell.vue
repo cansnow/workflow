@@ -52,18 +52,45 @@
 			<el-option v-for="item in cell.option.options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
+        <!-- 下拉多选 -->
+        <el-select v-model="props.option.v" multiple v-if="isCtrl('select')">
+			<el-option v-for="item in cell.option.options" :key="item.value" :label="item.label" :value="item.value">
+			</el-option>
+		</el-select>
+        <!-- 下拉树单选 -->
+        <TreeSelect
+            style="width: 100%"
+            v-if="isCtrl('treeSelect')"
+            :options="cell.option.options"
+            :value="props.option.v"
+            :clearable="true"
+            :accordion="true"
+            @getValue="getTreeSelectValue($event)"
+        />
+        <!-- 下拉树多选 -->
+        <TreeSelectMultiple
+            style="width: 100%"
+            v-if="isCtrl('treeSelectMultiple')"
+            :options="cell.option.options"
+            :clearable="true"
+            :accordion="true"
+            @getValue="getTreeSelectMultipleValue($event)"
+        />
 		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!isCtrl()">{{ formatValue(cell) }}</div>
     </div>
 </template>
 
 <script>
 import { getCellValue } from '../sheet/mixins/cell/cellUtil';
+import TreeSelect from '../treeSelect/index.vue';
+import TreeSelectMultiple from '../treeSelect/treeSelectMultiple.vue';
 
 export default {
     inject: ['$sheet'],
     props: {
         cell: Object,
     },
+    components: { TreeSelect, TreeSelectMultiple },
 	data(){
 		return {
 			data:{},
@@ -103,6 +130,20 @@ export default {
         formatValue(cell) {
             const v = getCellValue(cell.option);
             return v;
+        },
+        // 下拉树单选 数据
+        getTreeSelectValue(e) {
+            console.log('getTreeSelectValue e',e);
+            this.$set(this.props.option, 'v', e[0]);
+        },
+        // 下拉树多选 数据
+        getTreeSelectMultipleValue(e) {
+            console.log('getTreeSelectMultipleValue e',e);
+            const temp = [];
+            e.forEach(item => {
+                temp.push(item.id);
+            });
+            this.$set(this.props.option, 'v', temp);
         },
     },
 };
