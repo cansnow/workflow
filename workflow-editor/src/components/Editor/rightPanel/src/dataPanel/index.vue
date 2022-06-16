@@ -10,11 +10,6 @@
 <script>
 import Tree from './src/tree.vue';
 export default {
-  provide() {
-		return {
-				$dataPanel: this,
-		};
-	},
   inject: ['$rightPanel'],
   data() {
     return {

@@ -61,6 +61,7 @@ export default {
     watch: {
         'selection.start': {
             handler(start) {
+                this.$emit('selectCell');
                 this.tempMoveSelectionPos = start;
             },
             immediate: true,

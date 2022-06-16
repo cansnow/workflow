@@ -121,7 +121,6 @@ export default {
                 this.scrollLeft, 'columnIndex');
 
             console.log(h);
-            this.$emit('selectCell');
             return Object.assign(h, w);
 
         },

@@ -51,9 +51,6 @@ export default {
 		selection: function() {
 			return this.$refs.vspread.getCurSheet()[0].selection;
 		},
-		curCell: function() {
-			return this.$refs.vspread.getCurSheet()[0].getCurCell();
-		},
 	},
 	methods: {
 		updateOptions(value) {
@@ -66,41 +63,42 @@ export default {
 			this.codeData.show = true;
 		},
 		//保存
-		saveData() {
-			this.setCell({
-				v: '选项2',
-				c: 'select',
-				options: [
-						{
-								value: '选项1',
-								label: '黄金糕'
-						},
-						{
-								value: '选项2',
-								label: '双皮奶'
-						},
-						{
-								value: '选项3',
-								label: '蚵仔煎'
-						},
-						{
-								value: '选项4',
-								label: '龙须面'
-						},
-						{
-								value: '选项5',
-								label: '北京烤鸭'
-						}
-				],
-				s: 's4'
-		});
+		saveData() {},
+		//发布
+		postData() {
+			const loadingInstance = ElLoading.service({ fullscreen: true });
+			Api.saveDesign(this.data).then(res => {
+				loadingInstance.close();
+				ElMessage({
+					message: '保存成功',
+					type: 'success'
+				});
+			});
 		},
-
+		//自动保存
+		autoSave() {
+			setTimeout(this.$piniastore.data, 1000 * 30);
+		},
+		// 当前单元格
+		curCell() {
+			if (typeof(this.$refs.vspread) == "undefined") return -1;
+			return this.$refs.vspread.getCurSheet()[0].getCurCell();
+		},
+		// 选择单元格
+		handleSelectCell() {
+			const curCell = this.curCell();
+			if (curCell == -1) return;
+			console.log('handleSelectCell curCell', curCell);
+			if(curCell != null) {
+				this.$refs.rightPanel.updataForm(curCell);
+			} else {
+				this.$refs.rightPanel.resetForm();
+			}
+		},
 		// 编辑单元格
 		setCell(data) {
 			this.$refs.vspread.getCurSheet()[0].setCellValue(this.selection.start, data);
 		},
-
 		// 修改表单
 		handleFormChange(data) {
 			let temp = {
@@ -153,29 +151,6 @@ export default {
 				this.setCell(temp);
 			} else {
 				this.setCell({ v: null });
-			}
-		},
-		//发布
-		postData() {
-			const loadingInstance = ElLoading.service({ fullscreen: true });
-			Api.saveDesign(this.data).then(res => {
-				loadingInstance.close();
-				ElMessage({
-					message: '保存成功',
-					type: 'success'
-				});
-			});
-		},
-		//自动保存
-		autoSave() {
-			setTimeout(this.$piniastore.data, 1000 * 30);
-		},
-		handleSelectCell() {
-			console.log('handleSelectCell curCell', this.curCell);
-			if(this.curCell != null) {
-				this.$refs.rightPanel.updataForm(this.curCell);
-			} else {
-				this.$refs.rightPanel.resetForm();
 			}
 		},
 	},
