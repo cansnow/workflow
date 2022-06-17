@@ -100,7 +100,8 @@ export default {
 			checkboxValue:[],
             cellType: undefined,
             value: undefined, // 默认值
-            options: undefined, // 显示
+            options: undefined, // select 组件必须参数
+            ifCell: true, // 是否单元格 true 单元格，false 组件
 		}
 	},
     watch: {
@@ -120,8 +121,10 @@ export default {
             if (this.cell.option) {
                 if (typeof(this.cell.option['c']) == 'undefined') {
                     this.cellType = null;
+                    this.ifCell = true;
                 } else {
                     this.cellType = this.cell.option.c;
+                    this.ifCell = false;
                 }
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
@@ -148,6 +151,10 @@ export default {
             }, e.pageY, e.pageX);
         },
         doEdit() {
+            // 组件不需要双击编辑
+            if (!this.ifCell) {
+                return;
+            }
             this.$sheet.doEditCell();
         },
         formatValue(cell) {
