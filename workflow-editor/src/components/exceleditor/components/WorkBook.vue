@@ -1,6 +1,6 @@
 <template>
     <div tabIndex="999" class="meg-workbook" @parse="handleParse" @keydown="handleKeyMap">
-        <Menus v-if="menu" class="meg-workbook-menu" />
+        <Menus v-if="menu" class="meg-workbook-menu" style="max-width: 100%; flex-wrap: wrap; height: auto; min-height: 40px;"/>
         <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
                 <Sheet @selectCell="handleSelectCell" :ref="'sheet_'+index" :options="sheet.data" :sheetIndex="index" :autoCreate="autoCreate" />

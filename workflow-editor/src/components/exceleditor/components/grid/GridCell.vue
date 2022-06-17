@@ -1,11 +1,11 @@
 <template>
     <div class="meg-gridcell" @mousedown.left="mouseDown" @contextmenu.prevent="showMenu" @dblclick="doEdit"
         :style="cell.style.css">
-        <el-input type="text" v-model="props.option.v" v-if="isCtrl('text')" />
-		<el-input type="text" show-password v-model="props.option.v" v-if="isCtrl('password')" />
-		<el-input-number type="text" v-model="props.option.v" v-if="isCtrl('number')" />
+        <el-input type="text" v-model="value" v-if="cellType == 'text'" />
+		<el-input type="text" show-password v-model="value" v-if="cellType == 'password'" />
+		<el-input-number type="text" v-model="value" v-if="cellType == 'number'" />
 		<el-upload
-			v-if="isCtrl('upload')"
+			v-if="cellType == 'upload'"
 			class="upload-demo"
 			action="https://jsonplaceholder.typicode.com/posts/"
 			:on-preview="handlePreview"
@@ -19,50 +19,50 @@
 		  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
 		</el-upload>
 		
-		<el-image v-if="isCtrl('image')" :src="props.option.v"></el-image>
-		<el-button type="primary" v-if="isCtrl('button')" >{{props.option.v}}</el-button>
+		<el-image v-if="cellType == 'image'" :src="value"></el-image>
+		<el-button type="primary" v-if="cellType == 'button'" >{{value}}</el-button>
 		<el-date-picker
-			:value="props.option.v"
+			:value="value"
             placement ="bottom"
 			type="datetime"
 			placeholder="选择日期时间"
-			v-if="isCtrl('datetime')">
+			v-if="cellType == 'datetime'">
 		</el-date-picker>
 		<el-date-picker
-			:value="props.option.v"
+			:value="value"
             placement ="bottom"
 			type="date"
 			placeholder="选择日期"
-			v-if="isCtrl('date')">
+			v-if="cellType == 'date'">
 		</el-date-picker>
         <el-date-picker
-			:value="props.option.v"
+			:value="value"
             placement ="bottom"
 			type="time"
 			placeholder="选择时间"
-			v-if="isCtrl('time')">
+			v-if="cellType == 'time'">
 		</el-date-picker>
-		<el-radio-group v-model="props.option.v" v-if="isCtrl('radio')">
-			<el-radio :label="item.value" v-for="item in cell.option.options" :key="item.value">{{item.label}}</el-radio>
+		<el-radio-group v-model="value" v-if="cellType == 'radio'">
+			<el-radio :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
-		<el-checkbox-group v-model="checkboxValue" v-if="isCtrl('checkbox')">
-			<el-checkbox :label="item.value" v-for="item in cell.option.options" :key="item.value">{{item.label}}</el-checkbox>
+		<el-checkbox-group v-model="checkboxValue" v-if="cellType == 'checkbox'">
+			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
 		</el-checkbox-group>
-		<el-select v-model="props.option.v" v-if="isCtrl('select')">
-			<el-option v-for="item in cell.option.options" :key="item.value" :label="item.label" :value="item.value">
+		<el-select v-model="value" v-if="cellType == 'select'">
+			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
         <!-- 下拉多选 -->
-        <el-select v-model="props.option.v" multiple v-if="isCtrl('selectMultiple')">
-			<el-option v-for="item in cell.option.options" :key="item.value" :label="item.label" :value="item.value">
+        <el-select v-model="value" multiple v-if="cellType == 'selectMultiple'">
+			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
         <!-- 下拉树单选 -->
         <TreeSelect
             style="width: 100%"
-            v-if="isCtrl('treeSelect')"
-            :options="cell.option.options"
-            :value="props.option.v"
+            v-if="cellType == 'treeSelect'"
+            :options="options"
+            :value="value"
             :clearable="true"
             :accordion="true"
             @getValue="getTreeSelectValue($event)"
@@ -70,14 +70,14 @@
         <!-- 下拉树多选 -->
         <TreeSelectMultiple
             style="width: 100%"
-            v-if="isCtrl('treeSelectMultiple')"
-            :options="cell.option.options"
-            :value="props.option.v"
+            v-if="cellType == 'treeSelectMultiple'"
+            :options="options"
+            :value="value"
             :clearable="true"
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"
         />
-		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!isCtrl()">{{ formatValue(cell) }}</div>
+		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType">{{ formatValue(cell) }}</div>
     </div>
 </template>
 
@@ -98,13 +98,35 @@ export default {
 			props:this.cell,
             fileList:[],
 			checkboxValue:[],
+            cellType: undefined,
+            value: undefined, // 默认值
+            options: undefined, // 显示
 		}
 	},
+    watch: {
+        '$sheet.cellType': {
+            handler() {
+                this.updateCellType();
+            },
+            immediate: true,
+        },
+    },
     methods: {
         handlePreview(){},
         handleRemove(){},
         beforeRemove(){},
         handleExceed(){},
+        updateCellType() {
+            if (this.cell.option) {
+                if (typeof(this.cell.option['c']) == 'undefined') {
+                    this.cellType = null;
+                } else {
+                    this.cellType = this.cell.option.c;
+                }
+                this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
+                this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
+            }
+        },
 		isCtrl(v){
 			if(v){
 				return this.cell.option && this.cell.option.c==v;
@@ -136,11 +158,13 @@ export default {
         getTreeSelectValue(e) {
             console.log('getTreeSelectValue e',e);
             this.$set(this.props.option, 'v', e[0] + '');
+            this.value = e[0] + '';
         },
         // 下拉树多选 数据
         getTreeSelectMultipleValue(e) {
             console.log('getTreeSelectMultipleValue e',e);
             this.$set(this.props.option, 'v', e);
+            this.value = e;
         },
     },
 };

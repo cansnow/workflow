@@ -98,18 +98,20 @@ export default {
 		// 编辑单元格
 		setCell(data) {
 			const curSheet = this.$refs.vspread.getCurSheet()[0];
+			curSheet.setUpdateCellType('');
 			curSheet.doEditCell();
 			setTimeout(function() {
 				curSheet.doCancelEdit();
+				curSheet.setUpdateCellType(data.c);
 				curSheet.doEditCellValue(data);
-			}, 1000);
+			}, 200);
 			// curSheet.setCellValue(this.selection.start, data);
 		},
 		// 修改表单
 		handleFormChange(data) {
 			let temp = {
 				v: null,
-				c: null,
+				c: '',
 				s: 's4',
 			};
 			switch(data.componentType) {
@@ -156,7 +158,7 @@ export default {
 			if (temp != null) {
 				this.setCell(temp);
 			} else {
-				this.setCell({ v: null });
+				this.setCell({ v: null, c: '' });
 			}
 		},
 	},

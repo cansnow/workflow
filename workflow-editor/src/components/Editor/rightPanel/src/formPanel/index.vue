@@ -307,7 +307,7 @@ export default {
     // 上传成功
     handleAvatarSuccess(res, file) {
 			this.form.imageUrl = URL.createObjectURL(file.raw);
-			this.$emit('formChange', this.form);
+			this.change();
 		},
     // 开始上传
 		beforeAvatarUpload(file) {
