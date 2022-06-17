@@ -4,13 +4,16 @@
       <el-tree
         id="tree-option"
         ref="selectTree"
+        show-checkbox
         :accordion="accordion"
         :data="options"
         :props="props"
         :node-key="props.value"
         :default-expanded-keys="defaultExpandedKey"
+        :default-checked-keys="defaultCheckedKeys"
+        check-on-click-node
         :filter-node-method="filterNode"
-        @node-click="handleNodeClick"
+        @check="handleNodeCheck"
       >
       </el-tree>
     </el-option>
@@ -63,11 +66,12 @@ export default {
   },
   data() {
     return {
-      filterText: "",
+      filterText: "", // 过滤文本
       valueId: '', // 初始值
-      valueTitle: "",
-      defaultExpandedKey: [],
-      selectData:[]
+      valueTitle: "", // 显示的值
+      defaultExpandedKey: [], // 展开项
+      selectData:[], // 勾选数据
+      defaultCheckedKeys: [], // 勾选项
     };
   },
   mounted() {
@@ -77,26 +81,23 @@ export default {
     // 初始化值
     initHandle() {
       // window.console.log(this.$refs.selectTree)
+      this.valueTitle = '';
+      this.valueId = '';
+      this.defaultCheckedKeys = [];
+      this.defaultExpandedKey = [];
       if (Array.isArray(this.value) && this.value.length !== 0) {
-        // window.console.log(this.$refs.selectTree.getNode(10036), '***')
         // 显示已选项
-        this.valueTitle = '';
         const tiltes = [];
         this.value.forEach(item => {
-          // this.valueTitle += `${item[this.props.label]}，`
           tiltes.push(item[this.props.label]);
+          this.defaultCheckedKeys.push(item[this.props.value]);
         });
+        this.setChecked(this.defaultCheckedKeys, true, false);
         if (tiltes.length > 0) {
           this.valueTitle = tiltes.join(',');
         }
         this.selectData = JSON.parse(JSON.stringify(this.value));
-        // this.$refs.selectTree.setCurrentKey(this.valueId); // 设置默认选中
         this.defaultExpandedKey = [...(this.value.map(item => item[this.props.value]))]; // 设置默认展开
-      } else {
-        this.valueTitle = '';
-        this.defaultExpandedKey = [];
-        this.valueId = '';
-        // this.clearSelected();
       }
       this.initScroll();
     },
@@ -114,39 +115,19 @@ export default {
         scrollBar.forEach((ele) => (ele.style.width = 0));
       });
     },
-    // 切换选项
-    handleNodeClick(node) {
-      // window.console.log('切换选项',  node)
-      if (Array.isArray(node[this.props.children]) && node[this.props.children].length !== 0) {
-        return;
-      } else {
-        // let val ='';
-        // window.console.log(node)
-        let delIndex = -1;
-        if (!this.selectData.some((item, index) => {
-          if (item[this.props.value] == node[this.props.value]) {
-            delIndex = index;
-          }
-          return item[this.props.value] == node[this.props.value]
-        })) {
-          this.selectData.push(node)
-          // this.selectData.forEach(el=> val += `${el[this.props.label]}，`);
-          // this.valueTitle = val;
-          this.valueId = node[this.props.value];
-          this.$emit("getValue", this.selectData);
-          this.defaultExpandedKey = [];
-        } else {
-          // 删除已选
-          this.selectData.splice(delIndex, 1);
-          this.$emit("getValue", this.selectData);
-        }
-      }
-    },
     // 清除选中
     clearHandle() {
       this.valueTitle = "";
       this.valueId = "";
       this.defaultExpandedKey = [];
+      this.defaultCheckedKeys = [];
+      // 清空全部勾选项
+      const checkeds = [];
+      this.selectData.forEach(item => {
+        checkeds.push(item[this.props.value]);
+      });
+      this.setChecked(checkeds, false, true);
+      debugger;
       this.selectData = []
       this.clearSelected();
       this.$emit("getValue", null);
@@ -159,6 +140,35 @@ export default {
     filterNode(value, data) {
       if (!value) return true;
       return data.name.indexOf(value) !== -1;
+    },
+    // 设置勾选项
+    setChecked(data, checked = false, deep = true) {
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach(item => {
+          this.$refs.selectTree.setChecked(item, checked, deep);
+        });
+      } else {
+        this.$refs.selectTree.setChecked(data, checked, deep);
+      }
+    },
+    // 勾选事件
+    handleNodeCheck(data, state) {
+      console.log('handleNodeCheck', data, state);
+      // data checkedKeys checkedNodes 
+      // 1.data[this.props.value] 不在 checkedKeys 中，取消勾中，否则勾中
+      // 2.在this.selectdata中增加和删除
+      // 3.修改this.valueTitle, checkedNodes[item][this.props.value]
+      if (state.checkedKeys.length > 0) {
+        const tiltes = [];
+        this.selectData = [];
+        state.checkedNodes.forEach(item => {
+          this.selectData.push(item);
+          tiltes.push(item[this.props.label]);
+        });
+        this.valueTitle = tiltes.join(',');
+      } else {
+        this.clearHandle(); // 清空
+      }
     },
   },
   watch: {
