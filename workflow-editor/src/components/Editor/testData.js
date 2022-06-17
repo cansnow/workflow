@@ -197,7 +197,7 @@ export default [
                     },
                     {
                         v: [],
-                        c: 'selectM',
+                        c: 'selectMultiple',
                         options: [
                             {
                                 value: '选项1',

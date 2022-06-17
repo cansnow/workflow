@@ -53,7 +53,7 @@
 			</el-option>
 		</el-select>
         <!-- 下拉多选 -->
-        <el-select v-model="props.option.v" multiple v-if="isCtrl('select')">
+        <el-select v-model="props.option.v" multiple v-if="isCtrl('selectMultiple')">
 			<el-option v-for="item in cell.option.options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>

@@ -195,10 +195,10 @@ export default {
 						options: [
 							{ label: "单选", value: "radio" },
 							{ label: "多选", value: "checkbox" },
-							{ label: "下拉单选", value: "dropdownRadio" },
-							{ label: "下拉多选", value: "dropdownCheckbox" },
-							{ label: "下拉单选树", value: "dropdownRadioTree" },
-							{ label: "下拉多选树", value: "dropdownCheckboxTree" },
+							{ label: "下拉单选", value: "select" },
+							{ label: "下拉多选", value: "selectMultiple" },
+							{ label: "下拉单选树", value: "treeSelect" },
+							{ label: "下拉多选树", value: "treeSelectMultiple" },
 						],
 						change: this.change,
 					},
@@ -337,10 +337,13 @@ export default {
 				case 'image': // 图片
 					Object.assign(temp, { imageUrl: data.v });
 					break;
-				case 'checkbox': // 选择
-				case 'radio':
+				case 'radio': // 选择
+				case 'checkbox':
 				case 'select':
-				case 'selectM':
+				case 'selectMultiple':
+				case 'treeSelect': // 下拉树单选
+				case 'treeSelectMultiple': // 下拉树多选
+					// 单选 多选 下拉，转成字符串，树直接转JSON字符串
 					let defValue = '';
 					if (data.options.length > 0) {
 						const labels = [];
@@ -349,20 +352,10 @@ export default {
 						});
 						defValue = labels.join(',');
 					}
-					let selectType = '';
-					switch (data.c) {
-						case 'selectM':
-							selectType = 'dropdownCheckbox';
-							break;
-						case 'select':
-							selectType = 'dropdownRadio';
-							break;
-						default:
-							selectType = data.c;
-					}
+					defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
 					Object.assign(temp, {
 						componentType: 'select',
-						selectType: selectType,
+						selectType: data.c,
 						default: { value: defValue, type: 'custom' },
 					});
 					break;

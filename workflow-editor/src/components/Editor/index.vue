@@ -118,25 +118,22 @@ export default {
 					temp.c = data.inputType;
 					temp.v = data.default.value;
 					break;
-				case 'select': // TODO 下拉树未做 单元格选择
+				case 'select': // 单元格选择
 					// checkbox radio select selectM
-					switch(data.selectType) {
-						case 'dropdownRadio': 
-						case 'dropdownRadioTree': 
-						case 'dropdownCheckboxTree' :
-							temp.c = 'select';
-							break;
-						case 'dropdownCheckbox':
-							temp.c = 'selectM';
-							break;
-						default:
-							temp.c = data.selectType;
-					};
+					temp.c = data.selectType;
+					// 非树结构
 					const valueList = data.default.value.split(',');
-					const options = [];
+					let options = [];
 					valueList.forEach(item => {
 						options.push({ value: item, label: item });
 					});
+					// 树结构 将字符串转JSON对象
+					if (
+						data.selectType == 'treeSelect' ||
+						data.selectType == 'treeSelectMultiple'
+					) {
+						options = JSON.parse(data.default.value);
+					}
 					temp.options = options;
 					break;
 				case 'upload': // TODO 上传
@@ -156,7 +153,6 @@ export default {
 					temp = null;
 					break;
 			}
-			debugger;
 			if (temp != null) {
 				this.setCell(temp);
 			} else {
