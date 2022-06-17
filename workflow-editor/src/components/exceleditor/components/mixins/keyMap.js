@@ -98,7 +98,7 @@ export default {
     methods: {
 
         _handleKeyMap(e) {
-            const curSheet = this.getCurSheet();
+            const curSheet = this.getCurSheet()[0];
             if (e.ctrlKey && !e.altKey && !e.shiftKey) {
                 switch (e.keyCode) {
                     case keyCode.A:

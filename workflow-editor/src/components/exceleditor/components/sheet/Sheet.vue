@@ -162,7 +162,6 @@ export default {
             type: Boolean,
             default: false,
         },
-
     },
     mixins,
     data() {
@@ -189,6 +188,8 @@ export default {
             maxRowCount: 10000,
             //允许的最大列
             maxColumnCount: 200,
+            // 更改单元格组件类型
+            cellType: '',
         };
     },
     computed: {
@@ -262,6 +263,9 @@ export default {
             let data = this.$piniastore.$state.data;
             data[this.sheetIndex].data[name] = value;
 		    this.$piniastore.setData(data);
+        },
+        setUpdateCellType(cellType) {
+            this.cellType = cellType;
         }
     },
 };
