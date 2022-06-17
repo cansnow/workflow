@@ -98,7 +98,7 @@ export default {
 		// 编辑单元格
 		setCell(data) {
 			const curSheet = this.$refs.vspread.getCurSheet()[0];
-			curSheet.setUpdateCellType('');
+			curSheet.setUpdateCellType(null);
 			curSheet.doEditCell();
 			setTimeout(function() {
 				curSheet.doCancelEdit();
@@ -111,7 +111,7 @@ export default {
 		handleFormChange(data) {
 			let temp = {
 				v: null,
-				c: '',
+				c: 'Cell',
 				s: 's4',
 			};
 			switch(data.componentType) {
@@ -158,7 +158,7 @@ export default {
 			if (temp != null) {
 				this.setCell(temp);
 			} else {
-				this.setCell({ v: null, c: '' });
+				this.setCell({ v: null, c: 'Cell' });
 			}
 		},
 	},

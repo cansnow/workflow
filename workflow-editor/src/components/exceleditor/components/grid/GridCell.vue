@@ -77,7 +77,7 @@
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"
         />
-		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType">{{ formatValue(cell) }}</div>
+		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType || cellType == 'Cell'">{{ formatValue(cell) }}</div>
     </div>
 </template>
 
@@ -124,7 +124,7 @@ export default {
                     this.ifCell = true;
                 } else {
                     this.cellType = this.cell.option.c;
-                    this.ifCell = false;
+                    this.ifCell = this.cellType == 'Cell';
                 }
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
