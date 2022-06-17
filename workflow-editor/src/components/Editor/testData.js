@@ -195,9 +195,35 @@ export default [
                         ],
                         s: 's4'
                     },
-                    null,
                     {
-                        v: '选项2',
+                        v: [],
+                        c: 'selectM',
+                        options: [
+                            {
+                                value: '选项1',
+                                label: '黄金糕'
+                            },
+                            {
+                                value: '选项2',
+                                label: '双皮奶'
+                            },
+                            {
+                                value: '选项3',
+                                label: '蚵仔煎'
+                            },
+                            {
+                                value: '选项4',
+                                label: '龙须面'
+                            },
+                            {
+                                value: '选项5',
+                                label: '北京烤鸭'
+                            }
+                        ],
+                        s: 's4'
+                    },,
+                    {
+                        v: '',
                         c: 'treeSelect',
                         options: [
                             {
@@ -239,7 +265,7 @@ export default [
                         s: 's4'
                     },
                     {
-                        v: '选项2',
+                        v: [],
                         c: 'treeSelectMultiple',
                         options: [
                             {

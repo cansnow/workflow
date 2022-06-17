@@ -72,6 +72,7 @@
             style="width: 100%"
             v-if="isCtrl('treeSelectMultiple')"
             :options="cell.option.options"
+            :value="props.option.v"
             :clearable="true"
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"
@@ -134,16 +135,12 @@ export default {
         // 下拉树单选 数据
         getTreeSelectValue(e) {
             console.log('getTreeSelectValue e',e);
-            this.$set(this.props.option, 'v', e[0]);
+            this.$set(this.props.option, 'v', e[0] + '');
         },
         // 下拉树多选 数据
         getTreeSelectMultipleValue(e) {
             console.log('getTreeSelectMultipleValue e',e);
-            const temp = [];
-            e.forEach(item => {
-                temp.push(item.id);
-            });
-            this.$set(this.props.option, 'v', temp);
+            this.$set(this.props.option, 'v', e);
         },
     },
 };

@@ -79,12 +79,24 @@ export default {
       // window.console.log(this.$refs.selectTree)
       if (Array.isArray(this.value) && this.value.length !== 0) {
         // window.console.log(this.$refs.selectTree.getNode(10036), '***')
+        // 显示已选项
+        this.valueTitle = '';
+        const tiltes = [];
         this.value.forEach(item => {
-          this.valueTitle += `${item[this.props.label]}，`
+          // this.valueTitle += `${item[this.props.label]}，`
+          tiltes.push(item[this.props.label]);
         });
+        if (tiltes.length > 0) {
+          this.valueTitle = tiltes.join(',');
+        }
         this.selectData = JSON.parse(JSON.stringify(this.value));
         // this.$refs.selectTree.setCurrentKey(this.valueId); // 设置默认选中
         this.defaultExpandedKey = [...(this.value.map(item => item[this.props.value]))]; // 设置默认展开
+      } else {
+        this.valueTitle = '';
+        this.defaultExpandedKey = [];
+        this.valueId = '';
+        // this.clearSelected();
       }
       this.initScroll();
     },
@@ -104,21 +116,29 @@ export default {
     },
     // 切换选项
     handleNodeClick(node) {
-      // window.console.log(node)
+      // window.console.log('切换选项',  node)
       if (Array.isArray(node[this.props.children]) && node[this.props.children].length !== 0) {
         return;
       } else {
-        let val ='';
+        // let val ='';
         // window.console.log(node)
-        if (!this.selectData.some( item => {
+        let delIndex = -1;
+        if (!this.selectData.some((item, index) => {
+          if (item[this.props.value] == node[this.props.value]) {
+            delIndex = index;
+          }
           return item[this.props.value] == node[this.props.value]
         })) {
           this.selectData.push(node)
-          this.selectData.forEach(el=> val += `${el[this.props.label]}，`);
-          this.valueTitle = val;
+          // this.selectData.forEach(el=> val += `${el[this.props.label]}，`);
+          // this.valueTitle = val;
           this.valueId = node[this.props.value];
           this.$emit("getValue", this.selectData);
           this.defaultExpandedKey = [];
+        } else {
+          // 删除已选
+          this.selectData.splice(delIndex, 1);
+          this.$emit("getValue", this.selectData);
         }
       }
     },
