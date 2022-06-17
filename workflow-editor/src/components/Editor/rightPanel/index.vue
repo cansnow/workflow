@@ -8,11 +8,11 @@
 					<el-tab-pane label="全局" name="overallPanel" />
 				</el-tabs>
 			</div>
-			<div style="width: 50px; text-align: center;">
+			<!-- <div style="width: 50px; text-align: center;">
 				<el-button type="text">
 					<i class="mdi mdi-close"></i>
 				</el-button>
-			</div>
+			</div> -->
 		</div>
 		<div style="overflow: hidden; height: calc(100vh - 120px);">
 			<div style="overflow-y: scroll; text-align: left; height: 100%; width: 317px;">
