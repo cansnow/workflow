@@ -10,45 +10,67 @@ import com.ruoyi.common.core.annotation.Excel;
 import com.ruoyi.common.core.web.domain.BaseEntity;
 
 /**
- * 工作流表单对象 wf_form
+ * 【请填写功能名称】对象 wf_form
  *
  * @author circleyo
- * @date 2022-06-12
+ * @date 2022-06-18
  */
 public class WfForm extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** $column.columnComment */
+    /**  */
     private Long id;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 模板名称 */
+    @Excel(name = "模板名称")
     private String name;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 表名称 */
+    @Excel(name = "表名称")
     private String tableName;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 表单内容 */
+    @Excel(name = "表单内容")
     private String formContent;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 创建人 */
+    @Excel(name = "创建人")
     private String createdBy;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 创建时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createdDate;
 
-    /** $column.columnComment */
-    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    /** 更新人 */
+    @Excel(name = "更新人")
     private String lastUpdatedBy;
+
+    /** 更新时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date lastUpdatedDate;
 
     /** $column.columnComment */
     @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
-    private Date lastUpdatedDate;
+    private String sheetName;
+
+    /** $column.columnComment */
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    private String backgroud;
+
+    /** $column.columnComment */
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    private String pageRouter;
+
+    /** $column.columnComment */
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    private String status;
+
+    /** $column.columnComment */
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+    private String deletedFlag;
 
     public void setId(Long id)
     {
@@ -122,7 +144,51 @@ public class WfForm extends BaseEntity
     {
         return lastUpdatedDate;
     }
+    public void setSheetName(String sheetName)
+    {
+        this.sheetName = sheetName;
+    }
 
+    public String getSheetName()
+    {
+        return sheetName;
+    }
+    public void setBackgroud(String backgroud)
+    {
+        this.backgroud = backgroud;
+    }
+
+    public String getBackgroud()
+    {
+        return backgroud;
+    }
+    public void setPageRouter(String pageRouter)
+    {
+        this.pageRouter = pageRouter;
+    }
+
+    public String getPageRouter()
+    {
+        return pageRouter;
+    }
+    public void setStatus(String status)
+    {
+        this.status = status;
+    }
+
+    public String getStatus()
+    {
+        return status;
+    }
+    public void setDeletedFlag(String deletedFlag)
+    {
+        this.deletedFlag = deletedFlag;
+    }
+
+    public String getDeletedFlag()
+    {
+        return deletedFlag;
+    }
     private List<WfFormItem> itemList;
 
     private Long dataId;
@@ -138,6 +204,12 @@ public class WfForm extends BaseEntity
             .append("createdDate", getCreatedDate())
             .append("lastUpdatedBy", getLastUpdatedBy())
             .append("lastUpdatedDate", getLastUpdatedDate())
+            .append("sheetName", getSheetName())
+            .append("backgroud", getBackgroud())
+            .append("pageRouter", getPageRouter())
+            .append("remark", getRemark())
+            .append("status", getStatus())
+            .append("deletedFlag", getDeletedFlag())
             .toString();
     }
 

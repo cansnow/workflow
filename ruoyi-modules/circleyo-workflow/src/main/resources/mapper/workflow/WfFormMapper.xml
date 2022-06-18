@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.circleyo.workflow.mapper.WfFormMapper">
-
+    
     <resultMap type="com.circleyo.workflow.domain.WfForm" id="WfFormResult">
         <result property="id"    column="id"    />
         <result property="name"    column="name"    />
@@ -13,15 +13,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createdDate"    column="created_date"    />
         <result property="lastUpdatedBy"    column="last_updated_by"    />
         <result property="lastUpdatedDate"    column="last_updated_date"    />
+        <result property="sheetName"    column="sheet_name"    />
+        <result property="backgroud"    column="backgroud"    />
+        <result property="pageRouter"    column="page_router"    />
+        <result property="remark"    column="remark"    />
+        <result property="status"    column="status"    />
+        <result property="deletedFlag"    column="deleted_flag"    />
     </resultMap>
 
     <sql id="selectWfFormVo">
-        select id, name, table_name, form_content, created_by, created_date, last_updated_by, last_updated_date from wf_form
+        select id, name, table_name, form_content, created_by, created_date, last_updated_by, last_updated_date, sheet_name, backgroud, page_router, remark, status, deleted_flag from wf_form
     </sql>
 
     <select id="selectWfFormList" parameterType="com.circleyo.workflow.domain.WfForm" resultMap="WfFormResult">
         <include refid="selectWfFormVo"/>
-        <where>
+        <where>  
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="tableName != null  and tableName != ''"> and table_name like concat('%', #{tableName}, '%')</if>
             <if test="formContent != null  and formContent != ''"> and form_content = #{formContent}</if>
@@ -29,14 +35,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createdDate != null "> and created_date = #{createdDate}</if>
             <if test="lastUpdatedBy != null  and lastUpdatedBy != ''"> and last_updated_by = #{lastUpdatedBy}</if>
             <if test="lastUpdatedDate != null "> and last_updated_date = #{lastUpdatedDate}</if>
+            <if test="sheetName != null  and sheetName != ''"> and sheet_name like concat('%', #{sheetName}, '%')</if>
+            <if test="backgroud != null  and backgroud != ''"> and backgroud = #{backgroud}</if>
+            <if test="pageRouter != null  and pageRouter != ''"> and page_router = #{pageRouter}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="deletedFlag != null  and deletedFlag != ''"> and deleted_flag = #{deletedFlag}</if>
         </where>
     </select>
-
+    
     <select id="selectWfFormById" parameterType="Long" resultMap="WfFormResult">
         <include refid="selectWfFormVo"/>
         where id = #{id}
     </select>
-
+        
     <insert id="insertWfForm" parameterType="com.circleyo.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
         insert into wf_form
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -47,6 +58,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createdDate != null">created_date,</if>
             <if test="lastUpdatedBy != null">last_updated_by,</if>
             <if test="lastUpdatedDate != null">last_updated_date,</if>
+            <if test="sheetName != null">sheet_name,</if>
+            <if test="backgroud != null">backgroud,</if>
+            <if test="pageRouter != null">page_router,</if>
+            <if test="remark != null">remark,</if>
+            <if test="status != null">status,</if>
+            <if test="deletedFlag != null">deleted_flag,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="name != null">#{name},</if>
@@ -56,6 +73,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createdDate != null">#{createdDate},</if>
             <if test="lastUpdatedBy != null">#{lastUpdatedBy},</if>
             <if test="lastUpdatedDate != null">#{lastUpdatedDate},</if>
+            <if test="sheetName != null">#{sheetName},</if>
+            <if test="backgroud != null">#{backgroud},</if>
+            <if test="pageRouter != null">#{pageRouter},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="status != null">#{status},</if>
+            <if test="deletedFlag != null">#{deletedFlag},</if>
          </trim>
     </insert>
 
@@ -69,6 +92,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createdDate != null">created_date = #{createdDate},</if>
             <if test="lastUpdatedBy != null">last_updated_by = #{lastUpdatedBy},</if>
             <if test="lastUpdatedDate != null">last_updated_date = #{lastUpdatedDate},</if>
+            <if test="sheetName != null">sheet_name = #{sheetName},</if>
+            <if test="backgroud != null">backgroud = #{backgroud},</if>
+            <if test="pageRouter != null">page_router = #{pageRouter},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="deletedFlag != null">deleted_flag = #{deletedFlag},</if>
         </trim>
         where id = #{id}
     </update>
@@ -78,12 +107,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteWfFormByIds" parameterType="String">
-        delete from wf_form where id in
+        delete from wf_form where id in 
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
-    <resultMap type="com.circleyo.workflow.domain.TableColumn" id="TableColumnResult">
+ <resultMap type="com.circleyo.workflow.domain.TableColumn" id="TableColumnResult">
         <id     property="columnId"       column="column_id"      />
         <result property="tableId"        column="table_id"       />
         <result property="columnName"     column="column_name"    />
