@@ -37,6 +37,11 @@ import DictTag from '@/components/DictTag'
 import VueMeta from 'vue-meta'
 // 字典数据组件
 import DictData from '@/components/DictData'
+// 使用pinia
+import { createPinia } from 'pinia'
+Vue.use(createPinia())
+
+import piniastore from "@/views/design/execlEditorPanel/store";
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts
@@ -48,6 +53,8 @@ Vue.prototype.selectDictLabel = selectDictLabel
 Vue.prototype.selectDictLabels = selectDictLabels
 Vue.prototype.download = download
 Vue.prototype.handleTree = handleTree
+
+Vue.prototype.$piniastore =piniastore();
 
 // 全局组件挂载
 Vue.component('DictTag', DictTag)

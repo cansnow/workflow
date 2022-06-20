@@ -88,6 +88,12 @@ module.exports = {
         symbolId: 'icon-[name]'
       })
       .end()
+    config.module
+      .rule("mjs")
+      .test(/\.mjs$/)
+      .type("javascript/auto")
+      .include.add(/node_modules/)
+      .end();
 
     config
       .when(process.env.NODE_ENV !== 'development',
