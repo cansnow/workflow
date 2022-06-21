@@ -7,7 +7,7 @@
             <div class="tr tr1" v-if="showHead">
                 <div class="td td-empty">
                     <div class="table-empty">
-                        {{ 'c1' }}
+                        {{ selectPost }}
                     </div>
                 </div>
                 <!--行头-->

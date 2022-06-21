@@ -20,6 +20,8 @@ export default {
             selectedRowRange: { start: undefined, end: undefined },
             isSelectRow: false,
             isSelectColumn: false,
+            // 位置显示
+            selectPost: 'A1',
         };
     },
 
@@ -63,12 +65,17 @@ export default {
             handler(start) {
                 this.$emit('selectCell');
                 this.tempMoveSelectionPos = start;
+                this.setSelectPost(start);
             },
             immediate: true,
         },
     },
 
     methods: {
+        // 设置左上角选中位置
+        setSelectPost(start) {
+            this.selectPost = _.$Number2ABC(start.columnIndex) + (start.rowIndex + 1);
+        },
         setSelectArea(start, end) {
             const selection = this.curSelectionName || 'selection';
             if (!this[selection]) {
