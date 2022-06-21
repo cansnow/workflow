@@ -165,9 +165,6 @@ export default {
 						temp.v = data.buttonType == 'submit' ? '提交' : '重置';
 					} 
 					break;
-				default:
-					temp = null;
-					break;
 			}
 			// componentType 是 input select upload
 			if (
@@ -199,20 +196,18 @@ export default {
 			// componentType 是 image button
 			if (
 				data.componentType == 'image' ||
-				data.componentType == 'button'
+				data.componentType == 'button' ||
+				data.componentType == 'Cell'
 			) {
-				temp.p = {
+				const props = {
 						r: {
 								s: data.power.ifShow, // show 可见
 								r: [data.power.showCondition], // [0] 可见规则， [1] 可编辑规则
 						}, // rule 权限
 				};
+				Object.assign(temp, { p: props });
 			}
-			if (temp != null) {
-				this.setCell(temp);
-			} else {
-				this.setCell({ v: null, c: 'Cell', p: temp.p });
-			}
+			this.setCell(temp);
 		},
 	},
 	components: { vspread, rightPanel },

@@ -1,6 +1,6 @@
 <template>
 	<div class="meg-menu">
-		<el-tooltip :content="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name">
+		<el-tooltip :content="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name" :hide-after="500">
 			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor'">
 				<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
 				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
@@ -176,7 +176,8 @@ export default {
 	},
 	computed: {
 		$sheet() {
-			return this.$parent.getCurSheet();
+			// TODO [0] 是当前sheet，会有多个sheet
+			return this.$parent.getCurSheet()[0];
 		},
 		start() {
 			return {rowIndex:0,columnIndex:0};

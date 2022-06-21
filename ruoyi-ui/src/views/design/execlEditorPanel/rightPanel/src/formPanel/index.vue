@@ -399,11 +399,21 @@ export default {
 				temp.componentType == 'button' ||
 				temp.componentType == 'Cell'
 			) {
-				Object.assign(temp, {
-					power: {
+				const power = {};
+				if (typeof(data.p) == 'undefined') {
+					Object.assign(power, { ifShow: true, showCondition: '' });
+				} else {
+					Object.assign(power, { 
 						ifShow: data.p.r.s, // show 可见
 						showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
-					}, // rule 权限
+					});
+				}
+				Object.assign(power, { 
+					ifShow: data.p.r.s, // show 可见
+					showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
+				});
+				Object.assign(temp, {
+					power: power// rule 权限
 				});
 			}
 			Object.assign(this.form, temp);

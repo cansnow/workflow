@@ -69,6 +69,12 @@ export default {
             },
             immediate: true,
         },
+        'selection.end': {
+            handler(end) {
+                console.log('end', end);
+            },
+            immediate: true,
+        },
     },
 
     methods: {

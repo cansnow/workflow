@@ -14,6 +14,7 @@
 				</el-button>
 			</div> -->
 		</div>
+		<!-- <el-button size="mini" @click="open">test</el-button> -->
 		<div style="overflow: hidden; height: calc(100vh - 120px);">
 			<div style="overflow-y: scroll; text-align: left; height: 100%; width: 297px;">
 				<div>
@@ -26,6 +27,21 @@
 				</div>
 			</div>
 		</div>
+		<el-dialog
+			title="提示"
+			:visible.sync="dialogVisible"
+			width="30%"
+			:modal="false"
+			:close-on-click-modal="false"
+			:close-on-press-escape="false"
+			:modal-append-to-body="false"
+			:before-close="handleClose">
+			<span>{{ test }}</span>
+			<span slot="footer" class="dialog-footer">
+				<el-button @click="dialogVisible = false">取 消</el-button>
+				<el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+			</span>
+		</el-dialog>
 	</div>
 </template>
 
@@ -47,9 +63,21 @@ export default {
 	data() {
 		return {
 			activeName: 'attribute',
+			test: '0',
+			dialogVisible: false,
 		}
 	},
 	methods: {
+		open() {
+			this.dialogVisible = true;
+		},
+		handleClose(done) {
+			this.$confirm('确认关闭？')
+				.then(_ => {
+					done();
+				})
+				.catch(_ => {});
+		},
 		onSubmit() {
 			console.log('submit!');
 		},
@@ -59,6 +87,9 @@ export default {
 		// 表单数据更新
 		formChange(data) {
 			this.$emit('formChange', data);
+		},
+		setTest(data) {
+			this.test = data;
 		},
 		// 数据绑定更新
 		dataChange(data) {
