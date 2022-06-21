@@ -370,6 +370,42 @@ export default {
 					});
 					break;
 			}
+			// componentType 是 input select upload
+			if (
+				temp.componentType == 'input' ||
+				temp.componentType == 'select' ||
+				temp.componentType == 'upload'
+			) {
+				Object.assign(temp, {
+					formFiled: data.p.f, // 字段
+					check: {
+						noNull: data.p.vd.r, // Required 必填
+						only: data.p.vd.u, // unique 唯一
+					}, // validate 验证
+					power: {
+						ifShow: data.p.r.s, // show 可见
+						ifEdit: data.p.r.w, // write 可写
+						showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
+						editCondition: data.p.r.r[1],
+					}, // rule 权限
+				});
+				if (temp.componentType == 'upload') {
+					Object.assign(temp, { uploadType: data.p.t });
+				}
+			}
+			// componentType 是 image button
+			if (
+				temp.componentType == 'image' ||
+				temp.componentType == 'button' ||
+				temp.componentType == 'Cell'
+			) {
+				Object.assign(temp, {
+					power: {
+						ifShow: data.p.r.s, // show 可见
+						showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
+					}, // rule 权限
+				});
+			}
 			Object.assign(this.form, temp);
 		},
     // 表单字段

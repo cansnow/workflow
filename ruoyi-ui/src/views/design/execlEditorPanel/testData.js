@@ -52,7 +52,24 @@ export default [
                         v: 123
                     },
                     null,
-                    null,
+                    {
+                        c: 'upload',
+                        v: [],
+                        s: 's4',
+                        p: {
+                            f: '', // filed 字段
+                            t: 'word', // type 类型
+                            vd: {
+                               r: true, // Required 必填
+                               u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
+                    },
                     null,
                     null,
                     null,
@@ -67,12 +84,30 @@ export default [
                     {
                         v: '提交',
                         c: 'button',
-                        s: 's4'
+                        s: 's4',
+                        p: {
+                            r: {
+                                s: true, // show 可见
+                                r: [''], // 可见规则
+                            },
+                        },
                     },
                     {
                         v: 'cansnow',
                         c: 'text',
-                        s: 's4'
+                        s: 's4',
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: true, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        } // props 参数配置
                     },
                     null
                 ],
@@ -81,7 +116,13 @@ export default [
                     {
                         v: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
                         c: 'image',
-                        s: 's5'
+                        s: 's5',
+                        p: {
+                            r: {
+                                s: true, // show 可见
+                                r: [''], // 可见规则
+                            },
+                        },
                     },
                     {
                         v: '选项2,选项1',
@@ -108,6 +149,18 @@ export default [
                                 label: '北京烤鸭'
                             }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     },
                     {
@@ -135,6 +188,18 @@ export default [
                                 label: '北京烤鸭'
                             }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     }
                 ],
@@ -144,7 +209,19 @@ export default [
                     {
                         v: '661223',
                         c: 'password',
-                        s: 's4'
+                        s: 's4',
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        } // props 参数配置
                     },
                     null,
                     null
@@ -154,12 +231,36 @@ export default [
                     {
                         v: null,
                         c: 'datetime',
-                        s: 's4'
+                        s: 's4',
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        } // props 参数配置
                     },
                     {
                         v: 2611,
                         c: 'number',
-                        s: 's4'
+                        s: 's4',
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        } // props 参数配置
                     },
                     null,
                     null,
@@ -193,6 +294,18 @@ export default [
                                 label: '北京烤鸭'
                             }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     },
                     {
@@ -220,6 +333,18 @@ export default [
                                 label: '北京烤鸭'
                             }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     },,
                     {
@@ -262,6 +387,18 @@ export default [
                                 }]
                               }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     },
                     {
@@ -304,6 +441,18 @@ export default [
                                 }]
                               }
                         ],
+                        p: {
+                            f: '', // filed 字段
+                            vd: {
+                                r: true, // Required 必填
+                                u: false, // unique 唯一
+                            }, // validate 验证
+                            r: {
+                                s: true, // show 可见
+                                w: true, // write 可写
+                                r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+                            }, // rule 权限
+                        }, // props 参数配置
                         s: 's4'
                     },
                     null

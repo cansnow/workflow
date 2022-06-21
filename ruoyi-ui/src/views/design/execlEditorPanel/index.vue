@@ -105,7 +105,6 @@ export default {
 				curSheet.setUpdateCellType(data.c);
 				curSheet.doEditCellValue(data);
 			}, 200);
-			// curSheet.setCellValue(this.selection.start, data);
 		},
 		// 修改表单
 		handleFormChange(data) {
@@ -113,6 +112,12 @@ export default {
 				v: null,
 				c: 'Cell',
 				s: 's4',
+				p: {
+						r: {
+								s: true, // show 可见
+								r: [''], // [0] 可见规则， [1] 可编辑规则
+						}, // rule 权限
+				},
 			};
 			switch(data.componentType) {
 				case 'input': // 单元格输入
@@ -136,9 +141,18 @@ export default {
 					) {
 						options = JSON.parse(data.default.value);
 					}
+					// 多选 v 是数组
+					if (
+						data.selectType == 'treeSelectMultiple' ||
+						data.selectType == 'selectMultiple'
+					) {
+						temp.v = [];
+					}
 					temp.options = options;
 					break;
 				case 'upload': // TODO 上传
+					temp.c = data.componentType;
+					temp.v = [];
 					break;
 				case 'image': // 图片
 					temp.c = data.componentType;
@@ -155,10 +169,49 @@ export default {
 					temp = null;
 					break;
 			}
+			// componentType 是 input select upload
+			if (
+				data.componentType == 'input' ||
+				data.componentType == 'select' ||
+				data.componentType == 'upload'
+			) {
+				// TODO upload t
+				const props = {
+						f: data.formFiled, // filed 字段
+						vd: {
+								r: data.check.noNull, // Required 必填
+								u: data.check.only, // unique 唯一
+						}, // validate 验证
+						r: {
+								s: data.power.ifShow, // show 可见
+								w: data.power.ifEdit, // write 可写
+								r: [
+									data.power.showCondition, 
+									data.power.editCondition,
+								], // [0] 可见规则， [1] 可编辑规则
+						}, // rule 权限
+				};
+				if (temp.componentType == 'upload') {
+					Object.assign(props, { t: data.uploadType });
+				}
+				Object.assign(temp, { p: props });
+			}
+			// componentType 是 image button
+			if (
+				data.componentType == 'image' ||
+				data.componentType == 'button'
+			) {
+				temp.p = {
+						r: {
+								s: data.power.ifShow, // show 可见
+								r: [data.power.showCondition], // [0] 可见规则， [1] 可编辑规则
+						}, // rule 权限
+				};
+			}
 			if (temp != null) {
 				this.setCell(temp);
 			} else {
-				this.setCell({ v: null, c: 'Cell' });
+				this.setCell({ v: null, c: 'Cell', p: temp.p });
 			}
 		},
 	},
