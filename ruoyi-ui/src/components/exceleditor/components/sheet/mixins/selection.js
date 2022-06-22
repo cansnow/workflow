@@ -71,7 +71,8 @@ export default {
         },
         'selection.end': {
             handler(end) {
-                console.log('end', end);
+                console.log(this.selection);
+                this.$emit('selectEnd');
             },
             immediate: true,
         },
@@ -90,6 +91,7 @@ export default {
                     end: {},
                 };
             }
+            console.log('setSelectArea');
             Object.assign(this[selection], {
                 start,
                 end: end || Object.assign({}, start),

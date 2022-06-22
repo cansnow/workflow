@@ -3,7 +3,15 @@
         <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex-wrap: wrap; height: auto; min-height: 40px;"/>
         <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
-                <Sheet @selectCell="handleSelectCell" :style="{ height: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }" :ref="'sheet_'+index" :options="sheet.data" :sheetIndex="index" :autoCreate="autoCreate" />
+                <Sheet
+                    @selectCell="handleSelectCell"
+                    @selectEnd="selectEnd"
+                    :style="{ height: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
+                    :ref="'sheet_'+index"
+                    :options="sheet.data"
+                    :sheetIndex="index"
+                    :autoCreate="autoCreate"
+                />
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -75,6 +83,9 @@ export default {
         },
         handleSelectCell() {
             this.$emit('selectCell');
+        },
+        selectEnd() {
+            this.$emit('selectEnd');
         },
         setMenusHeigth() {
             this.menusHeigth = this.$refs.menus.$el.offsetHeight;
