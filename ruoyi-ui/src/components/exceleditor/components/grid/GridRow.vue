@@ -1,5 +1,11 @@
 <template>
-    <div class="meg-gridrow" @mousedown.left.self="mouseDown" @contextmenu.self.prevent="showMenu">
+    <div class="meg-gridrow"
+        @mousedown.left.self="mouseDown"
+        @drop.self="handleDrop"
+        @dragover.self="handleDragover"
+        @dragleave.self="handleDragleave"
+        @contextmenu.self.prevent="showMenu"
+    >
         <div v-for="cell in cells" :key="getKey(cell)" @click="cellClick">
             <GridCell v-show="!cell.isHide" :cell="cell"></GridCell>
             <div v-if="isShowBackgroudPorxy(cell)" class="meg-gridrow-pce" :style="getCss(cell.style.css)"></div>
@@ -164,7 +170,26 @@ export default {
                 columnIndex: cellIndex + this.startColumnIndex,
                 rowIndex: this.row.rowIndex
             };
+            console.log('mouseDown', pos);
             this.$sheet.s_cellSelectStart(event, pos);
+        },
+        // 拖拽释放
+        handleDrop(event) {
+            const cellIndex = this.findCellIndex(event.offsetX);
+            const pos = {
+                columnIndex: cellIndex + this.startColumnIndex,
+                rowIndex: this.row.rowIndex
+            };
+            console.log('handleDrop', pos, event);
+            event.preventDefault();
+        },
+        // 拖拽到内部
+        handleDragover(event) {
+            event.preventDefault();
+        },
+        // 拖拽移出
+        handleDragleave(event) {
+            // console.log('handleDragleave', event);
         },
 
         showMenu(event) {

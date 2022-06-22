@@ -1,6 +1,14 @@
 <template>
-    <div class="meg-gridcell" @mousedown.left="mouseDown" @contextmenu.prevent="showMenu" @dblclick="doEdit"
-        :style="cell.style.css">
+    <div
+        class="meg-gridcell"
+        @mousedown.left="mouseDown"
+        @drop="handleDrop"
+        @dragover="handleDragover"
+        @dragleave="handleDragleave"
+        @contextmenu.prevent="showMenu"
+        @dblclick="doEdit"
+        :style="cell.style.css"
+    >
         <el-input type="text" v-model="value" v-if="cellType == 'text'" />
 		<el-input type="text" show-password v-model="value" v-if="cellType == 'password'" />
 		<el-input-number type="text" v-model="value" v-if="cellType == 'number'" />
@@ -143,6 +151,23 @@ export default {
                 rowIndex: this.cell.rowIndex,
             };
             this.$sheet.s_cellSelectStart(event, pos);
+        },
+        // 拖拽释放
+        handleDrop(event) {
+            const pos = {
+                columnIndex: this.cell.columnIndex,
+                rowIndex: this.cell.rowIndex,
+            };
+            console.log('handleDrop', pos, event);
+            event.preventDefault();
+        },
+        // 拖拽到内部
+        handleDragover(event) {
+            event.preventDefault();
+        },
+        // 拖拽移出
+        handleDragleave(event) {
+            // console.log('handleDragleave', event);
         },
         showMenu(e) {
             this.$sheet.showCellMenu({

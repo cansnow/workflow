@@ -4,6 +4,7 @@
     <div style="padding-top: 10px">
       <el-tree :data="data" :props="defaultProps"></el-tree>
     </div>
+    <!-- <div draggable id="test" style="cursor: pointer;" @drag="handleDrag">test</div> -->
   </div>
 </template>
 
@@ -73,6 +74,8 @@ export default {
     },
     handleNodeClick(data) {
       console.log(data);
+    },
+    handleDrag(event) {
     },
   },
 }
