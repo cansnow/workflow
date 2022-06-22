@@ -1,5 +1,5 @@
 <template>
-	<div style="width: 300px;height: 100%; padding: 10px; border-top: 1px solid #ddd;" data-a="assa">
+	<div style="width: 300px;height: 100%; padding: 10px; border-top: 1px solid #ddd;">
 		<div style="display: flex;">
 			<div style="flex:1;">
 				<el-tabs v-model="activeName" @tab-click="handleTabClick" stretch>
@@ -14,7 +14,7 @@
 				</el-button>
 			</div> -->
 		</div>
-		<!-- <el-button size="mini" @click="open">test</el-button> -->
+		<!-- <el-button size="mini" @click="test">test</el-button> -->
 		<div style="overflow: hidden; height: calc(100vh - 120px);">
 			<div style="overflow-y: scroll; text-align: left; height: 100%; width: 297px;">
 				<div>
@@ -27,22 +27,7 @@
 				</div>
 			</div>
 		</div>
-		<el-dialog
-			title="提示"
-			:visible.sync="dialogVisible"
-			width="30%"
-			:modal="false"
-			:close-on-click-modal="false"
-			:close-on-press-escape="false"
-			:modal-append-to-body="false"
-			:before-close="handleClose">
-			<span>{{ test }}</span>
-			<span slot="footer" class="dialog-footer">
-				<el-button @click="dialogVisible = false">取 消</el-button>
-				<el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-			</span>
-		</el-dialog>
-	</div>
+	</div>   
 </template>
 
 <script>
@@ -63,20 +48,52 @@ export default {
 	data() {
 		return {
 			activeName: 'attribute',
-			test: '0',
-			dialogVisible: false,
+			selectCell: '',
 		}
 	},
 	methods: {
-		open() {
-			this.dialogVisible = true;
+		// 获取到位置信息
+		setSelectCell(data) {
+			const { start, end } = data;
+			// columnIndex rowIndex
+			// 判断end是在前还是在后，在上还是在下
+			if (start.columnIndex == end.columnIndex && start.rowIndex == end.rowIndex) {
+				this.selectCell = this.selectPostFormat(start);
+			} else {
+				let temp = '';
+				// columnIndex 相等 rowIndex 相等
+				if (start.columnIndex == end.columnIndex || start.rowIndex == end.rowIndex) {
+					if (start.rowIndex > end.rowIndex || start.columnIndex > end.columnIndex) {
+						temp = this.selectPostFormat(end) + ':' + this.selectPostFormat(start);
+					} else {
+						temp = this.selectPostFormat(start) + ':' + this.selectPostFormat(end);
+					}
+				} else {
+					// end 在左下角，start 在右上角
+					if (start.columnIndex > end.columnIndex && start.rowIndex < end.rowIndex) {
+						temp = this.selectPostFormat({ columnIndex: end.columnIndex , rowIndex: start.rowIndex }) +
+							':' + this.selectPostFormat({ columnIndex: start.columnIndex , rowIndex: end.rowIndex });
+					}
+					// start 在左下角，end 在右上角
+					if (start.columnIndex < end.columnIndex && start.rowIndex > end.rowIndex) {
+						temp = this.selectPostFormat({ columnIndex: start.columnIndex , rowIndex: end.rowIndex }) +
+							':' + this.selectPostFormat({ columnIndex: end.columnIndex , rowIndex: start.rowIndex });
+					}
+					// start 在左上角，end 在右下角
+					if (start.columnIndex > end.columnIndex && start.rowIndex > end.rowIndex) {
+						temp = this.selectPostFormat(end) + ':' + this.selectPostFormat(start);
+					}
+					// end 在左上角，start 在右下角
+					if (start.columnIndex < end.columnIndex && start.rowIndex < end.rowIndex) {
+						temp = this.selectPostFormat(start) + ':' + this.selectPostFormat(end);
+					}
+				}
+				this.selectCell = temp;
+			}
 		},
-		handleClose(done) {
-			this.$confirm('确认关闭？')
-				.then(_ => {
-					done();
-				})
-				.catch(_ => {});
+		// 格式化select坐标
+		selectPostFormat(data) {
+			return _.$Number2ABC(data.columnIndex) + (data.rowIndex + 1);
 		},
 		onSubmit() {
 			console.log('submit!');
@@ -87,9 +104,6 @@ export default {
 		// 表单数据更新
 		formChange(data) {
 			this.$emit('formChange', data);
-		},
-		setTest(data) {
-			this.test = data;
 		},
 		// 数据绑定更新
 		dataChange(data) {
@@ -107,6 +121,10 @@ export default {
 		updataForm(data) {
 			this.$refs.FormPanel.updataForm(data);
 		},
+		// 显示已选单元格
+		showSelectCells(data) {
+			this.$emit('showSelectCells', data);
+		}
 	}
 }
 </script>

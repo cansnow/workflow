@@ -24,9 +24,17 @@ export default {
       form: {
         expression: '',
         range: '',
-        type: 'disable'
+        type: 'disable',
+        index: -1,
       },
     };
+  },
+  watch: {
+    'form.index': {
+      handler(newValue) {
+        console.log('newValue', newValue);
+      },
+    },
   },
   methods: {
     getFormData() {
@@ -36,8 +44,13 @@ export default {
       this.form = {
         expression: '',
         range: '',
-        type: 'disable'
+        type: 'disable',
+        index: -1,
+        disabled: false,
       };
+    },
+    setFormData(data) {
+      Object.assign(this.form, data);
     },
   },
 }

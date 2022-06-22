@@ -17,8 +17,14 @@
 				</el-button-group>
 			</div>
 			<div class="flex_row" style="flex:1;">
-				<vspread ref="vspread" @updateOptions="updateOptions" @selectCell="handleSelectCell" style="flex:1;" />
-				<rightPanel ref="rightPanel" @formChange="handleFormChange"></rightPanel>
+				<vspread
+					ref="vspread"
+					@updateOptions="updateOptions"
+					@selectCell="handleSelectCell"
+					@selectEnd="handleSelectEnd"
+					style="flex:1;"
+				/>
+				<rightPanel ref="rightPanel" @formChange="handleFormChange" @showSelectCells="showSelectionCells"></rightPanel>
 			</div>
 		</div>
 
@@ -208,6 +214,16 @@ export default {
 				Object.assign(temp, { p: props });
 			}
 			this.setCell(temp);
+		},
+		handleSelectEnd() {
+			this.$nextTick(function() {
+				this.$refs.rightPanel.setSelectCell(this.selection);
+			});
+		},
+		// 显示已选单元格
+		showSelectionCells(data) {
+			const { start, end} = data;
+			this.$refs.vspread.getCurSheet()[0].setSelectArea(start, end);
 		},
 	},
 	components: { vspread, rightPanel },

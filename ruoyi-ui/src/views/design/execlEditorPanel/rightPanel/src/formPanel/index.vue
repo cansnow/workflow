@@ -408,10 +408,6 @@ export default {
 						showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
 					});
 				}
-				Object.assign(power, { 
-					ifShow: data.p.r.s, // show 可见
-					showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
-				});
 				Object.assign(temp, {
 					power: power// rule 权限
 				});
