@@ -43,6 +43,25 @@
           </template>
         </el-form-item>
       </template>
+			<!-- 单元格值 -->
+			<template v-if="form.componentType == 'Cell'">
+				<el-form-item label="默认值">
+					<el-input
+							type="text"
+							v-model="form.cellValue"
+							@change="change"
+							placeholder="请输入"
+						/>
+				</el-form-item>
+				<el-form-item label="公式" v-if="form.cellFormula">
+					<el-input
+							type="text"
+							v-model="form.formula"
+							@change="change"
+							placeholder="请输入"
+						/>
+				</el-form-item>
+			</template>
       <!-- 为单元格 没有上传图片 -->
       <template v-if="form.componentType != 'Cell'">
         <!-- TODO action 有问题 需要修改 -->
@@ -109,6 +128,9 @@ export default {
     return {
       form: {
 				componentType: 'Cell',
+				cellValue: '',
+				cellFormula: false,
+				formula: '',
 				power: {
 					ifShow: true,
 					showCondition: '',
@@ -411,6 +433,12 @@ export default {
 				Object.assign(temp, {
 					power: power// rule 权限
 				});
+			}
+			// Cell 
+			if (temp.componentType == 'Cell') {
+				const cellFormula = typeof(data.f) != 'undefined';
+				const formula = cellFormula ? data.f : '';
+				Object.assign(temp, { cellValue: typeof(data.v) == 'undefined' ? '' : data.v, cellFormula, formula });
 			}
 			Object.assign(this.form, temp);
 		},
