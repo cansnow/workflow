@@ -49,6 +49,7 @@ export default {
 		return {
 			activeName: 'attribute',
 			selectCell: '',
+			head: undefined,
 		}
 	},
 	methods: {
@@ -124,7 +125,11 @@ export default {
 		// 显示已选单元格
 		showSelectCells(data) {
 			this.$emit('showSelectCells', data);
-		}
+		},
+		// 设置头部信息
+		setHead(data) {
+			this.head = data;			
+		},
 	}
 }
 </script>

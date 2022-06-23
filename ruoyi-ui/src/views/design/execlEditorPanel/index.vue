@@ -22,6 +22,7 @@
 					@updateOptions="updateOptions"
 					@selectCell="handleSelectCell"
 					@selectEnd="handleSelectEnd"
+					@click-head="handleClickHead"
 					style="flex:1;"
 				/>
 				<rightPanel ref="rightPanel" @formChange="handleFormChange" @showSelectCells="showSelectionCells"></rightPanel>
@@ -87,19 +88,19 @@ export default {
 		},
 		// 当前单元格
 		curCell() {
-			if (typeof(this.$refs.vspread) == "undefined") return -1;
 			return this.$refs.vspread.getCurSheet()[0].getCurCell();
 		},
 		// 选择单元格
 		handleSelectCell() {
-			const curCell = this.curCell();
-			if (curCell == -1) return;
-			console.log('handleSelectCell curCell', curCell);
-			if(curCell != null) {
-				this.$refs.rightPanel.updataForm(curCell);
-			} else {
-				this.$refs.rightPanel.resetForm();
-			}
+			this.$nextTick(function() {
+				const curCell = this.curCell();
+				console.log('handleSelectCell curCell', curCell);
+				if(curCell != null) {
+					this.$refs.rightPanel.updataForm(curCell);
+				} else {
+					this.$refs.rightPanel.resetForm();
+				}
+			});
 		},
 		// 编辑单元格
 		setCell(data) {
@@ -225,6 +226,10 @@ export default {
 			const { start, end} = data;
 			this.$refs.vspread.getCurSheet()[0].setSelectArea(start, end);
 		},
+		// 点击了头部
+		handleClickHead() {
+			this.$refs.rightPanel.setHead(this.$refs.vspread.getCurSheet()[0].direction);
+		}
 	},
 	components: { vspread, rightPanel },
 	created: function() {

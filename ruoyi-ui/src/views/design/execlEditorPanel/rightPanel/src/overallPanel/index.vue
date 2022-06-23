@@ -1,6 +1,5 @@
 <template>
   <div>
-    <el-button size="mini" @click="open">添加</el-button>
     <div style="margin-left: 2px;">
       <template v-if="formList.length > 0">
         <div v-for="(fItem, index) in formList" :key="index" style="margin: 5px 0; display: flex;">
@@ -22,6 +21,19 @@
         </div>
       </template>
     </div>
+    <el-button size="mini" style="width: 100%;" @click="open">添加</el-button>
+    <el-form label-width="80px" label-position="top" size="small">
+      <el-form-item label="最大列">
+        <div @click="() => handleClick('column')">
+          <el-input v-model="columnMax"></el-input>
+        </div>
+      </el-form-item>
+      <el-form-item label="最大行">
+        <div @click="() => handleClick('row')">
+          <el-input v-model="rowMax"></el-input>
+        </div>
+      </el-form-item>
+    </el-form>
     <Dialog :title="title" :dialogVisible="dialogVisible" @handleClose="handleClose" @handleIsOk="handleIsOk">
       <Form ref="form" />
 		</Dialog>
@@ -39,6 +51,10 @@ export default {
       dialogVisible: false,
       title: '',
       index: -1,
+      columnMax: '',
+      rowMax: '',
+      ifClick: false,
+      direction: '',
     };
   },
   components: {
@@ -54,6 +70,18 @@ export default {
           this.$refs.form.setFormData(form);
         }
       },
+    },
+    '$rightPanel.head': {
+      handler(newValue) {
+        if (this.ifClick) {
+          if (newValue.direction == 'row' && this.direction == 'row') {
+            this.setRowMax(newValue['rowIndex']);
+          }
+          if (newValue.direction == 'column' && this.direction == 'column') {
+            this.setColumnMax(newValue['columnIndex']);
+          }
+        }
+      }
     },
   },
   methods: {
@@ -132,6 +160,23 @@ export default {
       columnIndex = _.$ABC2Number(columnIndex);
       rowIndex = rowIndex - 1;
       return { columnIndex, rowIndex };
+    },
+    handleClick(direction) {
+      if (!this.ifClick) {
+        this.direction = direction;
+        this.ifClick = true;
+      } else if (this.direction == direction) {
+        this.direction = '';
+        this.ifClick = false;
+      } else if (this.direction != direction) {
+        this.direction = direction;
+      }
+    },
+    setColumnMax(index) {
+      this.columnMax = _.$Number2ABC(index);
+    },
+    setRowMax(index) {
+      this.rowMax = index + 1;
     },
   },
 }
