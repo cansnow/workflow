@@ -117,7 +117,36 @@ export default {
                     }
                 }
             });
-            this.cells.splice(curRowIndex, delRowNum);
+            // 删除行
+            // this.cells.splice(curRowIndex, delRowNum);
+            let updateStartIndex = -1;
+            const updateObj = {};
+            Object.keys(this.cells).map((item, index) => {
+                const lowerIndex = parseInt(item) + 1;
+                // 获取当前索引，删除当前行
+                if (item == curRowIndex) {
+                    updateStartIndex = index;
+                    if (typeof(this.cells[lowerIndex]) == 'undefined') {
+                        updateObj[item] = null;
+                    } else {
+                        updateObj[item] = this.cells[lowerIndex];
+                    }
+                }
+                // 将后续行向上挪一行
+                if (updateStartIndex != -1 && index > updateStartIndex) {
+                    const topIndex = parseInt(item) - 1;
+                    updateObj[topIndex] = this.cells[item];
+                    this.cells[item] = null;
+                }
+                // 删除为空行 curRowIndex 不在 cells中
+                if (updateStartIndex == -1 && curRowIndex < item) {
+                    const topIndex = parseInt(item) - 1;
+                    updateObj[topIndex] = this.cells[item];
+                    this.cells[item] = null;
+                }
+            });
+            Object.assign(this.cells, updateObj);
+
             // 删除过后，还是合并的单元格，需要单元格
             _.each(ms, m => {
                 this.c_addCell(m.start.rowIndex, m.start.columnIndex);
