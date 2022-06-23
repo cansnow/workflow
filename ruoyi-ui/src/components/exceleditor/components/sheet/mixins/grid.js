@@ -46,9 +46,27 @@ export default {
                     refresh = true;
                 }
             });
-
             // 更新行单元格的索引
-            this.cells.splice(curRowIndex, 0, ...Array(insterRowNum));
+            // this.cells.splice(curRowIndex, 0, ...Array(insterRowNum));
+            let updateStartIndex = -1;
+            const updateObj = {};
+            Object.keys(this.cells).map((item, index) => {
+                const uIndex = parseInt(item) + 1;
+                // 获取当前索引，挪到下一行
+                if (item == curRowIndex) {
+                    updateStartIndex = index;
+                    updateObj[item] = null;
+                    updateObj[uIndex] = this.cells[item];
+                }
+                // 将后续行挪到下一行
+                if (updateStartIndex != -1 && index > updateStartIndex) {
+                    if (typeof(updateObj[item]) == 'undefined') {
+                        updateObj[item] = null;
+                    }
+                    updateObj[uIndex] = this.cells[item];
+                }
+            });
+            Object.assign(this.cells, updateObj);
 
             // 删除行信息
             this.rows.splice(curRowIndex, 0, ...Array(insterRowNum));
