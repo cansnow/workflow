@@ -192,6 +192,9 @@ export default {
             maxColumnCount: 200,
             // 更改单元格组件类型
             cellType: '',
+            // 点击头部
+            direction: {},
+            
         };
     },
     computed: {
@@ -259,6 +262,9 @@ export default {
         rows(rows) {
             this.updateData({ rows });
         },
+        direction() {
+            this.$emit('click-head');
+        },
     },
     methods: {
         updateData(name, value) {
@@ -268,6 +274,9 @@ export default {
         },
         setUpdateCellType(cellType) {
             this.cellType = cellType;
+        },
+        setClickHead(data) {
+            this.direction = data;
         }
     },
 };

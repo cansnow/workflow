@@ -111,6 +111,8 @@ export default {
                 }
                 const pos = { [`${this.direction}Index`]: index };
 
+                this.$sheet.setClickHead({ [`${this.direction}Index`]: index, direction: this.direction }); // 点击了行列
+
                 const _index = this.$sheet.getFirstNMergeIndex(this.direction, index);
 
                 if (this.direction == 'row') {

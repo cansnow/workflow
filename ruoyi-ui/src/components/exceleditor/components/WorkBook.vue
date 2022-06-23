@@ -1,11 +1,12 @@
 <template>
     <div tabIndex="999" class="meg-workbook" @parse="handleParse" @keydown="handleKeyMap">
         <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex-wrap: wrap; height: auto; min-height: 40px;"/>
-        <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true">
+        <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true" @edit="handleTabsEdit">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
                 <Sheet
                     @selectCell="handleSelectCell"
                     @selectEnd="selectEnd"
+                    @click-head="handleClickHead"
                     :style="{ height: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
                     :ref="'sheet_'+index"
                     :options="sheet.data"
@@ -62,8 +63,8 @@ export default {
         this.menusHeigth = this.$refs.menus.$el.offsetHeight;
     },
     watch: {
-        screenWidth(newValue) {
-            console.log('newValue', newValue);
+        // 监控屏幕宽度
+        screenWidth() {
             this.setMenusHeigth();
         },
     },
@@ -89,6 +90,13 @@ export default {
         },
         setMenusHeigth() {
             this.menusHeigth = this.$refs.menus.$el.offsetHeight;
+        },
+        handleClickHead() {
+            this.$emit('click-head');
+        },
+        // 新增表单
+        handleTabsEdit() {
+            console.log('handleTabsEdit');
         },
     },
 };
