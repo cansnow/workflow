@@ -131,6 +131,7 @@ export default {
             } else if (ov == v) {
                 return;
             }
+            this.$sheet.$emit('selectCell');
             this.$sheet.doEditCellValue(v);
         }
     }
