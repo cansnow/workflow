@@ -55,7 +55,6 @@ export default [
                     {
                         c: 'upload',
                         v: [],
-                        s: 's4',
                         p: {
                             f: '', // filed 字段
                             t: 'word', // type 类型
@@ -84,7 +83,6 @@ export default [
                     {
                         v: '提交',
                         c: 'button',
-                        s: 's4',
                         p: {
                             r: {
                                 s: true, // show 可见
@@ -95,7 +93,6 @@ export default [
                     {
                         v: 'cansnow',
                         c: 'text',
-                        s: 's4',
                         p: {
                             f: '', // filed 字段
                             vd: {
@@ -116,7 +113,6 @@ export default [
                     {
                         v: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
                         c: 'image',
-                        s: 's5',
                         p: {
                             r: {
                                 s: true, // show 可见
@@ -161,7 +157,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     },
                     {
                         v: '选项4',
@@ -200,7 +195,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     }
                 ],
                 '13': [
@@ -209,7 +203,6 @@ export default [
                     {
                         v: '661223',
                         c: 'password',
-                        s: 's4',
                         p: {
                             f: '', // filed 字段
                             vd: {
@@ -231,7 +224,6 @@ export default [
                     {
                         v: null,
                         c: 'datetime',
-                        s: 's4',
                         p: {
                             f: '', // filed 字段
                             vd: {
@@ -248,7 +240,6 @@ export default [
                     {
                         v: 2611,
                         c: 'number',
-                        s: 's4',
                         p: {
                             f: '', // filed 字段
                             vd: {

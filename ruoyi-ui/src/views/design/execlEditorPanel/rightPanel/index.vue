@@ -50,12 +50,14 @@ export default {
 			activeName: 'attribute',
 			selectCell: '',
 			head: undefined,
+			selection: undefined, // 当前位置
 		}
 	},
 	methods: {
 		// 获取到位置信息
 		setSelectCell(data) {
 			const { start, end } = data;
+			this.selection = data;
 			// columnIndex rowIndex
 			// 判断end是在前还是在后，在上还是在下
 			if (start.columnIndex == end.columnIndex && start.rowIndex == end.rowIndex) {

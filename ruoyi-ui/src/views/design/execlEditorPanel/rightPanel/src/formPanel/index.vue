@@ -58,6 +58,7 @@
 							type="text"
 							v-model="form.formula"
 							@change="change"
+							disabled
 							placeholder="请输入"
 						/>
 				</el-form-item>
@@ -434,10 +435,10 @@ export default {
 					power: power// rule 权限
 				});
 			}
-			// Cell 
+			// Cell 单元格
 			if (temp.componentType == 'Cell') {
 				const cellFormula = typeof(data.f) != 'undefined';
-				const formula = cellFormula ? data.f : '';
+				const formula = cellFormula ? _.$parseRefs(data.f, this.$rightPanel.selection.start) : '';
 				Object.assign(temp, { cellValue: typeof(data.v) == 'undefined' ? '' : data.v, cellFormula, formula });
 			}
 			Object.assign(this.form, temp);

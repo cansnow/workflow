@@ -111,14 +111,13 @@ export default {
 				curSheet.doCancelEdit();
 				curSheet.setUpdateCellType(data.c);
 				curSheet.doEditCellValue(data);
-			}, 200);
+			}, 100);
 		},
 		// 修改表单
 		handleFormChange(data) {
 			let temp = {
 				v: null,
 				c: 'Cell',
-				s: 's4',
 				p: {
 						r: {
 								s: true, // show 可见
@@ -213,6 +212,10 @@ export default {
 						}, // rule 权限
 				};
 				Object.assign(temp, { p: props });
+			}
+			// 单元格数据，有公式
+			if (data.componentType == 'Cell') {
+				Object.assign(temp, { v: data.cellValue });
 			}
 			this.setCell(temp);
 		},
