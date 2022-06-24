@@ -127,7 +127,6 @@ export default {
         checkeds.push(item[this.props.value]);
       });
       this.setChecked(checkeds, false, true);
-      debugger;
       this.selectData = []
       this.clearSelected();
       this.$emit("getValue", null);

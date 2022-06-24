@@ -81,7 +81,6 @@ export default {
     mounted() {
         window.onresize = () => {
             return (() => {
-                // debugger;
                 this.screenWidth = document.body.clientWidth
             })()
         };
@@ -106,6 +105,10 @@ export default {
         },
         getCurSheet() {
             return this.$refs['sheet'+this.sheetIndex];
+        },
+        // 根据sheet下标获取sheet实例
+        getSheetByIndex(index = 0) {
+            return this.$refs['sheet_' + index][0];
         },
         handleSelectCell() {
             this.$emit('selectCell');
