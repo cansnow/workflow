@@ -1,9 +1,32 @@
 <template>
     <div tabIndex="999" class="meg-workbook" @parse="handleParse" @keydown="handleKeyMap">
         <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex-wrap: wrap; height: auto; min-height: 40px;"/>
+        <!-- 多个sheet，防止重叠，将不显示的放到最外面 -->
+        <div
+            style="position: relative; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;"
+            :style="{ height: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
+        >
+            <div
+                v-for="(sheet, index) in data"
+                :key="'_'+index"
+                style="height: 100%;"
+                :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
+            >
+                <Sheet
+                    @selectCell="handleSelectCell"
+                    @selectEnd="selectEnd"
+                    style="height: 100%;"
+                    @click-head="handleClickHead"
+                    :ref="'sheet_'+index"
+                    :options="sheet.data"
+                    :sheetIndex="index"
+                    :autoCreate="autoCreate"
+                />
+            </div>
+        </div>
         <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true" @edit="handleTabsEdit">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
-                <Sheet
+                <!-- <Sheet
                     @selectCell="handleSelectCell"
                     @selectEnd="selectEnd"
                     @click-head="handleClickHead"
@@ -12,7 +35,7 @@
                     :options="sheet.data"
                     :sheetIndex="index"
                     :autoCreate="autoCreate"
-                />
+                /> -->
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -23,6 +46,7 @@ import Menus from './menu/Menu.vue';
 import Sheet from './sheet/Sheet.vue';
 
 import keyMap from './mixins/keyMap';
+import templateData from './templateData';
 
 export default {
     name: 'app',
@@ -43,6 +67,7 @@ export default {
             tabPosition:'bottom',
             menusHeigth: 40,
             screenWidth: 0,
+            data: [],
         }
     },
     mixins: [keyMap],
@@ -96,7 +121,11 @@ export default {
         },
         // 新增表单
         handleTabsEdit() {
-            console.log('handleTabsEdit');
+            const title = `sheet${this.data.length + 1}`;
+            const data = JSON.parse(JSON.stringify(templateData));
+            const allData = this.data;
+            allData.push({ title, data });
+            this.$piniastore.setData(allData);
         },
     },
 };
