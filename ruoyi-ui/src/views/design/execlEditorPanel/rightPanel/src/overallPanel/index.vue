@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="overall">
     <div style="margin-left: 2px;">
       <template v-if="formList.length > 0">
         <div v-for="(fItem, index) in formList" :key="index" style="margin: 5px 0; display: flex;">
@@ -24,13 +24,19 @@
     <el-button size="mini" style="width: 100%;" @click="open">添加</el-button>
     <el-form label-width="80px" label-position="top" size="small">
       <el-form-item label="最大列">
-        <div @click="() => handleClick('column')">
-          <el-input v-model="columnMax"></el-input>
+        <div class="rowColumn" @click="() => handleClick('column')">
+          <el-input
+            :style="ifClick && direction == 'column' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
+            v-model="columnMax"
+          ></el-input>
         </div>
       </el-form-item>
       <el-form-item label="最大行">
-        <div @click="() => handleClick('row')">
-          <el-input v-model="rowMax"></el-input>
+        <div class="rowColumn" @click="() => handleClick('row')">
+          <el-input 
+            :style="ifClick && direction == 'row' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
+            v-model="rowMax"
+          ></el-input>
         </div>
       </el-form-item>
     </el-form>
@@ -68,6 +74,11 @@ export default {
           const form = this.$refs.form.getFormData();
           Object.assign(form, { range: newValue });
           this.$refs.form.setFormData(form);
+        }
+        if (this.ifClick) {
+          const { start } = this.$rightPanel.selection;
+          this.setRowMax(start.rowIndex);
+          this.setColumnMax(start.columnIndex);
         }
       },
     },
@@ -181,3 +192,10 @@ export default {
   },
 }
 </script>
+
+<style>
+  .rowColumn .el-input__inner:focus {
+    outline: none;
+    border-color: #DCDFE6;
+  }
+</style>
