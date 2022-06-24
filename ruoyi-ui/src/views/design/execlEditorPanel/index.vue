@@ -4,7 +4,7 @@
 			<div class="header">
 				<div class="flex_row space-between">
 					<el-button type="text" icon="arrow-left"></el-button>
-					<el-input v-model="title" class="inputbb" placeholder="请输入内容"></el-input>
+					<el-input v-model="title" @change="handleChangeTitle" class="inputbb" placeholder="请输入内容"></el-input>
 				</div>
 				<!-- <el-button-group>
 					<el-button type="primary">设计</el-button>
@@ -23,6 +23,7 @@
 					@selectCell="handleSelectCell"
 					@selectEnd="handleSelectEnd"
 					@click-head="handleClickHead"
+					@changSheet="handleChangeSheet"
 					style="flex:1;"
 				/>
 				<rightPanel ref="rightPanel" @formChange="handleFormChange" @showSelectCells="showSelectionCells"></rightPanel>
@@ -51,6 +52,7 @@ export default {
 			data:{},
 			title: '未命名表单',
 			options: {},
+			sheetIndex: 0,
 		};
 	},
 	computed: {
@@ -58,8 +60,21 @@ export default {
 		selection: function() {
 			return this.$refs.vspread.getCurSheet()[0].selection;
 		},
+		// title(newValue) {
+		// 	this.$refs.vspread.getCurSheet()[0].data[sheetIndex];
+		// 	this.$piniastore.setData(allData);
+		// },
 	},
 	methods: {
+		handleChangeTitle(e) {
+				const data = this.$refs.vspread.data;
+				data[this.sheetIndex].title = e;
+				this.$piniastore.setData(data);
+		},
+		handleChangeSheet(data) {
+			this.title = data.title;
+			this.sheetIndex = data.index;
+		},
 		updateOptions(value) {
 			this.options = Object.assign(this.options, value);
 		},

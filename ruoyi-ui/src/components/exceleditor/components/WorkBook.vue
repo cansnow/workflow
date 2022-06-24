@@ -91,6 +91,11 @@ export default {
         screenWidth() {
             this.setMenusHeigth();
         },
+        sheetIndex(newValue) {
+            const index = newValue.substring(1);
+            const title = this.data[index].title;
+            this.$emit('changSheet', { title, index });
+        },
     },
     methods: {
         init() {
