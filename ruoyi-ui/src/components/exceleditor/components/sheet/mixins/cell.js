@@ -393,6 +393,10 @@ export default {
                         delete cell[item];
                     });
                     Object.assign(cell, val);
+                    if (typeof(val.v) != 'undefined' && _.$isFormula(val.v)) {
+                        this.setCellFormula(pos, val.v);
+                        this.computedCellFormula(pos);
+                    }
                     this.$emit('on-cellval-change', {
                         pos,
                         cell,
