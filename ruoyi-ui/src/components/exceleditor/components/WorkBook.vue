@@ -53,7 +53,7 @@ export default {
     },
     data(){
         return {
-            sheetIndex:'_0',
+            sheetIndex:'',
             tabPosition:'bottom',
             menusHeigth: 40,
             screenWidth: 0,
@@ -84,7 +84,9 @@ export default {
         sheetIndex(newValue) {
             const index = newValue.substring(1);
             const title = this.data[index].title;
-            this.$emit('changSheet', { title, index });
+            const freezeColumn = this.data[index].data.freezeColumn;
+            const freezeRow = this.data[index].data.freezeRow;
+            this.$emit('changSheet', { title, index, freezeColumn, freezeRow });
         },
     },
     methods: {
@@ -93,7 +95,8 @@ export default {
             _this.update(this.$piniastore.$state);
             this.$piniastore.$subscribe((mutation, state) => {
                 _this.update(state);
-            })
+            });
+            this.sheetIndex = '_0';
         },
         update(state) {
             this.data = state.data;

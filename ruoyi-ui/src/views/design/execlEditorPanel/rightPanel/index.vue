@@ -108,14 +108,6 @@ export default {
 		formChange(data) {
 			this.$emit('formChange', data);
 		},
-		// 数据绑定更新
-		dataChange(data) {
-			this.$emit('dataChange', data);
-		},
-		// 全局规则更新
-		overallChange(data) {
-			this.$emit('overallChange', data);
-		},
 		// 重置表单信息
 		resetForm() {
 			this.$refs.FormPanel.resetForm();
@@ -131,6 +123,18 @@ export default {
 		// 设置头部信息
 		setHead(data) {
 			this.head = data;			
+		},
+		// 全局ref
+		getOverallPanelRef() {
+			return this.$refs.OverallPanel;
+		},
+		// 表单ref
+		getFormPanelRef() {
+			return this.$refs.FormPanel;
+		},
+		// 数据
+		getDataPanelRef() {
+			return this.$refs.DataPanel;
 		},
 	}
 }

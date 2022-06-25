@@ -60,10 +60,12 @@ export default {
 		selection: function() {
 			return this.$refs.vspread.getCurSheet()[0].selection;
 		},
-		// title(newValue) {
-		// 	this.$refs.vspread.getCurSheet()[0].data[sheetIndex];
-		// 	this.$piniastore.setData(allData);
-		// },
+		$OverallPanel: function() {
+			return this.$refs.rightPanel.getOverallPanelRef();
+		},
+		$curSheet: function() {
+			return this.$refs.vspread.getCurSheet()[0];
+		},
 	},
 	methods: {
 		handleChangeTitle(e) {
@@ -74,6 +76,8 @@ export default {
 		handleChangeSheet(data) {
 			this.title = data.title;
 			this.sheetIndex = data.index;
+			this.$OverallPanel.setFreezeColumn(data.freezeColumn);
+			this.$OverallPanel.setFreezeRow(data.freezeRow)
 		},
 		updateOptions(value) {
 			this.options = Object.assign(this.options, value);
@@ -248,6 +252,22 @@ export default {
 		handleClickHead() {
 			this.$refs.rightPanel.setHead(this.$refs.vspread.getCurSheet()[0].direction);
 		}
+	},
+	mounted() {
+		const _this = this;
+		this.$OverallPanel.$on('freezeColumn', function(index) {
+			_this.$curSheet.setFreezeColumn(index);
+			const data = _this.$refs.vspread.data;
+			data[_this.sheetIndex].data.freezeColumn = index;
+			_this.$piniastore.setData(data);
+			
+		});
+		this.$OverallPanel.$on('freezeRow', function(index) {
+			_this.$curSheet.setFreezeRow(index);
+			const data = _this.$refs.vspread.data;
+			data[_this.sheetIndex].data.freezeRow = index;
+			_this.$piniastore.setData(data);
+		});
 	},
 	components: { vspread, rightPanel },
 	created: function() {

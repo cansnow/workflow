@@ -40,6 +40,14 @@
         </div>
       </el-form-item>
     </el-form>
+    <el-form label-width="80px" label-position="top" size="small">
+      <el-form-item label="冻结列">
+        <el-input-number :min="0" v-model="freezeColumn" @change="(e) => handleChange(e, 'column')"></el-input-number>
+      </el-form-item>
+      <el-form-item label="冻结行">
+        <el-input-number :min="0" v-model="freezeRow" @change="(e) => handleChange(e, 'row')"></el-input-number>
+      </el-form-item>
+    </el-form>
     <Dialog :title="title" :dialogVisible="dialogVisible" @handleClose="handleClose" @handleIsOk="handleIsOk">
       <Form ref="form" />
 		</Dialog>
@@ -61,6 +69,8 @@ export default {
       rowMax: '',
       ifClick: false,
       direction: '',
+      freezeColumn: 0,
+      freezeRow: 0,
     };
   },
   components: {
@@ -188,6 +198,19 @@ export default {
     },
     setRowMax(index) {
       this.rowMax = index + 1;
+    },
+    setFreezeColumn(columnIndex) {
+        this.freezeColumn = columnIndex;
+    },
+    setFreezeRow(rowIndex) {
+        this.freezeRow = rowIndex;
+    },
+    handleChange(e, type) {
+      if (type == 'column') {
+        this.$emit('freezeColumn', e > 0 ? e : 0);
+      } else {
+        this.$emit('freezeRow', e > 0 ? e : 0);
+      }
     },
   },
 }

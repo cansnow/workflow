@@ -59,5 +59,9 @@ export default {
   //允许的最大行
   maxRowCount: 10000,
   //允许的最大列
-  maxColumnCount: 200
+  maxColumnCount: 200,
+  // 冻结行
+  freezeColumn: 0,
+  // 冻结列
+  freezeRow: 0,
 }

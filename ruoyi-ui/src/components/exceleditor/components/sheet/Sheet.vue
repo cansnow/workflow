@@ -194,7 +194,10 @@ export default {
             cellType: '',
             // 点击头部
             direction: {},
-            
+            // 冻结行
+            freezeColumn: 0,
+            // 冻结列
+            freezeRow: 0,
         };
     },
     computed: {
@@ -232,6 +235,10 @@ export default {
                 this.columnCount = options.columnCount || 20;
                 this.maxRowCount = options.maxRowCount || 10000;
                 this.maxColumnCount = options.maxColumnCount || 200;
+                this.freezeColumn = options.freezeColumn || 0;
+                this.freezeRow = options.freezeRow || 0;
+                // 设置
+                this.freezeWindow(this.freezeRow, this.freezeColumn);
             },
             immediate: true,
         },
@@ -265,6 +272,12 @@ export default {
         direction() {
             this.$emit('click-head');
         },
+        freezeColumn(columnIndex) {
+            this.freezeWindow(this.freezeRow, columnIndex);
+        },
+        freezeRow(rowIndex) {
+            this.freezeWindow(rowIndex, this.freezeColumn);
+        },
     },
     methods: {
         updateData(name, value) {
@@ -277,7 +290,13 @@ export default {
         },
         setClickHead(data) {
             this.direction = data;
-        }
+        },
+        setFreezeColumn(columnIndex) {
+            this.freezeColumn = columnIndex;
+        },
+        setFreezeRow(rowIndex) {
+            this.freezeRow = rowIndex;
+        },
     },
 };
 </script>
