@@ -396,6 +396,8 @@ export default {
                     if (typeof(val.v) != 'undefined' && _.$isFormula(val.v)) {
                         this.setCellFormula(pos, val.v);
                         this.computedCellFormula(pos);
+                    } else {
+                        this.f_relieveCellFormula(pos);
                     }
                     this.$emit('on-cellval-change', {
                         pos,

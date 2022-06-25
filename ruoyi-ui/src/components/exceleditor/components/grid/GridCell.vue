@@ -85,7 +85,8 @@
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"
         />
-		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType || cellType == 'Cell'">{{ formatValue(cell) }}</div>
+		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType">{{ formatValue(cell) }}</div>
+		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="cellType == 'Cell'">{{ value }}</div>
     </div>
 </template>
 
@@ -119,6 +120,11 @@ export default {
             },
             immediate: true,
         },
+    },
+    mounted() {
+        this.$sheet.$on('on-cellval-change', (data) => {
+            this.updateCellType();
+        });
     },
     methods: {
         handlePreview(){},

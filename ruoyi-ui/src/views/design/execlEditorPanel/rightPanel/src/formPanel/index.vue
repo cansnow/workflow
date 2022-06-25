@@ -304,6 +304,9 @@ export default {
 		resetForm() {
 			this.form = {
 				componentType: 'Cell',
+				cellValue: '',
+				cellFormula: false,
+				formula: '',
 				power: {
 					ifShow: true,
 					showCondition: '',
