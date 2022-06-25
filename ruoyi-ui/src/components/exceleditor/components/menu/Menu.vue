@@ -212,8 +212,24 @@ export default {
 		    }
 		
 		},
+		'$parent.sheetIndex': {
+			handler() {
+				this.init()
+			},
+		},
+	},
+	mounted() {
+		this.init()
 	},
 	methods: {
+		init() {
+			let _this = this;
+			// 有sheet有变更时修改状态
+			this.$sheet.$on('on-cellval-change', function() {
+				_this.setUndoRedo();
+			});
+			_this.setUndoRedo();
+		},
 		toolbarEvent(e) {
 			if(this.hasOwnProperty(e)){
 				let args = Object.assign([],arguments);
@@ -237,15 +253,21 @@ export default {
 				console.log(e);
 			}
 		},
-		undo() {
-			this.$sheet.doUndo();
+		setUndoRedo() {
 			this.toolbars['undo'].disabled = !(this.$sheet.undoList.length > 0);
 			this.toolbars['redo'].disabled = !(this.$sheet.redoList.length > 0);
 		},
+		undo() {
+			if (this.$sheet.undoList.length > 0) {
+				this.$sheet.doUndo();
+			}
+			this.setUndoRedo();
+		},
 		redo() {
-			this.$sheet.doRedo();
-			this.toolbars['undo'].disabled = !(this.$sheet.undoList.length > 0);
-			this.toolbars['redo'].disabled = !(this.$sheet.redoList.length > 0);
+			if ((this.$sheet.redoList.length > 0)) {
+				this.$sheet.doRedo();
+			}
+			this.setUndoRedo();
 		},
 		copy() {
 			this.$sheet.doCopySelection();

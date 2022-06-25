@@ -8,10 +8,16 @@
         @contextmenu.prevent="showMenu"
         @dblclick="doEdit"
         :style="cell.style.css"
-    >
-        <el-input type="text" v-model="value" v-if="cellType == 'text'" />
-		<el-input type="text" show-password v-model="value" v-if="cellType == 'password'" />
-		<el-input-number type="text" v-model="value" v-if="cellType == 'number'" />
+    >   
+        <div
+            @keydown.enter.stop="() => {}"
+            style="height: 100%;" 
+            v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
+        >
+            <el-input type="text" v-model="value" @change="handleChange" v-if="cellType == 'text'" />
+            <el-input type="text" show-password @change="handleChange" v-model="value" v-if="cellType == 'password'" />
+            <el-input-number type="text" @change="handleChange" v-model="value" v-if="cellType == 'number'" />
+        </div>
 		<el-upload
 			v-if="cellType == 'upload'"
 			class="upload-demo"
@@ -203,6 +209,12 @@ export default {
             console.log('getTreeSelectMultipleValue e',e);
             this.$set(this.props.option, 'v', e);
             this.value = e;
+        },
+        handleChange(e) {
+            this.$sheet.doEditCell();
+            this.$sheet.doCancelEdit();
+            this.$sheet.$emit('selectCell');
+            this.$sheet.doEditCellValue(e + '');
         },
     },
 };
