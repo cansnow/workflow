@@ -24,7 +24,7 @@
                 />
             </div>
         </div>
-        <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :addable="true" @edit="handleTabsEdit">
+        <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :editable="true" @edit="handleTabsEdit">
             <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
             </el-tab-pane>
         </el-tabs>
@@ -120,13 +120,32 @@ export default {
         handleClickHead() {
             this.$emit('click-head');
         },
-        // 新增表单
-        handleTabsEdit() {
-            const title = `sheet${this.data.length + 1}`;
-            const data = JSON.parse(JSON.stringify(templateData));
-            const allData = this.data;
-            allData.push({ title, data });
-            this.$piniastore.setData(allData);
+        // 新增sheet
+        handleTabsEdit(targetName, action) {
+            console.log(targetName, action);
+            if (action == 'add') {
+                const title = `sheet${this.data.length + 1}`;
+                const data = JSON.parse(JSON.stringify(templateData));
+                const allData = this.data;
+                allData.push({ title, data });
+                this.$piniastore.setData(allData);
+            } else {
+                if (this.data.length == 1) {
+                    this.$message({
+                        message: '最少一个sheet!!!',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                const index = targetName.substring(1);
+                const temp = JSON.parse(JSON.stringify(this.data));
+                temp.splice(index, 1);
+                const title = temp[0].title;
+                const freezeColumn = temp[0].data.freezeColumn;
+                const freezeRow = temp[0].data.freezeRow;
+                this.$emit('changSheet', { title, index: 0, freezeColumn, freezeRow });
+                this.$piniastore.setData(temp);
+            }
         },
     },
 };

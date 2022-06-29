@@ -209,36 +209,14 @@ export default {
         },
     },
     watch: {
-        // optionsTemp(options){
-        //     console.log(options);
-        //     this.rows = options.rows || [];
-        //     this.columns = options.columns || [];
-        //     this.merges = parseMerges(options.merges);
-        //     this.cells = options.cells || {};
-        //     this.styles = parseStyle(options.styles || {});
-        //     this.RCStyles = parseStyle(options.RCStyles || {});
-        //     this.rowCount = options.rowCount || 200;
-        //     this.columnCount = options.columnCount || 20;
-        //     this.maxRowCount = options.maxRowCount || 10000;
-        //     this.maxColumnCount = options.maxColumnCount || 200;
-        // },
+        options(options){
+            console.log('options', options);
+            this.init(options);
+        },
         optionsTemp: {
             handler: function(options) {
-                console.log(options);
-                this.rows = options.rows || [];
-                this.columns = options.columns || [];
-                this.merges = parseMerges(options.merges);
-                this.cells = options.cells || {};
-                this.styles = parseStyle(options.styles || {});
-                this.RCStyles = parseStyle(options.RCStyles || {});
-                this.rowCount = options.rowCount || 200;
-                this.columnCount = options.columnCount || 20;
-                this.maxRowCount = options.maxRowCount || 10000;
-                this.maxColumnCount = options.maxColumnCount || 200;
-                this.freezeColumn = options.freezeColumn || 0;
-                this.freezeRow = options.freezeRow || 0;
-                // 设置
-                this.freezeWindow(this.freezeRow, this.freezeColumn);
+                console.log('optionsTemp', options);
+                this.init(options);
             },
             immediate: true,
         },
@@ -280,6 +258,22 @@ export default {
         },
     },
     methods: {
+        init(options) {
+            this.rows = options.rows || [];
+            this.columns = options.columns || [];
+            this.merges = parseMerges(options.merges);
+            this.cells = options.cells || {};
+            this.styles = parseStyle(options.styles || {});
+            this.RCStyles = parseStyle(options.RCStyles || {});
+            this.rowCount = options.rowCount || 200;
+            this.columnCount = options.columnCount || 20;
+            this.maxRowCount = options.maxRowCount || 10000;
+            this.maxColumnCount = options.maxColumnCount || 200;
+            this.freezeColumn = options.freezeColumn || 0;
+            this.freezeRow = options.freezeRow || 0;
+            // 设置
+            this.freezeWindow(this.freezeRow, this.freezeColumn);
+        },
         updateData(name, value) {
             let data = this.$piniastore.$state.data;
             data[this.sheetIndex].data[name] = value;

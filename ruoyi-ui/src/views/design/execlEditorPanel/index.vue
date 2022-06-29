@@ -24,7 +24,7 @@
 					@selectEnd="handleSelectEnd"
 					@click-head="handleClickHead"
 					@changSheet="handleChangeSheet"
-					style="flex:1;"
+					style="flex:1; width: calc(100vw - 300px)"
 				/>
 				<rightPanel ref="rightPanel" @formChange="handleFormChange" @showSelectCells="showSelectionCells"></rightPanel>
 			</div>
