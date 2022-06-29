@@ -140,11 +140,24 @@ export default {
                 const index = targetName.substring(1);
                 const temp = JSON.parse(JSON.stringify(this.data));
                 temp.splice(index, 1);
-                const title = temp[0].title;
-                const freezeColumn = temp[0].data.freezeColumn;
-                const freezeRow = temp[0].data.freezeRow;
-                this.$emit('changSheet', { title, index: 0, freezeColumn, freezeRow });
+                // this.sheetIndex = '_0';
+                let curIndex = this.sheetIndex.substring(1);
+                if (index == 0 && temp.length == 1) {
+                    this.sheetIndex = '_0';
+                    curIndex = 0;
+                } else {
+                    if (index < curIndex || (index == curIndex && curIndex == temp.length)) {
+                        curIndex -= 1;
+                        this.sheetIndex = '_' + curIndex;
+                    }
+                }
                 this.$piniastore.setData(temp);
+                this.$nextTick(function() {
+                    const title = temp[curIndex].title;
+                    const freezeColumn = temp[curIndex].data.freezeColumn;
+                    const freezeRow = temp[curIndex].data.freezeRow;
+                    this.$emit('changSheet', { title, index: curIndex, freezeColumn, freezeRow });
+                });
             }
         },
     },
