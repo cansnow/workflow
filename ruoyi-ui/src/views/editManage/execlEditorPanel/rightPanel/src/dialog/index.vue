@@ -4,8 +4,9 @@
       v-dialogDrag
 			:title="title"
 			:visible.sync="dialogVisible"
-			width="30%"
+			:width="width"
 			:modal="!puncture"
+      :append-to-body="appendToBody"
 			:close-on-click-modal="!puncture"
 			:close-on-press-escape="!puncture"
 			:before-close="handleClose"
@@ -33,6 +34,14 @@ export default {
     puncture: {
       type: Boolean,
       default: true,
+    },
+    width: {
+      type: String,
+      default: '30%',
+    },
+    appendToBody: {
+      type: Boolean,
+      default: false,
     },
   },
   methods: {

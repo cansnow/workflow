@@ -1,13 +1,39 @@
 <template>
   <div class="overall">
+    <!-- 有效区域 -->
+    <div class="title">有效区域</div>
+    <el-form label-width="80px" label-position="left" size="small">
+      <el-form-item label="开始">
+        <div class="rowColumn" @click="() => handleClick('start')">
+          <el-input
+            :style="ifClick && direction == 'start' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
+            v-model="start"
+          ></el-input>
+        </div>
+      </el-form-item>
+      <el-form-item label="结束">
+        <div class="rowColumn" @click="() => handleClick('end')">
+          <el-input
+            :style="ifClick && direction == 'end' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
+            v-model="end"
+          ></el-input>
+        </div>
+      </el-form-item>
+    </el-form>
+    <!-- 权限规则 -->
+    <div class="title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">权限规则</span>
+      <el-button type="text" @click="open(0)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
     <div style="margin-left: 2px;">
       <template v-if="formList.length > 0">
         <div v-for="(fItem, index) in formList" :key="index" style="margin: 5px 0; display: flex;">
           <div style="flex: 1; display: flex; align-items: center;">
             <!-- 变量 -->
-            <span>{{ fItem.range }}</span>
-            <span>==</span>
             <span>{{ fItem.expression }}</span>
+            <span style="margin-left: 5px">{{ fItem.range }}</span>
             <span style="margin-left: 5px">{{fItem.type == 'disable' ? '禁用' : '隐藏' }}</span>
           </div>
           <div>
@@ -21,25 +47,13 @@
         </div>
       </template>
     </div>
-    <el-button size="mini" style="width: 100%;" @click="open">添加</el-button>
-    <el-form label-width="80px" label-position="top" size="small">
-      <el-form-item label="最大列">
-        <div class="rowColumn" @click="() => handleClick('column')">
-          <el-input
-            :style="ifClick && direction == 'column' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
-            v-model="columnMax"
-          ></el-input>
-        </div>
-      </el-form-item>
-      <el-form-item label="最大行">
-        <div class="rowColumn" @click="() => handleClick('row')">
-          <el-input 
-            :style="ifClick && direction == 'row' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
-            v-model="rowMax"
-          ></el-input>
-        </div>
-      </el-form-item>
-    </el-form>
+    <!-- 回写规则 -->
+    <div class="title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">回写规则</span>
+      <el-button type="text" @click="open(1)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
     <el-form label-width="80px" label-position="top" size="small">
       <el-form-item label="冻结列">
         <el-input-number :min="0" v-model="freezeColumn" @change="(e) => handleChange(e, 'column')"></el-input-number>
@@ -48,47 +62,66 @@
         <el-input-number :min="0" v-model="freezeRow" @change="(e) => handleChange(e, 'row')"></el-input-number>
       </el-form-item>
     </el-form>
-    <Dialog :title="title" :dialogVisible="dialogVisible" @handleClose="handleClose" @handleIsOk="handleIsOk">
-      <Form ref="form" />
+    <Dialog
+      :title="title"
+      :dialogVisible="dialogVisible"
+      :width="dialogType == 0 ? '30%' : '40%'"
+      @handleClose="handleClose"
+      @handleIsOk="handleIsOk">
+      <Form v-if="dialogType == 0" ref="form" />
+      <Data v-if="dialogType == 1" ref="Data" />
 		</Dialog>
   </div>
 </template>
 
 <script>
 import Form from './src/form.vue';
+import Data from './src/data.vue';
 import Dialog from '../dialog/index.vue';
 export default {
   inject: ['$rightPanel'],
+  components: {
+    Form,
+    Data,
+    Dialog,
+  },
   data() {
     return {
-      formList: [],
+      formList: [], // 权限规则
+      dataList: [], // 回写规则
       dialogVisible: false,
       title: '',
       index: -1,
       columnMax: '',
       rowMax: '',
+      dialogType: 0,
+      start: '', // 开始
+      end: '', // 结束
       ifClick: false,
       direction: '',
       freezeColumn: 0,
       freezeRow: 0,
     };
   },
-  components: {
-    Form,
-    Dialog,
-  },
   watch: {
     '$rightPanel.selectCell': {
       handler(newValue) {
-        if (this.dialogVisible) {
+        if (this.dialogVisible && this.dialogType == 0) {
           const form = this.$refs.form.getFormData();
           Object.assign(form, { range: newValue });
           this.$refs.form.setFormData(form);
         }
+        // 设置回写单元格
         if (this.ifClick) {
           const { start } = this.$rightPanel.selection;
           this.setRowMax(start.rowIndex);
           this.setColumnMax(start.columnIndex);
+          if (this.direction == 'start') {
+            this.setArea('start', start);
+          }
+          if (this.direction == 'end') {
+            this.setArea('end', start);
+          }
         }
       },
     },
@@ -106,35 +139,47 @@ export default {
     },
   },
   methods: {
+    /** 取消 */
     handleClose() {
-      this.$refs.form.resetFormData();
-      this.dialogVisible = false;
-      if (this.index != -1) {
-        const form = this.formList[this.index];
-        Object.assign(form, { disabled: false });
-        this.formList.splice(this.index, 1, form);
-        this.index = -1;
+      if (this.dialogType == 0) {
+        this.$refs.form.resetFormData();
+        if (this.index != -1) {
+          const form = this.formList[this.index];
+          Object.assign(form, { disabled: false });
+          this.formList.splice(this.index, 1, form);
+          this.index = -1;
+        }
       }
+      this.dialogVisible = false;
     },
+    /** 确认 */
     handleIsOk() {
-      const form = this.$refs.form.getFormData();
-      if (form.index == -1) {
-        this.formList.push(this.$refs.form.getFormData());
+      if (this.dialogType == 0) {
+        const form = this.$refs.form.getFormData();
+        if (form.index == -1) {
+          this.formList.push(this.$refs.form.getFormData());
+        } else {
+          Object.assign(form, { disabled: false });
+          this.formList.splice(form.index, 1, form);
+        }
       } else {
-        Object.assign(form, { disabled: false });
-        this.formList.splice(form.index, 1, form);
+        const data = this.$refs.Data.getFieldData();
+
       }
       this.handleClose();
     },
-    open() {
+    open(type) {
       if (!this.dialogVisible) {
+        this.dialogType = type;
         this.dialogVisible = true;
-        this.title = '新建规则';
+        this.title = (type == 0 ? '新建' : '回写') + '规则';
       }
     },
+    /** 删除权限规则 */
     handleDel(index) {
       this.formList.splice(index, 1);
     },
+    /** 编辑权限规则 */
     handleEdit(index) {
       const temp = this.formList[index];
       Object.assign(temp, { index: index, disabled: true });
@@ -142,7 +187,7 @@ export default {
       this.formList.splice(index, 1, temp);
       this.index = index;
       this.showSelectCells(); // 显示选中单元格
-      this.open();
+      this.open(0);
       this.title = '编辑规则';
     },
     // 显示选中单元格
@@ -153,8 +198,10 @@ export default {
         /**
          * 将G9:G10
          * 转成
-         * { start: { columnIndex, rowIndex },
-         * end: { rowIndex, columnIndex } }
+         * { 
+         *  start: { columnIndex, rowIndex },
+         *  end: { rowIndex, columnIndex } 
+         * }
          */
         const list = range.split(':');
         // G9
@@ -199,12 +246,20 @@ export default {
     setRowMax(index) {
       this.rowMax = index + 1;
     },
+    // 设置区域
+    setArea(filed, pos) {
+      this[filed] = _.$Number2ABC(pos.columnIndex) + (pos.rowIndex + 1);
+    },
+    getFormatData(pos) {
+      return _.$Number2ABC(pos.columnIndex) + (pos.rowIndex + 1);
+    },
     setFreezeColumn(columnIndex) {
         this.freezeColumn = columnIndex;
     },
     setFreezeRow(rowIndex) {
         this.freezeRow = rowIndex;
     },
+    // 设置冻结行列
     handleChange(e, type) {
       if (type == 'column') {
         this.$emit('freezeColumn', e > 0 ? e : 0);
@@ -220,5 +275,10 @@ export default {
   .rowColumn .el-input__inner:focus {
     outline: none;
     border-color: #DCDFE6;
+  }
+
+  .overall .title {
+    padding: 5px 0;
+    font-weight: bold;
   }
 </style>
