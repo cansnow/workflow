@@ -1,5 +1,5 @@
 <template>
-  <div class="excelList app-container">
+  <div class="dataList app-container">
     <!-- 查询 -->
     <el-form
       :model="queryParams"
@@ -105,13 +105,8 @@
         width="160"
       ></el-table-column>
       <el-table-column
-        prop="perms"
-        label="工作簿"
-        :show-overflow-tooltip="true"
-      ></el-table-column>
-      <el-table-column
         prop="component"
-        label="链接"
+        label="接口"
         :show-overflow-tooltip="true"
       ></el-table-column>
       <el-table-column prop="status" label="状态" width="80">
@@ -122,7 +117,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime">
+      <el-table-column label="最后修改时间" align="center" prop="createTime">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
@@ -159,6 +154,50 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
+    <!-- 添加或修改对话框 -->
+    <el-dialog :title="title" :visible.sync="open" width="680px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="名称" prop="name">
+              <el-input v-model="form.name" placeholder="请输入名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="描述" prop="describe">
+              <el-input
+                type="textarea"
+                :rows="4"
+                placeholder="请输入内容"
+                v-model="form.describe">
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="接口" prop="api">
+              <el-input v-model="form.api" placeholder="请输入接口" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="状态">
+              <el-select v-model="form.status" placeholder="请选择">
+                <el-option
+                  v-for="dict in dict.type.sys_normal_disable"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                  >{{ dict.label }}</el-option
+                >
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -169,7 +208,7 @@ import {
 } from "@/api/system/menu";
 
 export default {
-  name: 'ExcelList',
+  name: 'DataList',
   dicts: ["sys_show_hide", "sys_normal_disable"],
   components: { },
   data() {
@@ -196,6 +235,21 @@ export default {
         pageSize: 10,
         name: undefined,
         visible: undefined,
+      },
+      // 弹出层标题
+      title: "",
+      // 是否显示弹出层
+      open: false,
+      // 表单参数
+      form: {},
+      // 表单校验
+      rules: {
+        name: [
+          { required: true, message: "名称不能为空", trigger: "blur" },
+        ],
+        api: [
+          { required: true, message: "接口不能为空", trigger: "blur" },
+        ],
       },
     };
   },
@@ -230,8 +284,31 @@ export default {
       this.resetForm("queryForm");
       this.handleQuery();
     },
+    // 表单重置
+    reset() {
+      this.form = {
+        name: '',
+        describe: '',
+        api: '',
+        status: "0",
+      };
+      this.resetForm("form");
+    },
     /** 新增按钮操作 */
-    handleAdd(row) {
+    handleAdd() {
+      this.reset();
+      this.open = true;
+      this.title = '新增';
+    },
+    // 取消按钮
+    cancel() {
+      this.open = false;
+      this.reset();
+    },
+    /** 提交按钮 */
+    submitForm() {
+      this.open = false;
+      this.getList();
     },
     // 行操作
     /** 修改按钮操作 */
@@ -245,7 +322,7 @@ export default {
 </script>
 
 <style>
-  /* .excelList {
+  /* .dataList {
 
   } */
 </style>

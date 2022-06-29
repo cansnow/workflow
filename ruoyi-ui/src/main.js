@@ -43,7 +43,7 @@ import DictData from '@/components/DictData'
 import { createPinia } from 'pinia'
 Vue.use(createPinia())
 
-import piniastore from "@/views/design/execlEditorPanel/store";
+import piniastore from "@/views/editManage/execlEditorPanel/store";
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts

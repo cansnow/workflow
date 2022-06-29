@@ -48,7 +48,7 @@ export const constantRoutes = [
   },
   {
     path: '/design',
-    component: () => import('@/views/design/execlEditorPanel/index'),
+    component: () => import('@/views/editManage/execlEditorPanel/index'),
     hidden: true
   },
   {
