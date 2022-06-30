@@ -1,13 +1,14 @@
 <template>
   <div class="overall">
     <!-- 有效区域 -->
-    <div class="title">有效区域</div>
-    <el-form label-width="80px" label-position="left" size="small">
+    <div class="overall_title">有效区域</div>
+    <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="开始">
         <div class="rowColumn" @click="() => handleClick('start')">
           <el-input
             :style="ifClick && direction == 'start' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
             v-model="start"
+            ref="start"
           ></el-input>
         </div>
       </el-form-item>
@@ -16,12 +17,13 @@
           <el-input
             :style="ifClick && direction == 'end' ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
             v-model="end"
+            ref="end"
           ></el-input>
         </div>
       </el-form-item>
     </el-form>
     <!-- 权限规则 -->
-    <div class="title" style="display: flex; align-items: center;">
+    <div class="overall_title" style="display: flex; align-items: center;">
       <span style="flex: 1;">权限规则</span>
       <el-button type="text" @click="open(0)">
         <i class="mdi mdi-plus"></i>
@@ -32,9 +34,12 @@
         <div v-for="(fItem, index) in formList" :key="index" style="margin: 5px 0; display: flex;">
           <div style="flex: 1; display: flex; align-items: center;">
             <!-- 变量 -->
-            <span>{{ fItem.expression }}</span>
-            <span style="margin-left: 5px">{{ fItem.range }}</span>
-            <span style="margin-left: 5px">{{fItem.type == 'disable' ? '禁用' : '隐藏' }}</span>
+            <div style="flex: 1;">
+              <span>{{ fItem.expression }}</span>
+              <span style="margin-left: 5px">{{ fItem.range }}</span>
+            </div>
+            <el-tag type="danger" size="mini" style="margin-right: 5px;" v-if="fItem.type == 'disable'">禁用</el-tag>
+            <el-tag type="info" size="mini" style="margin-right: 5px;" v-else>隐藏</el-tag>
           </div>
           <div>
             <el-button type="text" :disabled="fItem.disabled" @click="() => handleEdit(index)">
@@ -48,18 +53,36 @@
       </template>
     </div>
     <!-- 回写规则 -->
-    <div class="title" style="display: flex; align-items: center;">
+    <div class="overall_title" style="display: flex; align-items: center;">
       <span style="flex: 1;">回写规则</span>
       <el-button type="text" @click="open(1)">
         <i class="mdi mdi-plus"></i>
       </el-button>
     </div>
-    <el-form label-width="80px" label-position="top" size="small">
+    <div style="margin-left: 2px;">
+      <template v-if="dataList.length > 0">
+        <div v-for="(dItem, index) in dataList" :key="index" style="margin: 5px 0; display: flex;">
+          <div style="flex: 1; display: flex; align-items: center;">
+            <span>{{ dItem.title }}</span>
+          </div>
+          <div>
+            <el-button type="text" @click="handleSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" @click="() => handleDelData(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="overall_title">冻结行列</div>
+    <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="冻结列">
-        <el-input-number :min="0" v-model="freezeColumn" @change="(e) => handleChange(e, 'column')"></el-input-number>
+        <el-input-number :min="0" style="width: 100%" v-model="freezeColumn" @change="(e) => handleChange(e, 'column')"></el-input-number>
       </el-form-item>
       <el-form-item label="冻结行">
-        <el-input-number :min="0" v-model="freezeRow" @change="(e) => handleChange(e, 'row')"></el-input-number>
+        <el-input-number :min="0" style="width: 100%" v-model="freezeRow" @change="(e) => handleChange(e, 'row')"></el-input-number>
       </el-form-item>
     </el-form>
     <Dialog
@@ -106,10 +129,17 @@ export default {
   watch: {
     '$rightPanel.selectCell': {
       handler(newValue) {
-        if (this.dialogVisible && this.dialogType == 0) {
-          const form = this.$refs.form.getFormData();
-          Object.assign(form, { range: newValue });
-          this.$refs.form.setFormData(form);
+        if (this.dialogVisible) {
+          // 权限规则
+          if (this.dialogType == 0) {
+            const form = this.$refs.form.getFormData();
+            Object.assign(form, { range: newValue });
+            this.$refs.form.setFormData(form);
+          }
+          // 回写规则
+          if (this.dialogType == 1) {
+            this.$refs.Data.setCellValue(newValue);
+          }
         }
         // 设置回写单元格
         if (this.ifClick) {
@@ -139,6 +169,10 @@ export default {
     },
   },
   methods: {
+    /** 颠倒数组 */
+    handleSort() {
+      this.dataList.reverse();
+    },
     /** 取消 */
     handleClose() {
       if (this.dialogType == 0) {
@@ -149,6 +183,8 @@ export default {
           this.formList.splice(this.index, 1, form);
           this.index = -1;
         }
+      } else {
+        this.$refs.Data.resetData();
       }
       this.dialogVisible = false;
     },
@@ -164,10 +200,11 @@ export default {
         }
       } else {
         const data = this.$refs.Data.getFieldData();
-
+        this.dataList.push(data);
       }
       this.handleClose();
     },
+    /** 打开弹窗 */
     open(type) {
       if (!this.dialogVisible) {
         this.dialogType = type;
@@ -178,6 +215,10 @@ export default {
     /** 删除权限规则 */
     handleDel(index) {
       this.formList.splice(index, 1);
+    },
+    /** 删除回写规则 */
+    handleDelData(index) {
+      this.dataList.splice(index, 1);
     },
     /** 编辑权限规则 */
     handleEdit(index) {
@@ -236,6 +277,7 @@ export default {
       } else if (this.direction == direction) {
         this.direction = '';
         this.ifClick = false;
+        this.$refs[direction].blur();
       } else if (this.direction != direction) {
         this.direction = direction;
       }
@@ -277,7 +319,7 @@ export default {
     border-color: #DCDFE6;
   }
 
-  .overall .title {
+  .overall_title {
     padding: 5px 0;
     font-weight: bold;
   }

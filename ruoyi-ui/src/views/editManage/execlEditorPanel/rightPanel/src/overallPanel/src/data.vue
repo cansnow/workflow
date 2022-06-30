@@ -31,7 +31,7 @@
         align="center"
       >
         <template slot-scope="scope">
-          <el-select v-model="scope.row.type" placeholder="请选择">
+          <el-select v-model="scope.row.type" @change="handleChangeType" placeholder="请选择">
             <el-option label="单元格" value="cell" />
             <el-option label="参数" value="value" />
           </el-select>
@@ -53,6 +53,7 @@
             v-model="scope.row.value"
             placeholder="请输入值"
             clearable
+            @focus="handleChangeType"
           />
         </template>
       </el-table-column>
@@ -107,7 +108,7 @@ export default {
         value: '选项5',
         label: '北京烤鸭'
       }],
-      ifSelectCell: -1,
+      selectIndex: -1,
       dialogVisible: false,
     };
   },
@@ -128,7 +129,7 @@ export default {
       this.filedList.push({
         filed: '名称',
         type: 'cell',
-        cell: 'A1',
+        value: '',
         ifClick: false,
       });
       this.dialogVisible = true;
@@ -149,6 +150,13 @@ export default {
       this.title = '';
       this.filedList = [];
     },
+    /** 变更值类型 */
+    handleChangeType() {
+      this.filedList.forEach((item, index) => {
+        item.ifClick = false;
+      });
+      this.selectIndex = -1;
+    },
     /** 点击单元格 scope: { row, column, $index } */
     handleClick(scope) {
       this.filedList.forEach((item, index) => {
@@ -157,16 +165,28 @@ export default {
         } else {
           item.ifClick = false;
         }
-      })
+      });
       const index = this.filedList.findIndex(item => item.ifClick);
-      this.ifSelectCell = index;
+      this.selectIndex = index;
       if (index == -1) {
         this.$refs['cell_' + scope.$index].blur();
       }
     },
-    setCellValue() {
-
-    }
+    /** 设置单元格内的值 */
+    setCellValue(cell) {
+      console.log('setCellValue cell', cell);
+      if (this.selectIndex != -1) {
+        const pos = cell.split(':');
+        const temp = this.filedList[this.selectIndex];
+        if (temp.type == 'cell') {
+          temp.value = pos[0];
+        } else {
+          this.selectIndex = -1;
+          temp.ifClick = false;
+        }
+        this.filedList.splice(this.selectIndex, 1, temp);
+      }
+    },
   },
 }
 </script>
