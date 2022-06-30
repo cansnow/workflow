@@ -297,7 +297,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     },
                     {
                         v: [],
@@ -336,7 +335,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     },,
                     {
                         v: '',
@@ -390,7 +388,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     },
                     {
                         v: [],
@@ -444,7 +441,6 @@ export default [
                                 r: ['', ''], // [0] 可见规则， [1] 可编辑规则
                             }, // rule 权限
                         }, // props 参数配置
-                        s: 's4'
                     },
                     null
                 ],
@@ -458,11 +454,9 @@ export default [
                     null,
                     {
                         v: null,
-                        s: 's4'
                     },
                     {
                         v: null,
-                        s: 's4'
                     }
                 ],
                 '17': [
@@ -475,11 +469,9 @@ export default [
                     null,
                     {
                         v: null,
-                        s: 's4'
                     },
                     {
                         v: null,
-                        s: 's4'
                     }
                 ],
                 '18': [null, null, null, null, null, null, null, null, null, null, null, null, null],
@@ -537,13 +529,13 @@ export default [
             //列的数量
             columnCount: 20,
             //允许的最大行
-            maxRowCount: 10000,
+            maxRowCount: 20,
             //允许的最大列
-            maxColumnCount: 200,
+            maxColumnCount: 20,
             // 冻结行
-            freezeColumn: 2,
+            freezeColumn: 0,
             // 冻结列
-            freezeRow: 2,
+            freezeRow: 0,
         }
     }
 ]

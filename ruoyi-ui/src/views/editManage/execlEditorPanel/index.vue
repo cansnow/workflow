@@ -12,6 +12,7 @@
 					<el-button type="default" @click="saveData">设置</el-button>
 				</el-button-group> -->
 				<el-button-group>
+					<el-button type="primary" @click="handlePreview">预览</el-button>
 					<el-button type="default" @click="viewData">查看代码</el-button>
 					<el-button type="primary">发布</el-button>
 				</el-button-group>
@@ -31,7 +32,7 @@
 		</div>
 
 		<el-dialog :visible.sync="codeData.show" title="代码" width="600px" @close="codeData.show = false">
-			<el-textarea v-model="codeData.data" :rows="20" type="textarea" readonly placeholder="Please input" />
+			<el-input v-model="codeData.data" :rows="20" type="textarea" readonly placeholder="Please input" />
 		</el-dialog>
 	</div>
 </template>
@@ -53,6 +54,8 @@ export default {
 			title: '未命名表单',
 			options: {},
 			sheetIndex: 0,
+			sheetData: [],
+			ifPreview: false,
 		};
 	},
 	computed: {
@@ -85,11 +88,43 @@ export default {
 		//显示当前json
 		viewData() {
 			console.log('view');
-			this.codeData.data = JSON.stringify(this.$piniastore.data, ' ', 4);
+			// this.codeData.data = JSON.stringify(this.$piniastore.data, ' ', 4);
+			const _this = this;
+			console.log('this.$curSheet.cells', this.$curSheet.cells);
+			const cellsTemp = [];
+			_.each(this.$curSheet.cells, (cell, key) => {
+				_.each(cell, (col, index) => {
+					if (col) {
+						const temp = {};
+						const selection = {
+							end: {columnIndex: index, rowIndex: parseInt(key)},
+							start: {columnIndex: index, rowIndex: parseInt(key)}
+						};
+						const seletction2 = _this.$curSheet.s_computedExtendSelection(selection);
+						const pos = _this.$curSheet.getAreaLayoutPos(seletction2); // top left height width
+						Object.assign(temp, pos); // 位置
+						console.log('col', col);
+						if (typeof(col.s) != 'undefined') {
+							const style = _this.$curSheet.getStyle(col.s);
+							console.log('style.option', style);
+							if (style) {
+								Object.assign(temp, style.option); // 样式
+							}
+						}
+						Object.assign(temp, col);
+						cellsTemp.push(temp);
+					}
+				})
+			});
+			this.codeData.data = JSON.stringify(cellsTemp);
 			this.codeData.show = true;
 		},
 		//保存
 		saveData() {},
+		/** 预览表单 */
+		handlePreview() {
+
+		},
 		//发布
 		postData() {
 			const loadingInstance = ElLoading.service({ fullscreen: true });
@@ -148,13 +183,13 @@ export default {
 				case 'input': // 单元格输入
 					// text number password datetime
 					temp.c = data.inputType;
-					temp.v = data.default.value;
+					temp.v = data.default;
 					break;
 				case 'select': // 单元格选择
 					// checkbox radio select selectM
 					temp.c = data.selectType;
 					// 非树结构
-					const valueList = data.default.value.split(',');
+					const valueList = data.defaultSelect.split(',');
 					let options = [];
 					valueList.forEach(item => {
 						options.push({ value: item, label: item });
@@ -164,14 +199,17 @@ export default {
 						data.selectType == 'treeSelect' ||
 						data.selectType == 'treeSelectMultiple'
 					) {
-						options = JSON.parse(data.default.value);
+						options = JSON.parse(data.defaultSelect);
 					}
 					// 多选 v 是数组
 					if (
 						data.selectType == 'treeSelectMultiple' ||
 						data.selectType == 'selectMultiple'
 					) {
-						temp.v = [];
+						const value = data.default.split(',');
+						temp.v = value;
+					} else {
+						temp.v = data.default;
 					}
 					temp.options = options;
 					break;
@@ -234,7 +272,7 @@ export default {
 			}
 			// 单元格数据，有公式
 			if (data.componentType == 'Cell') {
-				Object.assign(temp, { v: data.cellValue });
+				Object.assign(temp, { v: data.default });
 			}
 			this.setCell(temp);
 		},

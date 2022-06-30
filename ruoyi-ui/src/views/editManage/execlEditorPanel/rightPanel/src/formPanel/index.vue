@@ -48,12 +48,12 @@
 				<el-form-item label="默认值">
 					<el-input
 							type="text"
-							v-model="form.cellValue"
+							v-model="form.default"
 							@change="change"
 							placeholder="请输入"
 						/>
 				</el-form-item>
-				<el-form-item label="公式" v-if="form.cellFormula">
+				<!-- <el-form-item label="公式" v-if="form.cellFormula">
 					<el-input
 							type="text"
 							v-model="form.formula"
@@ -61,7 +61,7 @@
 							disabled
 							placeholder="请输入"
 						/>
-				</el-form-item>
+				</el-form-item> -->
 			</template>
       <!-- 为单元格 没有上传图片 -->
       <template v-if="form.componentType != 'Cell'">
@@ -80,12 +80,25 @@
       </template>
       <!-- 为单元格 图片 按钮 没有以下表单字段 -->
       <template v-if="form.componentType != 'Cell' && form.componentType != 'image' && form.componentType != 'button'">
-        <el-form-item label="默认值" v-if="form.componentType == 'input' || form.componentType ==  'select'">
-          <el-select v-model="form.default.type" @change="change" placeholder="请选择" style="width: 100%">
+				<template v-if="form.componentType == 'select'">
+					<el-form-item label="选项">
+						<el-select v-model="form.selectSrc" @change="change" placeholder="请选择" style="width: 100%">
+							<el-option label="自定义" value="custom" />
+							<el-option label="数据集" value="api" />
+						</el-select>
+						<el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="change" placeholder="请选择" style="width: 100%">
+							<el-option label="数据集1" value="api1" />
+							<el-option label="数据集2" value="api2" />
+						</el-select>
+						<el-input v-else type="textarea" :rows="4" v-model="form.defaultSelect" placeholder="请输入" @change="change" />
+					</el-form-item>
+				</template>
+        <el-form-item label="默认值" v-if="form.componentType == 'input' || form.componentType == 'select'">
+          <!-- <el-select v-model="form.default.type" @change="change" placeholder="请选择" style="width: 100%">
             <el-option label="自定义" value="custom" />
             <el-option label="公式" value="formula" />
-          </el-select>
-          <el-input type="text" v-model="form.default.value" placeholder="请输入" @change="change" />
+          </el-select> -->
+          <el-input type="text" v-model="form.default" placeholder="请输入" @change="change" />
         </el-form-item>
 
         <el-form-item label="校验">
@@ -143,10 +156,14 @@ export default {
           only: false,
 				}, // 校验
 				imageUrl: '', // 图片
-				default: {
-					type: 'custom',
-					value: '',
-				}, // 默认值
+				// default: {
+				// 	type: 'custom',
+				// 	value: '',
+				// }, // 默认值
+				default: '', // 默认值
+				selectSrc: 'custom', // 选项
+				api: 'api1', // 数据集
+				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
 				selectType: 'radio', //选择类型
@@ -318,10 +335,14 @@ export default {
           only: false,
 				}, // 校验
 				imageUrl: '', // 图片
-				default: {
-					type: 'custom',
-					value: '',
-				}, // 默认值
+				// default: {
+				// 	type: 'custom',
+				// 	value: '',
+				// }, // 默认值
+				default: '', // 默认值
+				selectSrc: 'custom', // 选项
+				api: 'api1', // 数据集
+				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
 				selectType: 'radio', //选择类型
@@ -353,6 +374,13 @@ export default {
 			let temp = {
 				componentType: data.c || 'Cell',
 			};
+
+			// 默认值
+			const cellFormula = typeof(data.f) != 'undefined';
+			const formula = cellFormula ? _.$parseRefs(data.f, this.$rightPanel.selection.start) : '';
+			let cellValue = typeof(data.v) == 'undefined' ? '' : data.v;
+			cellValue = cellFormula ? formula : cellValue;
+
 			switch(data.c) {
 				case 'button': // 按钮
 					Object.assign(temp, {
@@ -378,11 +406,14 @@ export default {
 						});
 						defValue = labels.join(',');
 					}
+					// 树
 					defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
 					Object.assign(temp, {
 						componentType: 'select',
 						selectType: data.c,
-						default: { value: defValue, type: 'custom' },
+						default: cellValue,
+						defaultSelect: defValue,
+						selectSrc: 'custom',
 					});
 					break;
 				case 'text': // 输入
@@ -392,7 +423,7 @@ export default {
 					Object.assign(temp, {
 						componentType: 'input',
 						inputType: data.c,
-						default: { value: data.v, type: 'custom' },
+						default: cellValue,
 					});
 					break;
 			}
@@ -440,9 +471,7 @@ export default {
 			}
 			// Cell 单元格
 			if (temp.componentType == 'Cell') {
-				const cellFormula = typeof(data.f) != 'undefined';
-				const formula = cellFormula ? _.$parseRefs(data.f, this.$rightPanel.selection.start) : '';
-				Object.assign(temp, { cellValue: typeof(data.v) == 'undefined' ? '' : data.v, cellFormula, formula });
+				Object.assign(temp, { default: cellValue, cellFormula, formula });
 			}
 			Object.assign(this.form, temp);
 		},
