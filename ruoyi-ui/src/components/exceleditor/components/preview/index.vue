@@ -39,6 +39,7 @@ export default {
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         Object.assign(tempData, state.previewData);
         this.data = tempData;
+        this.title = tempData.title || 'sheet';
     },
   },
 }
@@ -58,18 +59,18 @@ export default {
     height: 40px;
     border-bottom: 1px solid #ddd;
   }
-  .meg-gdlinewrap-column {
-    .meg-gdline {
-        border-right: unset !important;
-    }
-  }
+  // .meg-gdlinewrap-column {
+  //   .meg-gdline {
+  //       border-right: unset !important;
+  //   }
+  // }
 
-  .meg-gdlinewrap-row {
-      flex-direction: column;
+  // .meg-gdlinewrap-row {
+  //     flex-direction: column;
 
-      .meg-gdline {
-          border-bottom: unset !important;
-      }
-  }
+  //     .meg-gdline {
+  //         border-bottom: unset !important;
+  //     }
+  // }
 }  
 </style>

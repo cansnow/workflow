@@ -89,20 +89,29 @@ export default {
 		viewData() {
 			console.log('view');
 			// this.codeData.data = JSON.stringify(this.$piniastore.data, ' ', 4);
+			const temp = this.getCurSheetCells();
+			this.codeData.data = JSON.stringify(temp);
+			this.codeData.show = true;
+		},
+		/** 获取当前sheet全部单元格数据 */
+		getCurSheetCells() {
 			const _this = this;
-			console.log('this.$curSheet.cells', this.$curSheet.cells);
 			const cellsTemp = [];
 			_.each(this.$curSheet.cells, (cell, key) => {
 				_.each(cell, (col, index) => {
 					if (col) {
 						const temp = {};
 						const selection = {
+							start: {columnIndex: index, rowIndex: parseInt(key)}, // 开始位置
 							end: {columnIndex: index, rowIndex: parseInt(key)},
-							start: {columnIndex: index, rowIndex: parseInt(key)}
 						};
 						const seletction2 = _this.$curSheet.s_computedExtendSelection(selection);
-						const pos = _this.$curSheet.getAreaLayoutPos(seletction2); // top left height width
-						Object.assign(temp, pos); // 位置
+						if (JSON.stringify(seletction2) != JSON.stringify(selection)) {
+							Object.assign(temp, { merges: seletction2 });// 合并信息
+						}
+						Object.assign(temp, { pos: selection });
+						const pos = _this.$curSheet.getAreaLayoutPos(selection);
+						Object.assign(temp, pos); // 位置 top left height width
 						console.log('col', col);
 						if (typeof(col.s) != 'undefined') {
 							const style = _this.$curSheet.getStyle(col.s);
@@ -116,14 +125,30 @@ export default {
 					}
 				})
 			});
-			this.codeData.data = JSON.stringify(cellsTemp);
-			this.codeData.show = true;
+			console.log('cellsTemp', cellsTemp);
+			return cellsTemp;
 		},
 		//保存
 		saveData() {},
 		/** 预览表单 */
 		handlePreview() {
-
+			const start = this.$refs.rightPanel.getOverallPanelRef().start;
+			const end = this.$refs.rightPanel.getOverallPanelRef().end;
+			const freezeColumn = this.$refs.rightPanel.getOverallPanelRef().freezeColumn;
+			const freezeRow = this.$refs.rightPanel.getOverallPanelRef().freezeRow;
+			const title = this.title;
+			const cells = this.getCurSheetCells();
+			this.$piniastore.setTestData(cells);
+			this.$piniastore.setTestData2({
+				start,
+				end,
+				freezeColumn,
+				freezeRow,
+				title,
+				cells,
+			});
+			// this.$router.push({path:'/home',query: {id:'1'}})
+			this.$router.push({ path:'/Preview' });
 		},
 		//发布
 		postData() {

@@ -202,33 +202,6 @@ export default {
             },
             immediate: true,
         },
-        // rowCount(rowCount) {
-        //     this.updateData({ rowCount });
-        // },
-        // columnCount(columnCount) {
-        //     this.updateData({ columnCount });
-        // },
-        // styles(styles) {
-        //     this.updateData({ styles: parseStyle1(styles) });
-        // },
-        // RCStyles(styles) {
-        //     this.updateData({ styles: parseStyle1(styles) });
-        // },
-        // cells(cells, oldCells) {
-        //     if (cells != oldCells) {
-        //         this.initFormula();
-        //     }
-        //     this.updateData({ cells });
-        // },
-        // merges(merges) {
-        //     this.updateData({ merges: Object.values(merges) });
-        // },
-        // columns(columns) {
-        //     this.updateData({ columns });
-        // },
-        // rows(rows) {
-        //     this.updateData({ rows });
-        // },
         freezeColumn(columnIndex) {
             this.freezeWindow(this.freezeRow, columnIndex);
         },
@@ -238,6 +211,7 @@ export default {
     },
     methods: {
         init(options) {
+            debugger;
             this.rows = options.rows || [];
             this.columns = options.columns || [];
             this.merges = parseMerges(options.merges);
@@ -253,11 +227,6 @@ export default {
             // 设置
             this.freezeWindow(this.freezeRow, this.freezeColumn);
         },
-        // updateData(name, value) {
-        //     let data = this.$piniastore.$state.data;
-        //     data[this.sheetIndex].data[name] = value;
-		//     this.$piniastore.setData(data);
-        // },
         setFreezeColumn(columnIndex) {
             this.freezeColumn = columnIndex;
         },

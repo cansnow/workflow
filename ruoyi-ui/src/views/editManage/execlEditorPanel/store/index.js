@@ -11,6 +11,16 @@ const useMainStore = defineStore({
 		data:{},
 		counter: 0,
 		name: 'Eduardo',
+		previewData: {}, // 预览数据
+		testData: [], // 测试数据
+		testData2: {
+			title: '', // 表单名称
+			cells: [], // 单元格
+			start: '', // 开始行
+			end: '', // 开始列
+			freezeColumn: 0, // 冻结行
+			freezeRow: 0, // 冻结列
+		}, // 测试数据2
 	}),
 	// getters
 	getters: {
@@ -26,6 +36,18 @@ const useMainStore = defineStore({
 	actions: {
 		setData(v){
 			this.data = v;
+		},
+		setPreviewData(data) {
+			this.previewData = data;
+		},
+		setPushTestData(v) {
+			this.testData.push(v);
+		},
+		setTestData(data) {
+			this.testData = data;
+		},
+		setTestData2(data) {
+			this.testData2 = data;
 		},
 		reset() {
 			// `this` 使 store 实例
