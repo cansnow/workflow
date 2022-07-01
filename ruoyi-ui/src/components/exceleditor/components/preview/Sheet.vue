@@ -65,13 +65,6 @@
 
                     </div>
 
-                    <!--选中高亮区-->
-                    <Sheet-Selection></Sheet-Selection>
-                    <Sheet-Editer-Selection></Sheet-Editer-Selection>
-                    <Sheet-Brush-Fill></Sheet-Brush-Fill>
-                    <Sheet-Highlight></Sheet-Highlight>
-                    <Sheet-Editer></Sheet-Editer>
-
                     <div v-for="(style, i) in resizeLineStyle" :class="resizeClass" :style="style" :key="i"></div>
                 </div>
             </div>
@@ -80,22 +73,18 @@
 
         <div class="grdusedrange" :style="{ top: `${sheetHeight}px`, left: `${sheetWidth}px` }"></div>
 
-        <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
-        </Context-Menu>
+        <!-- <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
+        </Context-Menu> -->
 
     </div>
 </template>
 <script>
-import { mixins } from './mixins';
-import Block from '../block/Block.vue';
+import { mixins } from './mixins';//'../sheet/mixins';
+import Block from './block/Block.vue';
 import Heads from '../head/Head.vue';
-import Grid from '../grid/Grid.vue';
-import FlowClip from '../flow/FlowClip.vue';
-import Flow from '../flow/Flow.vue';
-import SheetSelection from './SheetSelection.vue';
-import SheetHighlight from './SheetHighlight.vue';
-import SheetEditerSelection from './SheetEditerSelection.vue';
-import SheetEditer from './SheetEditer.vue';
+import Grid from './grid/Grid.vue';
+import FlowClip from './flow/FlowClip.vue';
+import Flow from './flow/Flow.vue';
 
 import Style from './mixins/style/Style';
 
@@ -143,10 +132,6 @@ export default {
         Grid,
         FlowClip,
         Flow,
-        SheetSelection,
-        SheetEditerSelection,
-        SheetEditer,
-        SheetHighlight,
         Block,
     },
     props: {
@@ -183,21 +168,18 @@ export default {
             //行列样式
             RCStyles: undefined,
             //行的数量
-            rowCount: 200,
+            rowCount: 20,
             //列的数量
             columnCount: 20,
             //允许的最大行
-            maxRowCount: 10000,
+            maxRowCount: 20,
             //允许的最大列
-            maxColumnCount: 200,
-            // 更改单元格组件类型
-            cellType: '',
-            // 点击头部
-            direction: {},
+            maxColumnCount: 20,
             // 冻结行
             freezeColumn: 0,
             // 冻结列
             freezeRow: 0,
+            showHead: false,
         };
     },
     computed: {
@@ -220,36 +202,33 @@ export default {
             },
             immediate: true,
         },
-        rowCount(rowCount) {
-            this.updateData({ rowCount });
-        },
-        columnCount(columnCount) {
-            this.updateData({ columnCount });
-        },
-        styles(styles) {
-            this.updateData({ styles: parseStyle1(styles) });
-        },
-        RCStyles(styles) {
-            this.updateData({ styles: parseStyle1(styles) });
-        },
-        cells(cells, oldCells) {
-            if (cells != oldCells) {
-                this.initFormula();
-            }
-            this.updateData({ cells });
-        },
-        merges(merges) {
-            this.updateData({ merges: Object.values(merges) });
-        },
-        columns(columns) {
-            this.updateData({ columns });
-        },
-        rows(rows) {
-            this.updateData({ rows });
-        },
-        direction() {
-            this.$emit('click-head');
-        },
+        // rowCount(rowCount) {
+        //     this.updateData({ rowCount });
+        // },
+        // columnCount(columnCount) {
+        //     this.updateData({ columnCount });
+        // },
+        // styles(styles) {
+        //     this.updateData({ styles: parseStyle1(styles) });
+        // },
+        // RCStyles(styles) {
+        //     this.updateData({ styles: parseStyle1(styles) });
+        // },
+        // cells(cells, oldCells) {
+        //     if (cells != oldCells) {
+        //         this.initFormula();
+        //     }
+        //     this.updateData({ cells });
+        // },
+        // merges(merges) {
+        //     this.updateData({ merges: Object.values(merges) });
+        // },
+        // columns(columns) {
+        //     this.updateData({ columns });
+        // },
+        // rows(rows) {
+        //     this.updateData({ rows });
+        // },
         freezeColumn(columnIndex) {
             this.freezeWindow(this.freezeRow, columnIndex);
         },
@@ -274,17 +253,11 @@ export default {
             // 设置
             this.freezeWindow(this.freezeRow, this.freezeColumn);
         },
-        updateData(name, value) {
-            let data = this.$piniastore.$state.data;
-            data[this.sheetIndex].data[name] = value;
-		    this.$piniastore.setData(data);
-        },
-        setUpdateCellType(cellType) {
-            this.cellType = cellType;
-        },
-        setClickHead(data) {
-            this.direction = data;
-        },
+        // updateData(name, value) {
+        //     let data = this.$piniastore.$state.data;
+        //     data[this.sheetIndex].data[name] = value;
+		//     this.$piniastore.setData(data);
+        // },
         setFreezeColumn(columnIndex) {
             this.freezeColumn = columnIndex;
         },

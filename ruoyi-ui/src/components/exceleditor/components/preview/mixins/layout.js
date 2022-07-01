@@ -10,7 +10,7 @@ export default {
 
             contentPos: undefined,
 
-            showHead: false,
+            showHead: true,
 
             scrollLeft: 0,
             scrollTop: 0,

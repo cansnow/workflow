@@ -6,7 +6,7 @@ import operationMixin from './operation';
 //import keyMapMixin from './keyMap';
 import mergeMixin from './merge';
 import cellMixin from './cell';
-import brushFillMixin from './brushFill';
+// import brushFillMixin from './brushFill';
 import formula from './formula';
 import recordChange from './recordChange';
 import api from './api';
@@ -23,7 +23,7 @@ export const mixins = [
     operationMixin,
     //  keyMapMixin,
     mergeMixin,
-    brushFillMixin,
+    // brushFillMixin,
     formula,
     recordChange,
     api,
