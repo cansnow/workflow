@@ -8,9 +8,9 @@
       :inline="true"
       v-show="showSearch"
     >
-      <el-form-item label="名称" prop="name">
+      <el-form-item label="名称" prop="title">
         <el-input
-          v-model="queryParams.name"
+          v-model="queryParams.title"
           placeholder="请输入名称"
           clearable
           @keyup.enter.native="handleQuery"
@@ -52,7 +52,6 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:menu:add']"
           >新增</el-button
         >
       </el-col>
@@ -94,23 +93,23 @@
     <el-table
       v-if="refreshTable"
       v-loading="loading"
-      :data="menuList"
+      :data="tList"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column
-        prop="menuName"
+        prop="title"
         label="名称"
         :show-overflow-tooltip="true"
         width="160"
       ></el-table-column>
       <el-table-column
-        prop="perms"
+        prop="sheet"
         label="工作簿"
         :show-overflow-tooltip="true"
       ></el-table-column>
       <el-table-column
-        prop="component"
+        prop="link"
         label="链接"
         :show-overflow-tooltip="true"
       ></el-table-column>
@@ -122,9 +121,9 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="最后修改时间" align="center" prop="createTime">
+      <el-table-column label="最后修改时间" align="center" prop="updatetime">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
+          <span>{{ parseTime(scope.row.updatetime) }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -138,7 +137,6 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:menu:edit']"
             >修改</el-button
           >
           <el-button
@@ -146,7 +144,6 @@
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:menu:remove']"
             >删除</el-button
           >
         </template>
@@ -164,9 +161,7 @@
 
 <script>
 // TODO 模板接口
-import {
-  listMenu,
-} from "@/api/system/menu";
+import { templateList, delTemplateById } from '@/api/editManage';
 
 export default {
   name: 'ExcelList',
@@ -178,8 +173,8 @@ export default {
       loading: true,
       // 显示搜索条件
       showSearch: true,
-      // 菜单表格树数据
-      menuList: [],
+      // 模版数据数据
+      tList: [],
       // 重新渲染表格状态
       refreshTable: true,
       // 选中数组
@@ -194,8 +189,8 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        name: undefined,
-        visible: undefined,
+        title: undefined,
+        status: '0',
       },
     };
   },
@@ -206,11 +201,10 @@ export default {
     /** 查询菜单列表 */
     getList() {
       this.loading = true;
-      listMenu(this.queryParams).then((response) => {
-        // console.log(response);
-        this.menuList = this.handleTree(response.data, "menuId");
-        this.total = response.total || 0;
-        delete this.menuList[3];
+      templateList().then((result) => {
+        console.log('templateList result', result);
+        this.tList = result.rows;
+        this.total = result.total || 0;
         this.loading = false;
       });
     },
@@ -231,14 +225,26 @@ export default {
       this.handleQuery();
     },
     /** 新增按钮操作 */
-    handleAdd(row) {
+    handleAdd() {
+      this.$store.dispatch('setTemplateId', '');
     },
     // 行操作
     /** 修改按钮操作 */
     handleUpdate(row) {
+      // 设置修改模板id
+      this.$store.dispatch('setTemplateId', row.id);
+      // 跳转设计页面
+      this.$router.push({ path:'/design' });
     },
     /** 删除按钮操作 */
     handleDelete(row) {
+      const _this = this;
+      delTemplateById(row.id).then((result) => {
+        console.log('result', result)
+        if (result.code == 200) {
+          _this.getList();
+        }
+      });
     },
   },
 }
