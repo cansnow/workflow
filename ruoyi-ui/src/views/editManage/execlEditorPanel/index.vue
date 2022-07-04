@@ -14,7 +14,7 @@
 				<el-button-group>
 					<el-button type="primary" @click="handlePreview">预览</el-button>
 					<el-button type="default" @click="viewData">查看代码</el-button>
-					<el-button type="primary">发布</el-button>
+					<el-button type="primary" @click="handleRelease">发布</el-button>
 				</el-button-group>
 			</div>
 			<div class="flex_row" style="flex:1;">
@@ -34,6 +34,13 @@
 		<el-dialog :visible.sync="codeData.show" title="代码" width="600px" @close="codeData.show = false">
 			<el-input v-model="codeData.data" :rows="20" type="textarea" readonly placeholder="Please input" />
 		</el-dialog>
+		<Dialog
+			:dialogVisible="dialogVisible"
+			@handleClose="handleClose"
+			@handleIsOk="handleIsOk"
+		>
+			<ReleaseForm ref="relForm" />
+		</Dialog>
 	</div>
 </template>
 
@@ -42,8 +49,24 @@ import style from '@mdi/font/css/materialdesignicons.min.css';
 import vspread from '@/components/exceleditor';
 import rightPanel from './rightPanel';
 import testData from './testData';
+import Dialog from './src/dialog.vue';
+import ReleaseForm from './src/releaseForm.vue';
+
+import { mapGetters } from "vuex";
+import { getTemplateId } from '@/utils/auth';
+
+import { formatData } from './src/utils';
+
+// Api
+import { addTemplate, getTemplateInfoById } from '@/api/editManage';
 export default {
 	name: 'excelDesign',
+	components: { 
+		vspread,
+		rightPanel,
+		Dialog,
+		ReleaseForm,
+	},
 	data() {
 		return {
 			codeData: {
@@ -56,6 +79,7 @@ export default {
 			sheetIndex: 0,
 			sheetData: [],
 			ifPreview: false,
+			dialogVisible: false, // 发布弹窗
 		};
 	},
 	computed: {
@@ -69,6 +93,7 @@ export default {
 		$curSheet: function() {
 			return this.$refs.vspread.getCurSheet()[0];
 		},
+		...mapGetters(["getTemplateId"]),
 	},
 	methods: {
 		handleChangeTitle(e) {
@@ -131,27 +156,51 @@ export default {
 			console.log('cellsTemp', cellsTemp);
 			return cellsTemp;
 		},
-		//保存
-		saveData() {},
-		/** 预览表单 */
-		handlePreview() {
+		/** 发送后端数据 */
+		getCurSaveData() {
 			const start = this.$refs.rightPanel.getOverallPanelRef().start;
 			const end = this.$refs.rightPanel.getOverallPanelRef().end;
 			const freezeColumn = this.$refs.rightPanel.getOverallPanelRef().freezeColumn;
 			const freezeRow = this.$refs.rightPanel.getOverallPanelRef().freezeRow;
 			const title = this.title;
 			const cells = this.getCurSheetCells();
-			this.$piniastore.setTestData(cells);
-			this.$piniastore.setTestData2({
+			return {
 				start,
 				end,
 				freezeColumn,
 				freezeRow,
 				title,
 				cells,
-			});
+			};
+		},
+		//保存
+		saveData() {},
+		/** 预览表单 */
+		handlePreview() {
+			const temp = this.getCurSaveData();
+			this.$piniastore.setTestData2(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
 			this.$router.push({ path:'/Preview' });
+		},
+		/** 发布 */
+		handleRelease() {
+			this.dialogVisible = true;
+		},
+		/** 取消发布 */
+		handleClose() {
+			this.$refs.relForm.resetForm();
+			this.dialogVisible = false;
+		},
+		/** 确定发布 */
+		handleIsOk() {
+			const form = this.$refs.relForm.getFormData();
+			const data = this.getCurSaveData();
+			Object.assign(form, { data: JSON.stringify([data]) });
+			console.log('addTemplate data', data);
+			addTemplate(form).then((result) => {
+				console.log('result', result);
+			});
+			this.handleClose();
 		},
 		//发布
 		postData() {
@@ -335,8 +384,39 @@ export default {
 			_this.$piniastore.setData(data);
 		});
 	},
-	components: { vspread, rightPanel },
 	created: function() {
+		console.log('getTemplateId', this.getTemplateId);
+		const tempId = getTemplateId();
+		const _this = this;
+		if (this.getTemplateId || tempId) {
+			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
+				console.log('res', res);
+				const data = JSON.parse(res.data.data);
+				const temp = formatData(data[0].cells);
+				let columnIndex = 20;
+				let rowIndex = 20;
+				if (data[0].end) {
+					columnIndex = data[0].end.replace(/[^a-zA-Z]/g,'');
+					rowIndex = data[0].end.replace(/[^0-9]/g,'');
+					columnIndex = _.$ABC2Number(columnIndex) + 1;
+					// rowIndex = rowIndex - 1;
+				}
+				Object.assign(temp, {
+					rowCount: rowIndex || 20,
+					columnCount: columnIndex  || 20,
+					maxRowCount: rowIndex || 20,
+					maxColumnCount: columnIndex || 20,
+					freezeColumn: data[0].freezeColumn,
+					freezeRow: data[0].freezeRow,
+				});
+				
+				_this.$piniastore.setData([{
+					title: data[0].title,
+					data: temp,
+				}]);
+			});
+			return;
+		}
 		this.$piniastore.setData(testData);
 	}
 };
