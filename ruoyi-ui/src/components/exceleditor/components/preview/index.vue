@@ -57,20 +57,20 @@ export default {
     align-items: center;
     justify-content: center;
     height: 40px;
-    border-bottom: 1px solid #ddd;
+    // border-bottom: 1px solid #ddd;
   }
-  // .meg-gdlinewrap-column {
-  //   .meg-gdline {
-  //       border-right: unset !important;
-  //   }
-  // }
+  .meg-gdlinewrap-column {
+    .meg-gdline {
+        border-right: unset !important;
+    }
+  }
 
-  // .meg-gdlinewrap-row {
-  //     flex-direction: column;
+  .meg-gdlinewrap-row {
+      flex-direction: column;
 
-  //     .meg-gdline {
-  //         border-bottom: unset !important;
-  //     }
-  // }
+      .meg-gdline {
+          border-bottom: unset !important;
+      }
+  }
 }  
 </style>

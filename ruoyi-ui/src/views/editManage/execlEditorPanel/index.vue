@@ -110,7 +110,10 @@ export default {
 							Object.assign(temp, { merges: seletction2 });// 合并信息
 						}
 						Object.assign(temp, { pos: selection });
-						const pos = _this.$curSheet.getAreaLayoutPos(selection);
+						// getAreaLayoutPos计算的高度宽度会有滚动位置参与计算，所以有问题
+						// const pos = _this.$curSheet.getAreaLayoutPos(selection);
+						// 单元格的高度
+						const pos = _this.$curSheet.s_getSelectionRect(selection);
 						Object.assign(temp, pos); // 位置 top left height width
 						console.log('col', col);
 						if (typeof(col.s) != 'undefined') {

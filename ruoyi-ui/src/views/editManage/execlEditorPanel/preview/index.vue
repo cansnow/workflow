@@ -143,8 +143,8 @@ export default {
       if (data.end) {
         columnIndex = data.end.replace(/[^a-zA-Z]/g,'');
         rowIndex = data.end.replace(/[^0-9]/g,'');
-        columnIndex = _.$ABC2Number(columnIndex);
-        rowIndex = rowIndex - 1;
+        columnIndex = _.$ABC2Number(columnIndex) + 1;
+        // rowIndex = rowIndex - 1;
       }
       Object.assign(temp, {
         title: data.title,
@@ -152,8 +152,8 @@ export default {
         columnCount: columnIndex  || 20,
         maxRowCount: rowIndex || 20,
         maxColumnCount: columnIndex || 20,
-        freezeColumn: 0, // 冻结行列
-        freezeRow: 0, // 冻结行列
+        freezeColumn: data.freezeColumn, // 冻结行列
+        freezeRow: data.freezeRow, // 冻结行列
       });
       debugger;
     }

@@ -142,8 +142,8 @@ export default {
 
             return {
                 start: {
-                    rowIndex: Math.min(rowRange.start, maxRowCount - GRID_CONFIG.row_clip_size),
-                    columnIndex: Math.min(colRange.start, maxColumnCount - GRID_CONFIG.column_clip_size),
+                    rowIndex: Math.min(rowRange.start, (maxRowCount >= GRID_CONFIG.row_clip_size ? maxRowCount - GRID_CONFIG.row_clip_size : GRID_CONFIG.row_clip_size)),
+                    columnIndex: Math.min(colRange.start, (maxColumnCount >= GRID_CONFIG.column_clip_size ? maxColumnCount - GRID_CONFIG.column_clip_size : GRID_CONFIG.column_clip_size)),
                 },
                 end: {
                     rowIndex: Math.min(rowRange.end, maxRowCount),

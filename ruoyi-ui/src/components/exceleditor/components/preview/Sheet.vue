@@ -211,7 +211,6 @@ export default {
     },
     methods: {
         init(options) {
-            debugger;
             this.rows = options.rows || [];
             this.columns = options.columns || [];
             this.merges = parseMerges(options.merges);
