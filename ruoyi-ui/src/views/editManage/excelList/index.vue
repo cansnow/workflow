@@ -62,6 +62,7 @@
           icon="el-icon-edit"
           :disabled="single"
           size="mini"
+          @click="handleUpdate"
           >修改</el-button
         >
       </el-col>
@@ -72,6 +73,7 @@
           icon="el-icon-delete"
           :disabled="multiple"
           size="mini"
+          @click="handleDelete"
           >删除</el-button
         >
       </el-col>
@@ -190,7 +192,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         title: undefined,
-        status: '0',
+        status: '',
       },
     };
   },
@@ -201,7 +203,7 @@ export default {
     /** 查询菜单列表 */
     getList() {
       this.loading = true;
-      templateList().then((result) => {
+      templateList(this.queryParams).then((result) => {
         console.log('templateList result', result);
         this.tList = result.rows;
         this.total = result.total || 0;
@@ -211,7 +213,7 @@ export default {
     // 表头操作
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.dictId)
+      this.ids = selection.map(item => item.id)
       this.single = selection.length!=1
       this.multiple = !selection.length
     },
@@ -234,19 +236,51 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       // 设置修改模板id
-      this.$store.dispatch('setTemplateId', row.id);
+      if (row.id) {
+        this.$store.dispatch('setTemplateId', row.id);
+      } else {
+        this.$store.dispatch('setTemplateId', this.ids[0]);
+      }
       // 跳转设计页面
       this.$router.push({ path:'/design' });
     },
     /** 删除按钮操作 */
     handleDelete(row) {
       const _this = this;
-      delTemplateById(row.id).then((result) => {
-        console.log('result', result)
-        if (result.code == 200) {
-          _this.getList();
-        }
-      });
+      if(row.id) {
+        this.$modal.confirm('是否确认删除id为"' + row.id + '"的数据项？').then(function() {
+          delTemplateById(row.id).then((result) => {
+            if (result.code == 200) {
+              _this.getList();
+              _this.$modal.msgSuccess("删除成功");
+            }
+          });
+        });
+      } else {
+        const temp = this.ids.join(',');
+        this.$modal.confirm('是否确认删除id为"' + temp + '"的数据项？').then(function() {
+          const errorList = [];
+          _this.ids.forEach((item, index) => {
+            delTemplateById(item)
+              .then((result) => {
+                if (result.code == 200) {
+                  _this.getList();
+                }
+              })
+              .catch(() => {
+                errorList.push(item);
+              });
+          });
+          if (errorList.length > 0) {
+            _this.$modal.msgError(errorList.join(',') + '数据删除失败！');
+          } else {
+            _this.ids = [];
+            _this.single = false;
+            _this.multiple = false;
+            _this.$modal.msgSuccess("删除成功");
+          }
+        });
+      }
     },
   },
 }
