@@ -11,9 +11,15 @@
 				<m-Select slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></m-Select>
 			</Dropdown>
 
-			<el-select :value="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择" v-else-if="tool.options">
-				<el-option v-for="(option,index) in tool.options" :value="option.value ? option.value :option" :key="index"
-					>{{option.label ? option.label : option}}
+			<el-select v-else-if="tool.options" style="width: 180px;" v-model="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择">
+				<el-option
+					v-for="(option,index) in tool.options"
+					:value="option.value ? option.value : option"
+					:label="option.label"
+					:key="index"
+				>
+					<!-- <i v-if="option.icon" :class="option.icon"></i> -->
+					{{option.label ? option.label : option}}
 				</el-option>
 			</el-select>
 			<el-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
@@ -169,7 +175,62 @@ export default {
 					icon: 'mdi mdi-table-merge-cells',
 					title: '合并后居中',
 					name: 'merge'
-				}
+				},
+				cellFormat: {
+					title: '单元格格式',
+					name: 'cellFormat',
+					value: 'routine',
+					options: [
+						{
+							label: '常规',
+							value: 'routine'
+						},
+						{
+							label: '数值',
+							value: 'number'
+						},
+						{
+							label: '货币',
+							value: 'currency'
+						},
+						{
+							label: '会计专用',
+							value: 'specialAccounting'
+						},
+						{
+							label: '短日期',
+							value: 'shortDate'
+						},
+						{
+							label: '长日期',
+							value: 'longDate'
+						},
+						{
+							label: '时间',
+							value: 'time',
+						},
+						{
+							label: '百分比',
+							value: 'percentage'
+						},
+						{
+							label: '文本',
+							value: 'text'
+						},
+						{
+							label: '千分分割样式',
+							value: 'separators'
+						},
+						{
+							label: '特殊',
+							value: 'special'
+						},
+						{
+							label: '自定义',
+							value: 'custom'
+						},
+					],
+				},
 			},
 			curCell: null
 		};
@@ -219,7 +280,20 @@ export default {
 		},
 	},
 	mounted() {
-		this.init()
+		this.init();
+		const _this = this;
+		this.$parent.$on('selectCell', function() {
+			const pos = _this.$sheet.selctionExpand.start;
+			let cell = _this.$sheet.getPosCell(pos);
+			const cellFormat = _this.toolbars.cellFormat;
+			if(typeof(cell) != 'undefined' && typeof(cell.fc) != 'undefined') {
+				cellFormat.value = cell.fc;
+			} else {
+				cellFormat.value = 'routine';
+			}
+			Object.assign(_this.toolbars, cellFormat);
+			// TODO 样式设置回去
+		});
 	},
 	methods: {
 		init() {
@@ -335,6 +409,11 @@ export default {
 		merge() {
 			this.$sheet.doMergeCell('center');
 		},
+		// 格式化单元格
+		cellFormat() {
+			console.log('cellFormat value', this.toolbars['cellFormat'].value);
+			this.$sheet.setFormat(this.toolbars['cellFormat'].value);
+		}
 	}
 };
 </script>

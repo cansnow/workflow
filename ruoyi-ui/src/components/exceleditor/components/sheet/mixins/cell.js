@@ -381,12 +381,25 @@ export default {
                 }
             } else {
                 if (!_.isPlainObject(val)) {
-                    if (cell.v !== val) {
-                        cell.v = val;
-                        this.$emit('on-cellval-change', {
-                            pos,
-                            cell,
-                        });
+                    // 设置单元格格式
+                    if(
+                        (typeof(cell.c) == 'undefined' || cell.c == 'Cell') &&
+                        typeof(cell.fc) != 'undefined' && 
+                        typeof(cell.fcv) == 'undefined'
+                    ) {
+                        this.computedFormatCell(pos, val);
+                    } else {
+                        if (cell.v !== val) {
+                            cell.v = val;
+                            this.$emit('on-cellval-change', {
+                                pos,
+                                cell,
+                            });
+                        }
+                        // 清空格式值
+                        if (typeof(cell.fcv) != 'undefined') {
+                            delete cell['fcv'];
+                        }
                     }
                 } else {
                     Object.keys(cell).forEach(item => {

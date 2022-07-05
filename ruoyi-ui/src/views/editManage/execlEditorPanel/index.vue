@@ -392,7 +392,7 @@ export default {
 		// 点击了头部
 		handleClickHead() {
 			this.$refs.rightPanel.setHead(this.$refs.vspread.getCurSheet()[0].direction);
-		}
+		},
 	},
 	mounted() {
 		const _this = this;
@@ -410,9 +410,10 @@ export default {
 			_this.$piniastore.setData(data);
 		});
 	},
-	created: function() {
+	created:  function() {
 		const tempId = getTemplateId();
 		const _this = this;
+		this.$piniastore.setData(testData);
 		// 编辑
 		if (this.getTemplateId || tempId) {
 			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
@@ -440,12 +441,8 @@ export default {
 					});
 					_this.sheetData = sheetList;
 					_this.$piniastore.setData(sheetList);
-				} else {
-					_this.$piniastore.setData(testData);
 				}
 			});
-		} else {
-			this.$piniastore.setData(testData);
 		}
 	}
 };

@@ -52,5 +52,9 @@ export default {
         stopAction() {
             this.curAction = null;
         },
+        //设置单元格格式化
+        setFormat(format) {
+            this.setFormatCell(this.selctionExpand.start, format);
+        },
     },
 };
