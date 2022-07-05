@@ -96,10 +96,12 @@ export default {
             this.$piniastore.$subscribe((mutation, state) => {
                 _this.update(state);
             });
-            this.sheetIndex = '_0';
         },
         update(state) {
             this.data = state.data;
+            if (this.data instanceof Array) {
+                this.sheetIndex = '_0';
+            }
         },
         getCurSheet() {
             return this.$refs['sheet'+this.sheetIndex];

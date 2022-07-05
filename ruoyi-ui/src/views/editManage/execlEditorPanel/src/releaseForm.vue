@@ -54,6 +54,10 @@ export default {
     getFormData() {
       return this.form;
     },
+    setData(data) {
+      Object.assign(data, { status: data.status + '' });
+      this.form = data;
+    },
   },
 }
 </script>

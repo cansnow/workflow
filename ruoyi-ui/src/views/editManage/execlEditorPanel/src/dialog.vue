@@ -1,5 +1,5 @@
 <template>
-  <div :class="puncture ? 'releaseDialog' : ''">
+  <div :class="puncture ? 'editorDialog' : 'previewDialog'">
     <el-dialog
 			:title="title"
 			:visible.sync="dialogVisible"
@@ -59,17 +59,24 @@ export default {
 </script>
 
 <style>
-  .releaseDialog .el-dialog__wrapper {
+  .editorDialog .el-dialog__wrapper {
 		pointer-events:none;
 	}
-	.releaseDialog .el-dialog {
+	.editorDialog .el-dialog {
 		pointer-events:auto;
 	}
-  .releaseDialog .el-dialog__header {
+  .editorDialog .el-dialog__header,
+  .previewDialog .el-dialog__header,
+  .previewDialog .el-dialog__footer {
     display: none;
   }
-  .releaseDialog .el-dialog {
+  .editorDialog .el-dialog {
     height: calc(100vh - 46px);
     margin-top: 46px;
   }
+
+  .previewDialog .el-dialog__body {
+    padding: unset;
+  }
+
 </style>

@@ -227,6 +227,8 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.$store.dispatch('setTemplateId', '');
+      // 跳转设计页面
+      this.$router.push({ path:'/design' });
     },
     // 行操作
     /** 修改按钮操作 */

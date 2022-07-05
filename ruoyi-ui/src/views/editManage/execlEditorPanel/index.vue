@@ -14,7 +14,7 @@
 				<el-button-group>
 					<el-button type="primary" @click="handlePreview">预览</el-button>
 					<el-button type="default" @click="viewData">查看代码</el-button>
-					<el-button type="primary" @click="handleRelease">发布</el-button>
+					<el-button type="primary" @click="handleRelease" :disabled="dialogVisible">发布</el-button>
 				</el-button-group>
 			</div>
 			<div class="flex_row" style="flex:1;">
@@ -38,8 +38,10 @@
 			:dialogVisible="dialogVisible"
 			@handleClose="handleClose"
 			@handleIsOk="handleIsOk"
+			:puncture="!ifPreview"
 		>
-			<ReleaseForm ref="relForm" />
+			<Preview v-if="ifPreview" />
+			<ReleaseForm v-else ref="relForm" />
 		</Dialog>
 	</div>
 </template>
@@ -51,6 +53,7 @@ import rightPanel from './rightPanel';
 import testData from './testData';
 import Dialog from './src/dialog.vue';
 import ReleaseForm from './src/releaseForm.vue';
+import Preview from './preview/index.vue';
 
 import { mapGetters } from "vuex";
 import { getTemplateId } from '@/utils/auth';
@@ -58,7 +61,7 @@ import { getTemplateId } from '@/utils/auth';
 import { formatData } from './src/utils';
 
 // Api
-import { addTemplate, getTemplateInfoById } from '@/api/editManage';
+import { addTemplate, updateTemplate, getTemplateInfoById } from '@/api/editManage';
 export default {
 	name: 'excelDesign',
 	components: { 
@@ -66,6 +69,7 @@ export default {
 		rightPanel,
 		Dialog,
 		ReleaseForm,
+		Preview,
 	},
 	data() {
 		return {
@@ -77,9 +81,10 @@ export default {
 			title: '未命名表单',
 			options: {},
 			sheetIndex: 0,
-			sheetData: [],
+			sheetData: [], // sheet数据
 			ifPreview: false,
 			dialogVisible: false, // 发布弹窗
+			updateInfo: {}, // 编辑信息
 		};
 	},
 	computed: {
@@ -158,10 +163,10 @@ export default {
 		},
 		/** 发送后端数据 */
 		getCurSaveData() {
-			const start = this.$refs.rightPanel.getOverallPanelRef().start;
-			const end = this.$refs.rightPanel.getOverallPanelRef().end;
-			const freezeColumn = this.$refs.rightPanel.getOverallPanelRef().freezeColumn;
-			const freezeRow = this.$refs.rightPanel.getOverallPanelRef().freezeRow;
+			const start = this.$OverallPanel.start;
+			const end = this.$OverallPanel.end;
+			const freezeColumn = this.$OverallPanel.freezeColumn;
+			const freezeRow = this.$OverallPanel.freezeRow;
 			const title = this.title;
 			const cells = this.getCurSheetCells();
 			return {
@@ -180,15 +185,28 @@ export default {
 			const temp = this.getCurSaveData();
 			this.$piniastore.setTestData2(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
-			this.$router.push({ path:'/Preview' });
+			// this.$router.push({ path:'/Preview' });
+			this.dialogVisible = true;
+			this.ifPreview = true;
 		},
 		/** 发布 */
 		handleRelease() {
+			// 编辑
 			this.dialogVisible = true;
+			const tempId = getTemplateId();
+			if (this.getTemplateId || tempId) {
+				this.$nextTick(() => {
+					this.$refs.relForm.setData(this.updateInfo);
+				})
+			}
 		},
-		/** 取消发布 */
+		/** 取消发布 和 预览 */
 		handleClose() {
-			this.$refs.relForm.resetForm();
+			if (this.ifPreview) {
+				this.ifPreview = false;
+			} else {
+				this.$refs.relForm.resetForm();
+			}
 			this.dialogVisible = false;
 		},
 		/** 确定发布 */
@@ -196,11 +214,19 @@ export default {
 			const form = this.$refs.relForm.getFormData();
 			const data = this.getCurSaveData();
 			Object.assign(form, { data: JSON.stringify([data]) });
-			console.log('addTemplate data', data);
-			addTemplate(form).then((result) => {
-				console.log('result', result);
-			});
+			// 编辑
+			const tempId = getTemplateId();
+			if (this.getTemplateId || tempId) {
+				updateTemplate(form).then((result) => {
+					console.log('result', result);
+				});
+			} else {
+				addTemplate(form).then((result) => {
+					console.log('result', result);
+				});
+			}
 			this.handleClose();
+			this.$router.go(-1);
 		},
 		//发布
 		postData() {
@@ -385,39 +411,42 @@ export default {
 		});
 	},
 	created: function() {
-		console.log('getTemplateId', this.getTemplateId);
 		const tempId = getTemplateId();
 		const _this = this;
+		// 编辑
 		if (this.getTemplateId || tempId) {
 			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
-				console.log('res', res);
 				const data = JSON.parse(res.data.data);
-				const temp = formatData(data[0].cells);
-				let columnIndex = 20;
-				let rowIndex = 20;
-				if (data[0].end) {
-					columnIndex = data[0].end.replace(/[^a-zA-Z]/g,'');
-					rowIndex = data[0].end.replace(/[^0-9]/g,'');
-					columnIndex = _.$ABC2Number(columnIndex) + 1;
-					// rowIndex = rowIndex - 1;
+				_this.updateInfo = res.data;
+				if (data instanceof Array && res.code == 200) {
+					const sheetList = [];
+					_.each(data, item => {
+						const temp = formatData(item.cells);
+						_this.$OverallPanel.start = item.start;
+						_this.$OverallPanel.end = item.end;
+						// 编辑不需要限制
+						Object.assign(temp, {
+							rowCount: 200,
+							columnCount: 20,
+							maxRowCount: 100000,
+							maxColumnCount: 200,
+							freezeColumn: item.freezeColumn,
+							freezeRow: item.freezeRow,
+						});
+						sheetList.push({
+							title: item.title,
+							data: temp,
+						});
+					});
+					_this.sheetData = sheetList;
+					_this.$piniastore.setData(sheetList);
+				} else {
+					_this.$piniastore.setData(testData);
 				}
-				Object.assign(temp, {
-					rowCount: rowIndex || 20,
-					columnCount: columnIndex  || 20,
-					maxRowCount: rowIndex || 20,
-					maxColumnCount: columnIndex || 20,
-					freezeColumn: data[0].freezeColumn,
-					freezeRow: data[0].freezeRow,
-				});
-				
-				_this.$piniastore.setData([{
-					title: data[0].title,
-					data: temp,
-				}]);
 			});
-			return;
+		} else {
+			this.$piniastore.setData(testData);
 		}
-		this.$piniastore.setData(testData);
 	}
 };
 </script>

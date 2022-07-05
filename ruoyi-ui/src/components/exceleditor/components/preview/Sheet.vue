@@ -168,13 +168,13 @@ export default {
             //行列样式
             RCStyles: undefined,
             //行的数量
-            rowCount: 20,
+            rowCount: 200,
             //列的数量
             columnCount: 20,
             //允许的最大行
-            maxRowCount: 20,
+            maxRowCount: 100000,
             //允许的最大列
-            maxColumnCount: 20,
+            maxColumnCount: 200,
             // 冻结行
             freezeColumn: 0,
             // 冻结列
