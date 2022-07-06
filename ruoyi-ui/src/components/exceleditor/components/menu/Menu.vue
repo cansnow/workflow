@@ -6,16 +6,17 @@
 				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
 				<Colorpick slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
 			</Dropdown>	
-			<Dropdown class="meg-menu-op" v-else-if="name == 'border'">
-				<i @click="toolbarEvent(name,$event)" class="mdi mdi-border-all"></i>
+			<Dropdown class="meg-menu-op" v-else-if="name == 'border' || name == 'formula'">
+				<i @click="toolbarEvent(name,$event)" v-if="name == 'border'" :class="tool.icon"></i>
+				<span style="font-size: 14px;" v-else>{{ tool.title }}</span>
 				<m-Select slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></m-Select>
 			</Dropdown>
 
-			<el-select v-else-if="tool.options" style="width: 180px;" v-model="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择">
+			<el-select v-else-if="tool.options" :style="tool.style ? tool.style : ''" v-model="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择">
 				<el-option
 					v-for="(option,index) in tool.options"
 					:value="option.value ? option.value : option"
-					:label="option.label"
+					:label="option.label ? option.label : option"
 					:key="index"
 				>
 					<!-- <i v-if="option.icon" :class="option.icon"></i> -->
@@ -60,21 +61,21 @@ export default {
 					name: 'redo',
 					disabled:false
 				},
-				paste:{
-					icon: 'mdi mdi-content-paste',
-					title: '粘贴',
-					name: 'paste'
-				},
-				cut:{
-					icon: 'mdi mdi-content-cut',
-					title: '剪切',
-					name: 'cut'
-				},
-				copy:{
-					icon: 'mdi mdi-content-copy',
-					title: '复制',
-					name: 'copy'
-				},
+				// paste:{
+				// 	icon: 'mdi mdi-content-paste',
+				// 	title: '粘贴',
+				// 	name: 'paste'
+				// },
+				// cut:{
+				// 	icon: 'mdi mdi-content-cut',
+				// 	title: '剪切',
+				// 	name: 'cut'
+				// },
+				// copy:{
+				// 	icon: 'mdi mdi-content-copy',
+				// 	title: '复制',
+				// 	name: 'copy'
+				// },
 				openFormatpainter:{
 					icon: 'mdi mdi-brush-variant',
 					title: '格式刷',
@@ -84,13 +85,26 @@ export default {
 				fontFamily:{
 					title: '字体',
 					name: 'fontFamily',
+					style: { width: '150px' },
 					value: 'fontFamily',
 					options: ['宋体', '楷体', '仿宋', '微软雅黑', '黑体', 'Calibri', 'Consolas']
 				},
 				fontSize:{
 					title: '字号',
 					name: 'fontSize',
+					style: { width: '100px' },
+					value: 11,
 					options: [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 36, 48, 72]
+				},
+				fontSizePlus: {
+					title: '增大字体',
+					name: 'fontSizePlus',
+					icon: 'mdi mdi-format-annotation-plus',
+				},
+				fontSizeMinus: {
+					title: '减小字体',
+					name: 'fontSizeMinus',
+					icon: 'mdi mdi-format-annotation-minus',
 				},
 				bold:{
 					icon: 'mdi mdi-format-bold',
@@ -157,6 +171,30 @@ export default {
 						}
 					]
 				},
+				borderStyle: {
+					value: 'solid',
+					title:"边框",
+					name: 'borderStyle',
+					style: { width: '80px' },
+					options:[
+						{
+							label: '点状',
+							value: 'dotted'
+						},
+						{
+							label: '实线',
+							value: 'solid'
+						},
+						// {
+						// 	label: '双线',
+						// 	value: 'double'
+						// },
+						{
+							label: '虚线',
+							value: 'dashed'
+						},
+					],
+				},
 				
 				valigntop:{ title: '顶端对齐', name: 'valigntop', checked: false, icon: 'mdi mdi-align-vertical-top' },
 				valignmiddle:{ title: '垂直居中', name: 'valignmiddle', checked: false, icon: 'mdi mdi-align-vertical-center' },
@@ -180,6 +218,7 @@ export default {
 					title: '单元格格式',
 					name: 'cellFormat',
 					value: 'routine',
+					style: { width: '130px' },
 					options: [
 						{
 							label: '常规',
@@ -218,7 +257,7 @@ export default {
 							value: 'text'
 						},
 						{
-							label: '千分分割样式',
+							label: '千位分割样式',
 							value: 'separators'
 						},
 						{
@@ -230,6 +269,47 @@ export default {
 							value: 'custom'
 						},
 					],
+				},
+				increase:{
+					icon: 'mdi mdi-decimal-increase',
+					title: '增加小数点',
+					name: 'increase'
+				},
+				decrease:{
+					icon: 'mdi mdi-decimal-decrease',
+					title: '减少小数点',
+					name: 'decrease'
+				},
+				formula: {
+					title:"公式",
+					name: 'formula',
+					value:"t",
+					options:[
+						{
+							label: '求和',
+							value: 'sum'
+						},
+						{
+							label: '平均值',
+							value: 'avg'
+						},
+						{
+							label: '计数',
+							value: 'cnt'
+						},
+						{
+							label: '最大值',
+							value: 'max'
+						},
+						{
+							label: '最小值',
+							value: 'min'
+						},
+						{
+							label: '全部函数',
+							value: 'all'
+						},
+					]
 				},
 			},
 			curCell: null
@@ -286,7 +366,7 @@ export default {
 			const pos = _this.$sheet.selctionExpand.start;
 			let cell = _this.$sheet.getPosCell(pos);
 			const cellFormat = _this.toolbars.cellFormat;
-			if(typeof(cell) != 'undefined' && typeof(cell.fc) != 'undefined') {
+			if(typeof(cell) != 'undefined' && cell && typeof(cell.fc) != 'undefined') {
 				cellFormat.value = cell.fc;
 			} else {
 				cellFormat.value = 'routine';
@@ -413,7 +493,46 @@ export default {
 		cellFormat() {
 			console.log('cellFormat value', this.toolbars['cellFormat'].value);
 			this.$sheet.setFormat(this.toolbars['cellFormat'].value);
-		}
+		},
+		// 增大字体
+		fontSizePlus() {
+			const fontSize = this.toolbars['fontSize'];
+			const len = fontSize.options.length;
+			const index = fontSize.options.findIndex(item => item == fontSize.value);
+			if (index == len - 1) {
+				return;
+			}
+			fontSize.value = fontSize.options[index + 1];
+			Object.assign(this.toolbars['fontSize'], { fontSize });
+			this.$sheet.setFontSize(fontSize.value);
+		},
+		// 减小字体
+		fontSizeMinus() {
+			const fontSize = this.toolbars['fontSize'];
+			const index = fontSize.options.findIndex(item => item == fontSize.value);
+			if (index == 0) {
+				return;
+			}
+			fontSize.value = fontSize.options[index - 1];
+			Object.assign(this.toolbars['fontSize'], { fontSize });
+			this.$sheet.setFontSize(fontSize.value);
+		},
+		// 边框样式
+		borderStyle() {
+			this.$sheet.setBorderStyle(this.toolbars['borderStyle'].value);
+		},
+		// 减少小数位数
+		decrease() {
+			this.$sheet.setDecimal('decrease');
+		},
+		// 增加小数位数
+		increase() {
+			this.$sheet.setDecimal('increase');
+		},
+		// 公式
+		formula() {
+			console.log('formula', this.toolbars['formula'].value);
+		},
 	}
 };
 </script>

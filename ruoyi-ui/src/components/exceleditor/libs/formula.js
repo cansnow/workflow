@@ -3928,7 +3928,7 @@
         }
 
         // return sum divided by item count
-        return v / items.length;
+        return v / items[0].length;
     }
 
     // MIN returns the smallest number from a `list`.

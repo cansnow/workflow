@@ -81,3 +81,13 @@ export function isArray(arg) {
   }
   return Array.isArray(arg)
 }
+
+/**
+ * 判断是否 -1 +1 1.2 
+ * @param {*} arg 
+ * @returns 
+ */
+export function isNumber(arg) {
+  const reg = /^(\-|\+)?\d+(\.\d+)?$/;
+  return reg.test(arg);
+}
