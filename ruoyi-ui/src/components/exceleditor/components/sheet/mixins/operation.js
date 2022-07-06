@@ -64,6 +64,10 @@ export default {
         // 减少小数点
         setDecimal(type) {
             this.setNumberDecimal(this.selctionExpand.start, type);
-        }
+        },
+        setFormaluValue(type) {
+            let cell = this.getPosCell(this.selctionExpand.start);
+            this.setCellAttribute(this.selctionExpand.start, cell, 'f', '=' + type + '()');
+        },
     },
 };

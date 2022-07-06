@@ -291,12 +291,12 @@ export default {
 						},
 						{
 							label: '平均值',
-							value: 'avg'
+							value: 'average'
 						},
-						{
-							label: '计数',
-							value: 'cnt'
-						},
+						// {
+						// 	label: '计数',
+						// 	value: 'cnt'
+						// },
 						{
 							label: '最大值',
 							value: 'max'
@@ -305,10 +305,10 @@ export default {
 							label: '最小值',
 							value: 'min'
 						},
-						{
-							label: '全部函数',
-							value: 'all'
-						},
+						// {
+						// 	label: '全部函数',
+						// 	value: 'all'
+						// },
 					]
 				},
 			},
@@ -531,7 +531,9 @@ export default {
 		},
 		// 公式
 		formula() {
+			this.$sheet.doEditCell();
 			console.log('formula', this.toolbars['formula'].value);
+			this.$sheet.setFormaluValue(this.toolbars['formula'].value);
 		},
 	}
 };
