@@ -78,7 +78,7 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk"
     >
-      <Transfer />
+      <Transfer ref="transfer" :dataSrc="title" />
 		</Dialog>
   </div>
 </template>
@@ -86,6 +86,7 @@
 <script>
 import Dialog from '../../dialog/index.vue';
 import Transfer from './transfer.vue';
+import { getDBTable } from '@/api/editManage';
 export default {
   components: { Dialog, Transfer },
   data() {
@@ -112,11 +113,26 @@ export default {
       dialogVisible: false,
     };
   },
+  computed: {
+    $transfer() {
+      return this.$refs.transfer;
+    }
+  },
   methods: {
     handleClose() {
       this.dialogVisible = false;
     },
     handleIsOk() {
+      this.filedList = [];
+      const temp = this.$transfer.getCheckList();
+      _.map(temp, item => {
+        this.filedList.push({
+          filed: item,
+          type: 'cell',
+          value: '',
+          ifClick: false,
+        });
+      });
       this.handleClose();
     },
     /** 删除行 scope: { row, column, $index } */
@@ -126,17 +142,12 @@ export default {
     },
     /** 增加字段 */
     handleAddField() {
-      this.filedList.push({
-        filed: '名称',
-        type: 'cell',
-        value: '',
-        ifClick: false,
-      });
       this.dialogVisible = true;
     },
     /** 选中表 */
     handleChangeTitle(e) {
       console.log(this.title, e);
+      this.filedList = [];
     },
     /** 获取回写规则 */
     getFieldData() {
@@ -187,6 +198,22 @@ export default {
         this.filedList.splice(this.selectIndex, 1, temp);
       }
     },
+  },
+  mounted() {
+    const _this = this;
+    getDBTable().then((res) => {
+      console.log('res', res);
+      if (res.code == 200) {
+        // res.rows.forEach(() => {});
+        _this.options = [];
+        _.map(res.rows, item => {
+          _this.options.push({
+            label: item.tableComment || item.tableName,
+            value: item.tableName,
+          });
+        });
+      }
+    });
   },
 }
 </script>

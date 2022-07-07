@@ -100,7 +100,9 @@ export default {
         update(state) {
             this.data = state.data;
             if (this.data instanceof Array) {
-                this.sheetIndex = '_0';
+                if (this.sheetIndex == '') {
+                    this.sheetIndex = '_0';
+                }
             }
         },
         getCurSheet() {

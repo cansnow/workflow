@@ -13,9 +13,11 @@ export function formatData(data) {
 
   let pos = -1;
 
-  const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'options'];
+  const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'fc', 'sv', 'fcv', 'd', 'options'];
+  
   const stylePro = [
     'border',
+    'borderStyle',
     'backgroundColor',
     'color',
     'fontFamily',

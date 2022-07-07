@@ -5,7 +5,14 @@
         <el-input v-model="form.title"></el-input>
       </el-form-item>
       <el-form-item label="工作簿">
-        <el-input v-model="form.sheet"></el-input>
+        <el-select v-model="form.sheet" placeholder="请选择" style="width: 100%">
+          <el-option
+            v-for="(item, index) in options"
+            :key="index"
+            :label="item"
+            :value="item">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="备注">
         <el-input type="textarea" :rows="4" v-model="form.description"></el-input>
@@ -30,6 +37,12 @@
 <script>
 export default {
   dicts: ["sys_normal_disable"],
+  props: {
+    options: {
+      type: Array,
+      default: () => [],
+    }
+  },
   data() {
     return {
       form: {

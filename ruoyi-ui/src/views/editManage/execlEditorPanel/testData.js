@@ -27,6 +27,6 @@ export default [
             freezeColumn: 0,
             // 冻结列
             freezeRow: 0,
-        }
+        },
     }
 ]

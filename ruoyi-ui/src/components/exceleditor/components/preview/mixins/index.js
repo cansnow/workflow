@@ -13,6 +13,7 @@ import api from './api';
 import grid from './grid';
 import gridRows from './gridRows';
 import styles from './styles';
+import cellFormat from './cellFormat';
 
 export const mixins = [
     layoutMixin,
@@ -30,4 +31,5 @@ export const mixins = [
     grid,
     gridRows,
     styles,
+    cellFormat,
 ];

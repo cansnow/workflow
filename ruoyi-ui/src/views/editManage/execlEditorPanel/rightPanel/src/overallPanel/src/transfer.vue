@@ -40,8 +40,15 @@
 </template>
 
 <script>
+import { getTableFieldByName } from '@/api/editManage';
 export default {
   name: 'Transfer',
+  props: {
+    dataSrc: {
+      type: String,
+      default: '数据源',
+    },
+  },
   data() {
     return {
       data: [
@@ -63,21 +70,51 @@ export default {
       ],
       checkList: [],
       search: '',
-      dataSrc: '数据源',
     };
   },
-  // mounted() {
-  //   this.init();
-  // },
+  watch: {
+    dataSrc: {
+      handler(value) {
+        const _this = this;
+        getTableFieldByName({ table: value })
+          .then((res) => {
+            console.log('res', res);
+            if (res.code == 200) {
+              _this.data = [];
+              _this.checkList = [];
+              _.map(res.rows, item => {
+                _this.data.push({
+                  label: item.columnComment || item.columnName,
+                  value: item.columnName,
+                  disabled: false,
+                });
+              });
+            }
+          });
+      },
+    },
+  },
+  mounted() {
+    this.init();
+  },
   methods: {
     init() {
-      for (let index = 0; index < 100; index++) {
-        this.data.push({
-          label: '性别' + index,
-          value: 'sex' + index,
-          disabled: false,
+      const _this = this;
+      getTableFieldByName({ table: this.dataSrc })
+        .then((res) => {
+          console.log('res', res);
+          if (res.code == 200) {
+            _this.data = [];
+            _this.checkList = [];
+            _.map(res.rows, item => {
+              _this.data.push({
+                label: item.columnComment || item.columnName,
+                value: item.columnName,
+                disabled: false,
+              });
+            });
+          }
         });
-      }
     },
     /** 查询 */
     handleChangeSearch() {},

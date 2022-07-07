@@ -167,8 +167,30 @@ export default {
         }
       }
     },
+    start() {
+      this.$emit('ovserallData', this.getData());
+    },
+    end() {
+      this.$emit('ovserallData', this.getData());
+    },
   },
   methods: {
+    // 设置数据
+    setData(data) {
+      this.formList = data.formList;
+      this.dataList = data.dataList;
+      this.start = data.start;
+      this.end = data.end;
+    },
+    // 获取数据
+    getData() {
+      return {
+        formList: this.formList,
+        dataList: this.dataList,
+        start: this.start,
+        end: this.end,
+      }
+    },
     /** 颠倒数组 */
     handleSort() {
       this.dataList.reverse();
@@ -187,6 +209,7 @@ export default {
         this.$refs.Data.resetData();
       }
       this.dialogVisible = false;
+      this.$emit('ovserallData', this.getData());
     },
     /** 确认 */
     handleIsOk() {
@@ -215,10 +238,12 @@ export default {
     /** 删除权限规则 */
     handleDel(index) {
       this.formList.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
     },
     /** 删除回写规则 */
     handleDelData(index) {
       this.dataList.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
     },
     /** 编辑权限规则 */
     handleEdit(index) {

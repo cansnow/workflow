@@ -4,7 +4,7 @@
 			<div style="flex:1;">
 				<el-tabs v-model="activeName" @tab-click="handleTabClick" stretch>
 					<el-tab-pane label="属性" name="attribute" />
-					<el-tab-pane label="数据" name="dataPanel" />
+					<el-tab-pane label="数据" v-if="!cellIfBtn" name="dataPanel" />
 					<el-tab-pane label="全局" name="overallPanel" />
 				</el-tabs>
 			</div>
@@ -51,6 +51,16 @@ export default {
 			selectCell: '',
 			head: undefined,
 			selection: undefined, // 当前位置
+			cellIfBtn: false, // 单元格为按钮
+		}
+	},
+	watch: {
+		cellIfBtn(value) {
+			if (value) {
+				if (this.activeName == 'dataPanel') {
+					this.activeName = 'attribute';
+				}
+			}
 		}
 	},
 	methods: {
@@ -106,14 +116,23 @@ export default {
 		},
 		// 表单数据更新
 		formChange(data) {
+			this.cellIfBtn = false;
+			if (data.componentType == 'button') {
+				this.cellIfBtn = true;
+			}
 			this.$emit('formChange', data);
 		},
 		// 重置表单信息
 		resetForm() {
+			this.cellIfBtn = false;
 			this.$refs.FormPanel.resetForm();
 		},
 		// 更新表单信息
 		updataForm(data) {
+			this.cellIfBtn = false;
+			if (data && typeof data != 'undefined' && typeof data.c != 'undefined' && data.c == 'button') {
+				this.cellIfBtn = true;
+			}
 			this.$refs.FormPanel.updataForm(data);
 		},
 		// 显示已选单元格

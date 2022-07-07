@@ -41,7 +41,7 @@
 			:puncture="!ifPreview"
 		>
 			<Preview v-if="ifPreview" />
-			<ReleaseForm v-else ref="relForm" />
+			<ReleaseForm v-else ref="relForm" :options="sheetTitles" />
 		</Dialog>
 	</div>
 </template>
@@ -78,13 +78,14 @@ export default {
 				data: ''
 			},
 			data:{},
-			title: '未命名表单',
+			title: '',
 			options: {},
 			sheetIndex: 0,
 			sheetData: [], // sheet数据
 			ifPreview: false,
 			dialogVisible: false, // 发布弹窗
 			updateInfo: {}, // 编辑信息
+			sheetTitles: [],
 		};
 	},
 	computed: {
@@ -103,14 +104,52 @@ export default {
 	methods: {
 		handleChangeTitle(e) {
 				const data = this.$refs.vspread.data;
+				// sheet title 不能同名，用于唯一标识
+				const dIndex = data.findIndex(item => item.title == e);
+				if (dIndex != -1) {
+					this.title = data[this.sheetIndex].title;
+					this.$message({
+							message: 'sheet 不能同名!!!',
+							type: 'warning'
+					});
+					return;
+				}
+				const index = this.sheetData.findIndex(item => item.title == data[this.sheetIndex].title);
+				if (index != -1) {
+					const temp = this.sheetData[index];
+					temp.title = e;
+					this.sheetData.splice(index, 1, temp); 
+				}
 				data[this.sheetIndex].title = e;
 				this.$piniastore.setData(data);
 		},
+		// 点击sheet tabs
 		handleChangeSheet(data) {
 			this.title = data.title;
 			this.sheetIndex = data.index;
+			const index = this.sheetData.findIndex(item => item.title == data.title);
+			const temp = {
+				formList: [], // 权限规则
+				dataList: [], // 回写规则
+				start: '', // 开始行列
+				end: '', // 结束行列
+			};
+			if (index == -1) {
+				Object.assign(temp, { title: data.title, });
+				this.sheetData.push(temp);
+			} else {
+				const tempData = this.sheetData[index];
+				Object.assign(temp, {
+					formList: tempData.formList, // 权限规则
+					dataList: tempData.dataList, // 回写规则
+					start: tempData.start, // 开始行列
+					end: tempData.end, // 结束行列
+				});
+			}
+			this.$OverallPanel.setData(temp);
 			this.$OverallPanel.setFreezeColumn(data.freezeColumn);
-			this.$OverallPanel.setFreezeRow(data.freezeRow)
+			this.$OverallPanel.setFreezeRow(data.freezeRow);
+			this.handleSelectCell();
 		},
 		updateOptions(value) {
 			this.options = Object.assign(this.options, value);
@@ -119,15 +158,16 @@ export default {
 		viewData() {
 			console.log('view');
 			// this.codeData.data = JSON.stringify(this.$piniastore.data, ' ', 4);
-			const temp = this.getCurSheetCells();
+			const temp = this.getCurSheetCells(this.sheetIndex);
 			this.codeData.data = JSON.stringify(temp);
 			this.codeData.show = true;
 		},
 		/** 获取当前sheet全部单元格数据 */
-		getCurSheetCells() {
+		getCurSheetCells(index = 0) {
 			const _this = this;
 			const cellsTemp = [];
-			_.each(this.$curSheet.cells, (cell, key) => {
+			const sheet = this.$refs.vspread.getSheetByIndex(index);
+			_.each(sheet.cells, (cell, key) => {
 				_.each(cell, (col, index) => {
 					if (col) {
 						const temp = {};
@@ -135,19 +175,19 @@ export default {
 							start: {columnIndex: index, rowIndex: parseInt(key)}, // 开始位置
 							end: {columnIndex: index, rowIndex: parseInt(key)},
 						};
-						const seletction2 = _this.$curSheet.s_computedExtendSelection(selection);
+						const seletction2 = sheet.s_computedExtendSelection(selection);
 						if (JSON.stringify(seletction2) != JSON.stringify(selection)) {
 							Object.assign(temp, { merges: seletction2 });// 合并信息
 						}
 						Object.assign(temp, { pos: selection });
 						// getAreaLayoutPos计算的高度宽度会有滚动位置参与计算，所以有问题
-						// const pos = _this.$curSheet.getAreaLayoutPos(selection);
+						// const pos = sheet.getAreaLayoutPos(selection);
 						// 单元格的高度
-						const pos = _this.$curSheet.s_getSelectionRect(selection);
+						const pos = sheet.s_getSelectionRect(selection);
 						Object.assign(temp, pos); // 位置 top left height width
 						console.log('col', col);
 						if (typeof(col.s) != 'undefined') {
-							const style = _this.$curSheet.getStyle(col.s);
+							const style = sheet.getStyle(col.s);
 							console.log('style.option', style);
 							if (style) {
 								Object.assign(temp, style.option); // 样式
@@ -162,27 +202,34 @@ export default {
 			return cellsTemp;
 		},
 		/** 发送后端数据 */
-		getCurSaveData() {
-			const start = this.$OverallPanel.start;
-			const end = this.$OverallPanel.end;
-			const freezeColumn = this.$OverallPanel.freezeColumn;
-			const freezeRow = this.$OverallPanel.freezeRow;
-			const title = this.title;
-			const cells = this.getCurSheetCells();
-			return {
-				start,
-				end,
-				freezeColumn,
-				freezeRow,
-				title,
-				cells,
-			};
+		getCurSaveData(index = 0) {
+			const vspreadData =  this.$refs.vspread.data[index];
+
+			const freezeColumn = vspreadData.data.freezeColumn;
+			const freezeRow = vspreadData.data.freezeRow;
+
+			const title = vspreadData.title;
+			const cells = this.getCurSheetCells(index);
+
+			const temp = { freezeColumn, freezeRow, title, cells };
+
+			const sIndex = this.sheetData.findIndex(item => item.title == title);
+
+			if (sIndex != -1) {
+				Object.assign(temp, {
+					formList: this.sheetData[sIndex].formList, // 权限规则
+					dataList: this.sheetData[sIndex].dataList, // 回写规则
+					start: this.sheetData[sIndex].start,
+					end: this.sheetData[sIndex].end,
+				})
+			}
+			return temp;
 		},
 		//保存
 		saveData() {},
 		/** 预览表单 */
 		handlePreview() {
-			const temp = this.getCurSaveData();
+			const temp = this.getCurSaveData(this.sheetIndex);
 			this.$piniastore.setTestData2(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
 			// this.$router.push({ path:'/Preview' });
@@ -199,6 +246,10 @@ export default {
 					this.$refs.relForm.setData(this.updateInfo);
 				})
 			}
+			this.sheetTitles = [];
+			this.$refs.vspread.data.forEach((item) => {
+				this.sheetTitles.push(item.title);
+			});
 		},
 		/** 取消发布 和 预览 */
 		handleClose() {
@@ -212,15 +263,20 @@ export default {
 		/** 确定发布 */
 		handleIsOk() {
 			const form = this.$refs.relForm.getFormData();
-			const data = this.getCurSaveData();
-			Object.assign(form, { data: JSON.stringify([data]) });
+			const data = [];
+			this.$refs.vspread.data.forEach((_, index) => {
+				data.push(this.getCurSaveData(index));
+			});
+			Object.assign(form, { data: JSON.stringify(data) });
 			// 编辑
 			const tempId = getTemplateId();
 			if (this.getTemplateId || tempId) {
+				// 修改
 				updateTemplate(form).then((result) => {
 					console.log('result', result);
 				});
 			} else {
+				// 新增
 				addTemplate(form).then((result) => {
 					console.log('result', result);
 				});
@@ -409,6 +465,20 @@ export default {
 			data[_this.sheetIndex].data.freezeRow = index;
 			_this.$piniastore.setData(data);
 		});
+		// 监听全局
+		this.$OverallPanel.$on('ovserallData', function(data) {
+			const index = _this.sheetData.findIndex(item => item.title == _this.title);
+			if (index != -1) {
+				const temp = _this.sheetData[index];
+				Object.assign(temp, {
+					formList: data.formList.length > 0 ?  data.formList : temp.formList,
+					dataList: data.dataList.length > 0 ?  data.dataList : temp.dataList,
+					start: data.start == '' ? temp.start : data.start,
+					end: data.end == '' ? temp.end : data.end,
+				});
+				_this.sheetData.splice(index, 1, temp);
+			}
+		});
 	},
 	created:  function() {
 		const tempId = getTemplateId();
@@ -421,10 +491,11 @@ export default {
 				_this.updateInfo = res.data;
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];
+					_this.sheetData = [];
 					_.each(data, item => {
 						const temp = formatData(item.cells);
-						_this.$OverallPanel.start = item.start;
-						_this.$OverallPanel.end = item.end;
+						// _this.$OverallPanel.start = item.start;
+						// _this.$OverallPanel.end = item.end;
 						// 编辑不需要限制
 						Object.assign(temp, {
 							rowCount: 200,
@@ -438,8 +509,18 @@ export default {
 							title: item.title,
 							data: temp,
 						});
+						_this.sheetData.push({
+							title: item.title,
+							data: temp,
+							start: item.start,
+							end: item.end,
+							freezeColumn: item.freezeColumn,
+							freezeRow: item.freezeRow,
+							formList: item.formList,
+							dataList: item.dataList,
+						});
 					});
-					_this.sheetData = sheetList;
+					_this.$OverallPanel.setData(_this.sheetData[0]);
 					_this.$piniastore.setData(sheetList);
 				}
 			});

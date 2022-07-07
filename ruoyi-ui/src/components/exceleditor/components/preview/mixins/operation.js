@@ -4,6 +4,10 @@ export default {
         setBorder(border) {
             this.setSelctionExpandStyle({ border });
         },
+        // 设置边框样式
+        setBorderStyle(borderStyle) {
+            this.setSelctionExpandStyle({ borderStyle });
+        },
         //设置背景颜色
         setBackground(backgroundColor) {
             this.setSelctionExpandStyle({ backgroundColor });
@@ -51,6 +55,19 @@ export default {
         },
         stopAction() {
             this.curAction = null;
+        },
+        //设置单元格格式化
+        setFormat(format) {
+            this.setFormatCell(this.selctionExpand.start, format);
+        },
+        // 增加小数点
+        // 减少小数点
+        setDecimal(type) {
+            this.setNumberDecimal(this.selctionExpand.start, type);
+        },
+        setFormaluValue(type) {
+            let cell = this.getPosCell(this.selctionExpand.start);
+            this.setCellAttribute(this.selctionExpand.start, cell, 'f', '=' + type + '()');
         },
     },
 };
