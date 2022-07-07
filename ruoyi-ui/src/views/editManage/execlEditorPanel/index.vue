@@ -86,6 +86,7 @@ export default {
 			dialogVisible: false, // 发布弹窗
 			updateInfo: {}, // 编辑信息
 			sheetTitles: [],
+			time: null, // 定时器
 		};
 	},
 	computed: {
@@ -230,7 +231,7 @@ export default {
 		/** 预览表单 */
 		handlePreview() {
 			const temp = this.getCurSaveData(this.sheetIndex);
-			this.$piniastore.setTestData2(temp);
+			this.$piniastore.setPreviewData(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
 			// this.$router.push({ path:'/Preview' });
 			this.dialogVisible = true;
@@ -262,6 +263,7 @@ export default {
 		},
 		/** 确定发布 */
 		handleIsOk() {
+			clearInterval(this.time); // 清空定时器
 			const form = this.$refs.relForm.getFormData();
 			const data = [];
 			this.$refs.vspread.data.forEach((_, index) => {
@@ -297,7 +299,23 @@ export default {
 		},
 		//自动保存
 		autoSave() {
-			setTimeout(this.$piniastore.data, 1000 * 30);
+			const _this = this;
+			// 定时保存
+			this.time = setInterval(() => {
+				console.log('autoSave');
+				const tempId = getTemplateId();
+				if (_this.getTemplateId || tempId) {
+					const form = _this.updateInfo;
+					const data = [];
+					_this.$refs.vspread.data.forEach((_, index) => {
+						data.push(_this.getCurSaveData(index));
+					});
+					Object.assign(form, { data: JSON.stringify(data), id: _this.getTemplateId || tempId });
+					updateTemplate(form).then((result) => {
+						console.log('result', result);
+					});
+				}
+			}, 1000 * 30);
 		},
 		// 当前单元格
 		curCell() {
@@ -451,6 +469,8 @@ export default {
 		},
 	},
 	mounted() {
+		// 定时保存 
+		this.autoSave();
 		const _this = this;
 		this.$OverallPanel.$on('freezeColumn', function(index) {
 			_this.$curSheet.setFreezeColumn(index);
@@ -489,6 +509,9 @@ export default {
 			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
+				Object.assign(_this.updateInfo, {
+					link: location && location.origin ? location.origin + '/Renderer/' + this.getTemplateId || tempId : '/Renderer/' + this.getTemplateId || tempId,
+				});
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];
 					_this.sheetData = [];
@@ -524,6 +547,28 @@ export default {
 					_this.$piniastore.setData(sheetList);
 				}
 			});
+		} else {
+			// TODO 新增，需要先新增一条空数据，获取id
+			if (false) {
+				_this.updateInfo = {
+					"description": "",
+					"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+					"sheet": "",
+					"status": "0",
+					"title": "",
+					"data": ""
+				};
+				addTemplate(_this.updateInfo)
+					.then((res) => {
+						if (res.code == 200) {
+							_this.$store.dispatch('setTemplateId', res.data);
+							_this.updateInfo
+							Object.assign(_this.updateInfo, {
+								link: _this.updateInfo + '/' + res.data,
+							});						
+						}
+					});
+			}
 		}
 	}
 };
