@@ -1,6 +1,19 @@
 import request from '@/utils/request';
 
 /**
+ * 回写提交接口
+ * @param {*} data 
+ * @returns 
+ */
+export function saveFormData(data) {
+  return request({
+    url: '/workflow/template/saveFormData',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
  * 获取表单列表
  * @param {*} query 
  * @returns 

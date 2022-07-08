@@ -33,7 +33,8 @@
         <template slot-scope="scope">
           <el-select v-model="scope.row.type" @change="handleChangeType" placeholder="请选择">
             <el-option label="单元格" value="cell" />
-            <el-option label="参数" value="value" />
+            <el-option label="参数" value="parameter" />
+            <el-option label="固定值" value="value" />
           </el-select>
         </template>
       </el-table-column>

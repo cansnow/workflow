@@ -384,7 +384,7 @@ export default {
 			switch(data.c) {
 				case 'button': // 按钮
 					Object.assign(temp, {
-						buttonType: data.v == '重置' ? 'reset' : 'submit',
+						buttonType: data.p.t || 'submit', // == '重置' ? 'reset' : 'submit',
 						buttonText: data.v,
 					});
 					break;

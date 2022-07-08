@@ -12,7 +12,6 @@ export default {
   name: 'Renderer',
   components: { Preview },
   created: function() {
-    console.warn('location', location);
     this.$piniastore.setPreviewData({});
     const tempId = this.$route.params.id;
     console.log('id', this.$route.params.id);
@@ -22,10 +21,13 @@ export default {
         const sheet = res.data.sheet;
 				if (data instanceof Array && res.code == 200 && data.length > 0) {
 					const index = data.findIndex((item) => item.title == sheet);
+          const temp = { ifPreview: false };
           if (index != -1) {
-            this.$piniastore.setPreviewData(data[index]);
+            Object.assign(temp, data[index]);
+            this.$piniastore.setPreviewData(temp);
           } else {
-            this.$piniastore.setPreviewData(data[0]);
+            Object.assign(temp, data[0]);
+            this.$piniastore.setPreviewData(temp);
           }
         }
       });

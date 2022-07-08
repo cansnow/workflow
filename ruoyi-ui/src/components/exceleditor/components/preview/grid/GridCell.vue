@@ -34,7 +34,7 @@
 		</el-upload>
 		
 		<el-image v-if="cellType == 'image'" :src="value"></el-image>
-		<el-button type="primary" v-if="cellType == 'button'" >{{value}}</el-button>
+		<el-button type="primary" v-if="cellType == 'button'" @click="handleCellBtnClick" >{{value}}</el-button>
 		<el-date-picker
 			:value="value"
             placement ="bottom"
@@ -215,6 +215,10 @@ export default {
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');
             this.$sheet.doEditCellValue(e + '');
+        },
+        // 点击了单元格按钮
+        handleCellBtnClick() {
+            this.$sheet.$emit('clikcCellBtn', this.cell.option);
         },
     },
 };

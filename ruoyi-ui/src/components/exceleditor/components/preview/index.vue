@@ -15,6 +15,8 @@ import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
 import { formatData } from '@/views/editManage/execlEditorPanel/src/utils';
+import { saveFormData } from '@/api/editManage';
+import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
   data() {
@@ -23,10 +25,67 @@ export default {
       index: 0,
       title: testData[0].title,
       previewData: {},
+      ifPreview: true,
     };
+  },
+  computed: {
+    $curSheet() {
+      return this.$refs['sheet_' + this.index];
+    },
+    ...mapGetters(["name"]),
   },
   mounted() {
     this.init();
+    const _this = this;
+    this.$refs['sheet_' + this.index].$on('clikcCellBtn', function(res) {
+      if (_this.ifPreview) {
+        return;
+      }
+      console.log('clickCellBtn', res);
+      console.log('_this.previewData.dataList', _this.previewData.dataList);
+      // 点击单元格
+      // 根据回写规则提交数据
+      if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
+        const dataList = _this.previewData.dataList;
+        _.map(dataList, (item, index) => {
+          const temp = { table: item.title };
+          if (item.filedList && item.filedList.length > 0) {
+            const fields = [];
+            _.map(item.filedList, fObj => {
+              let fieldValue = '';
+              if (fObj.type == 'cell') {
+                // 字段位置
+                let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                columnIndex = _.$ABC2Number(columnIndex);
+                rowIndex = rowIndex - 1;
+                const pos = { rowIndex, columnIndex };
+                const cell = _this.$curSheet.getPosCell(pos);
+                fieldValue = cell.v; // 字段值
+              }
+              // 固定值
+              if (fObj.type == 'value') {
+                fieldValue = fObj.value;
+              }
+              // 参数 parameter
+              if (fObj.type == 'parameter') {
+                fieldValue = _this[fObj.value] || '';
+              }
+
+              fields.push({
+                fieldName: fObj.filed, // 字段名
+                fieldValue, // 字段值
+              });
+            });
+            Object.assign(temp, { fields });
+          }
+          console.log('temp', temp);
+          saveFormData(temp).then((res) => {
+            console.log('saveFormData', res);
+          });
+        });
+      }
+    });
   },
   methods: {
     init() {
@@ -40,6 +99,7 @@ export default {
     update(state) {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
+        this.ifPreview = state.previewData.ifPreview;
         const temp = formatData(state.previewData.cells);
         // start: data.start, 
         let columnIndex = null;

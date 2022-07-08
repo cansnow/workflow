@@ -231,6 +231,7 @@ export default {
 		/** 预览表单 */
 		handlePreview() {
 			const temp = this.getCurSaveData(this.sheetIndex);
+			Object.assign(temp, { ifPreview: true });
 			this.$piniastore.setPreviewData(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
 			// this.$router.push({ path:'/Preview' });
@@ -346,7 +347,17 @@ export default {
 		},
 		// 修改表单
 		handleFormChange(data) {
-			let temp = {
+			let temp = {};
+			const curCell = this.curCell();
+			if (curCell) {
+				['s', 'fs', 'f', 'fc', 'sv', 'fcv', 'd'].forEach(pItem => {
+					if (typeof(curCell[pItem]) != 'undefined') {
+						temp[pItem] = curCell[pItem];
+					}
+				});
+			}
+			
+			Object.assign(temp, {
 				v: null,
 				c: 'Cell',
 				p: {
@@ -355,7 +366,7 @@ export default {
 								r: [''], // [0] 可见规则， [1] 可编辑规则
 						}, // rule 权限
 				},
-			};
+			});
 			switch(data.componentType) {
 				case 'input': // 单元格输入
 					// text number password datetime
@@ -403,7 +414,7 @@ export default {
 					temp.v = data.buttonText;
 					if (temp.v == '') {
 						temp.v = data.buttonType == 'submit' ? '提交' : '重置';
-					} 
+					}
 					break;
 			}
 			// componentType 是 input select upload
@@ -445,12 +456,16 @@ export default {
 								r: [data.power.showCondition], // [0] 可见规则， [1] 可编辑规则
 						}, // rule 权限
 				};
+
+				if (data.componentType == 'button') {
+					Object.assign(props, { t: data.buttonType });
+				}
 				Object.assign(temp, { p: props });
 			}
 			// 单元格数据，有公式
 			if (data.componentType == 'Cell') {
 				Object.assign(temp, { v: data.default });
-			}
+			}			
 			this.setCell(temp);
 		},
 		handleSelectEnd() {
@@ -509,13 +524,13 @@ export default {
 			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
-				Object.assign(_this.updateInfo, {
-					link: location && location.origin ? location.origin + '/Renderer/' + this.getTemplateId || tempId : '/Renderer/' + this.getTemplateId || tempId,
-				});
+				// Object.assign(_this.updateInfo, {
+				// 	link: location && location.origin ? location.origin + '/Renderer/' + _this.getTemplateId || tempId : '/Renderer/' + _this.getTemplateId || tempId,
+				// });
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];
 					_this.sheetData = [];
-					_.each(data, item => {
+					_.each(data, (item, index) => {
 						const temp = formatData(item.cells);
 						// _this.$OverallPanel.start = item.start;
 						// _this.$OverallPanel.end = item.end;
@@ -532,6 +547,9 @@ export default {
 							title: item.title,
 							data: temp,
 						});
+						if (index == 0) {
+							_this.title = item.title;
+						}
 						_this.sheetData.push({
 							title: item.title,
 							data: temp,
@@ -548,27 +566,23 @@ export default {
 				}
 			});
 		} else {
-			// TODO 新增，需要先新增一条空数据，获取id
-			if (false) {
-				_this.updateInfo = {
-					"description": "",
-					"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
-					"sheet": "",
-					"status": "0",
-					"title": "",
-					"data": ""
-				};
-				addTemplate(_this.updateInfo)
-					.then((res) => {
-						if (res.code == 200) {
-							_this.$store.dispatch('setTemplateId', res.data);
-							_this.updateInfo
-							Object.assign(_this.updateInfo, {
-								link: _this.updateInfo + '/' + res.data,
-							});						
-						}
-					});
-			}
+			_this.updateInfo = {
+				"description": "",
+				"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+				"sheet": "",
+				"status": "0",
+				"title": "",
+				"data": ""
+			};
+			addTemplate(_this.updateInfo)
+				.then((res) => {
+					if (res.code == 200) {
+						_this.$store.dispatch('setTemplateId', res.data.id);
+						Object.assign(_this.updateInfo, {
+							link: _this.updateInfo.link + '/' + res.data.id,
+						});						
+					}
+				});
 		}
 	}
 };
