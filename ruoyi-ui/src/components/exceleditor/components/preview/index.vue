@@ -43,47 +43,51 @@ export default {
       }
       console.log('clickCellBtn', res);
       console.log('_this.previewData.dataList', _this.previewData.dataList);
-      // 点击单元格
-      // 根据回写规则提交数据
-      if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
-        const dataList = _this.previewData.dataList;
-        _.map(dataList, (item, index) => {
-          const temp = { table: item.title };
-          if (item.filedList && item.filedList.length > 0) {
-            const fields = [];
-            _.map(item.filedList, fObj => {
-              let fieldValue = '';
-              if (fObj.type == 'cell') {
-                // 字段位置
-                let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
-                let rowIndex = fObj.value.replace(/[^0-9]/g,'');
-                columnIndex = _.$ABC2Number(columnIndex);
-                rowIndex = rowIndex - 1;
-                const pos = { rowIndex, columnIndex };
-                const cell = _this.$curSheet.getPosCell(pos);
-                fieldValue = cell.v; // 字段值
-              }
-              // 固定值
-              if (fObj.type == 'value') {
-                fieldValue = fObj.value;
-              }
-              // 参数 parameter
-              if (fObj.type == 'parameter') {
-                fieldValue = _this[fObj.value] || '';
-              }
-
-              fields.push({
-                fieldName: fObj.filed, // 字段名
-                fieldValue, // 字段值
+      // 提交数据
+      if (res.p.t == 'submit') {
+        // 根据回写规则提交数据
+        if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
+          const dataList = _this.previewData.dataList;
+          _.map(dataList, (item, index) => {
+            const temp = { table: item.title };
+            if (item.filedList && item.filedList.length > 0) {
+              const fields = [];
+              _.map(item.filedList, fObj => {
+                let fieldValue = '';
+                if (fObj.type == 'cell') {
+                  // 字段位置
+                  let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                  let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                  columnIndex = _.$ABC2Number(columnIndex);
+                  rowIndex = rowIndex - 1;
+                  const pos = { rowIndex, columnIndex };
+                  const cell = _this.$curSheet.getPosCell(pos);
+                  fieldValue = cell.v; // 字段值
+                }
+                // 固定值
+                if (fObj.type == 'value') {
+                  fieldValue = fObj.value;
+                }
+                // 参数 parameter
+                if (fObj.type == 'parameter') {
+                  fieldValue = _this[fObj.value] || '';
+                }
+  
+                fields.push({
+                  fieldName: fObj.filed, // 字段名
+                  fieldValue, // 字段值
+                });
               });
+              Object.assign(temp, { fields });
+            }
+            console.log('temp', temp);
+            saveFormData(temp).then((res) => {
+              console.log('saveFormData', res);
             });
-            Object.assign(temp, { fields });
-          }
-          console.log('temp', temp);
-          saveFormData(temp).then((res) => {
-            console.log('saveFormData', res);
           });
-        });
+        }
+      } else {
+        _this.update(_this.$piniastore.$state);
       }
     });
   },

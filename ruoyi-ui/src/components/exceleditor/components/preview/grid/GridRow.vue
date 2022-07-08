@@ -73,7 +73,7 @@ export default {
                         merge: baseStyle.merge,
                         show,
                         style,
-                        isHide
+                        isHide,
                     },
                     cell
                 );

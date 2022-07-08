@@ -55,7 +55,11 @@ export default {
                 if (this.curCell && this.curCell.f) {
                     this.val = _.$parseRefs(this.curCell.f, this.cellInfo);
                 } else {
-                    this.val = getCellValue(this.curCell);
+                    if (this.curCell && this.curCell.sv) {
+                        this.val = this.curCell.sv;
+                    } else {
+                        this.val = getCellValue(this.curCell);
+                    }
                 }
             }
         },

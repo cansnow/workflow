@@ -180,7 +180,9 @@ export default {
                 columnIndex: cellIndex + this.startColumnIndex,
                 rowIndex: this.row.rowIndex
             };
-            console.log('handleDrop', pos, event);
+            const text = event.dataTransfer.getData("Text");
+            let cell = this.$sheet.getPosCell(pos);
+            this.$sheet.setCellAttribute(pos, cell, 'v', text);
             event.preventDefault();
         },
         // 拖拽到内部

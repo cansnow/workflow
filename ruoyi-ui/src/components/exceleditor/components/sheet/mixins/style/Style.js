@@ -131,17 +131,17 @@ function createCss(option) {
 
   //存在背景颜色位置-1 同时增加padding
   if (border) {
-    left--;
-    top--;
+    // left--;
+    // top--;
     Object.assign(style, paddingStyle(option));
   } else if (border) {
     //存在上边框
     if (border.indexOf('t') > -1) {
-      top--;
+      // top--;
     }
     //存在左边框
     if (border.indexOf('l') > -1) {
-      left--;
+      // left--;
     }
     Object.assign(style, paddingStyle(option));
   }

@@ -2,7 +2,13 @@
   <div>
     <el-button size="mini" @click="open" style="margin-left: 6px">添加</el-button>
     <div style="padding-top: 10px">
-      <el-tree :data="data" :props="defaultProps"></el-tree>
+      <el-tree
+        draggable
+        :allow-drop="() => false"
+        :data="data"
+        :props="defaultProps"
+        @node-drag-start="handleDragStart"
+      ></el-tree>
     </div>
     <!-- <div draggable id="test" style="cursor: pointer;" @drag="handleDrag">test</div> -->
   </div>
@@ -75,7 +81,9 @@ export default {
     handleNodeClick(data) {
       console.log(data);
     },
-    handleDrag(event) {
+    handleDragStart(node, event) {
+      event.dataTransfer.setData("Text", node.label + ' ' + node.id);
+      console.log('handleDragStart');
     },
   },
 }

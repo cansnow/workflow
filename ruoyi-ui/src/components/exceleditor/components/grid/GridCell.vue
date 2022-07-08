@@ -170,7 +170,12 @@ export default {
                 columnIndex: this.cell.columnIndex,
                 rowIndex: this.cell.rowIndex,
             };
-            console.log('handleDrop', pos, event);
+            const text = event.dataTransfer.getData("Text");
+            let cell = this.$sheet.getPosCell(pos);
+            if (!cell) {
+                cell = text
+            }
+            this.$sheet.setCellAttribute(pos, cell, 'v', text);
             event.preventDefault();
         },
         // 拖拽到内部
