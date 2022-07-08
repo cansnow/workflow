@@ -100,11 +100,45 @@ export default {
         });
         this.index = 0;
     },
+    // 格式化数据
+    formatData(data) {
+      let columnIndex = data.replace(/[^a-zA-Z]/g,'');
+      let rowIndex = data.replace(/[^0-9]/g,'');
+      columnIndex = _.$ABC2Number(columnIndex);
+      rowIndex = rowIndex - 1;
+      return { columnIndex, rowIndex };
+    },
     update(state) {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
         const temp = formatData(state.previewData.cells);
+        // TODO 权限规则
+        if (state.previewData.formList && state.previewData.formList.length > 0) {
+          // temp.cells
+          _.map(state.previewData.formList, item => {
+            const list = item.range.split(':');
+            // G9
+            if (list.length <= 1) {
+              const data = this.formatData(list[0]);
+              if (item.type == 'hide') {
+                temp.cells[data.rowIndex].splice(data.columnIndex, 1, null);
+              }
+            }
+            // G9:G10
+            if (list.length > 1) {
+              const start = this.formatData(list[0]);
+              const end = this.formatData(list[1]);
+              for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                  if (item.type == 'hide') {
+                    temp.cells[i].splice(j, 1, null);
+                  }
+                }
+              }
+            }
+          });
+        }
         // start: data.start, 
         let columnIndex = null;
         let rowIndex = null;

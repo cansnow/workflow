@@ -91,8 +91,8 @@
       :width="dialogType == 0 ? '30%' : '40%'"
       @handleClose="handleClose"
       @handleIsOk="handleIsOk">
-      <Form v-if="dialogType == 0" ref="form" />
-      <Data v-if="dialogType == 1" ref="Data" />
+      <Form v-show="dialogType == 0" ref="form" />
+      <Data v-show="dialogType == 1" ref="Data" />
 		</Dialog>
   </div>
 </template>
@@ -177,7 +177,10 @@ export default {
   methods: {
     // 设置数据
     setData(data) {
-      this.formList = data.formList;
+      this.formList = _.map(data.formList, item => {
+        item.disabled = false;
+        return item;
+      });
       this.dataList = data.dataList;
       this.start = data.start;
       this.end = data.end;
@@ -247,14 +250,16 @@ export default {
     },
     /** 编辑权限规则 */
     handleEdit(index) {
-      const temp = this.formList[index];
-      Object.assign(temp, { index: index, disabled: true });
-      this.$refs.form.setFormData(temp);
-      this.formList.splice(index, 1, temp);
-      this.index = index;
-      this.showSelectCells(); // 显示选中单元格
       this.open(0);
-      this.title = '编辑规则';
+      this.$nextTick(() => {
+        const temp = this.formList[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.form.setFormData(temp);
+        this.formList.splice(index, 1, temp);
+        this.index = index;
+        this.showSelectCells(); // 显示选中单元格
+        this.title = '编辑规则';
+      });
     },
     // 显示选中单元格
     showSelectCells() {
