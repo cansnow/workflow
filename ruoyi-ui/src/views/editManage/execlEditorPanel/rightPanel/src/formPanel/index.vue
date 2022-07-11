@@ -216,16 +216,16 @@ export default {
 						change: this.change,
 					},
 				},
-				{
-					label: '表单字段',
-					type: 'inputPopup',
-					field: 'formFiled',
-					ifShow: false,
-					props: {
-						placeholder: '请选择',
-						click: this.setFormFiled,
-					},
-				},
+				// {
+				// 	label: '表单字段',
+				// 	type: 'inputPopup',
+				// 	field: 'formFiled',
+				// 	ifShow: false,
+				// 	props: {
+				// 		placeholder: '请选择',
+				// 		click: this.setFormFiled,
+				// 	},
+				// },
 				{
 					label: '输入类型',
 					type: 'select',

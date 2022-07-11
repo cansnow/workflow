@@ -133,12 +133,14 @@ export default {
 				bgColor:{
 					icon: 'mdi mdi-format-color-fill',
 					title: '背景颜色',
-					name: 'bgColor'
+					name: 'bgColor',
+					value: '',
 				},
 				color:{
 					icon: 'mdi mdi-format-text-variant',
 					title: '前景颜色',
-					name: 'color'
+					name: 'color',
+					value: '',
 				},
 				border: {
 					title:"边框",
@@ -216,7 +218,8 @@ export default {
 				merge:{
 					icon: 'mdi mdi-table-merge-cells',
 					title: '合并后居中',
-					name: 'merge'
+					name: 'merge',
+					checked: false,
 				},
 				cellFormat: {
 					title: '单元格格式',
@@ -375,8 +378,113 @@ export default {
 			} else {
 				cellFormat.value = 'routine';
 			}
-			Object.assign(_this.toolbars, cellFormat);
-			// TODO 样式设置回去
+			
+			// 样式设置回去
+			const fontFamily = _this.toolbars.fontFamily
+			const fontSize = _this.toolbars.fontSize;
+			const bgColor = _this.toolbars.bgColor;
+			const colorTemp = _this.toolbars.color;
+			const borderStyle = _this.toolbars.borderStyle;
+
+			const valigntop = _this.toolbars.valigntop;
+			const valignmiddle = _this.toolbars.valignmiddle;
+			const valignbottom = _this.toolbars.valignbottom;
+			valigntop.checked = false;
+			valignmiddle.checked = false;
+			valignbottom.checked = false;
+
+			const alignleft = _this.toolbars.alignleft;
+			const aligncenter = _this.toolbars.aligncenter;
+			const alignright = _this.toolbars.alignright;
+			alignleft.checked = false;
+			aligncenter.checked = false;
+			alignright.checked = false;
+
+			const merge = _this.toolbars.merge;
+			merge.checked = false;
+
+			const whiteSpace = _this.toolbars.whiteSpace;
+			whiteSpace.checked = false;
+
+			const bold = _this.toolbars.bold;
+			bold.checked = false;
+			const italic = _this.toolbars.italic;
+			italic.checked = false;
+
+			fontSize.value = 11;
+			fontFamily.value = 'fontFamily';
+			bgColor.value = '';
+			colorTemp.value = '';
+			borderStyle.value = 'solid';
+			if (!!cell && typeof cell.s != 'undefined') {
+				const style = _this.$sheet.getStyle(cell.s);
+				debugger;
+				// 设置字号
+				if (!!style.option.fontSize) {
+					fontSize.value = style.option.fontSize;
+				}
+				// 设置字体
+				if (!!style.option.fontFamily) {
+					fontFamily.value = style.option.fontFamily;
+				}
+				// 设置背景色
+				if (!!style.option.backgroundColor) {
+					bgColor.value = style.option.backgroundColor;
+				}
+				// 设置字体颜色
+				if (!!style.option.color) {
+					colorTemp.value = style.option.color;
+				}
+				// 设置边框样式
+				if (!!style.option.borderStyle) {
+					borderStyle.value = style.option.borderStyle;
+				}
+				if (!!style.option.textAlign) {
+					alignleft.checked = style.option.textAlign == 'left';
+					aligncenter.checked = style.option.textAlign == 'center';
+					alignright.checked = style.option.textAlign == 'right';
+				}
+				if (!!style.option.verticalAlign) {
+					valigntop.checked = style.option.verticalAlign == 'top';
+					valignmiddle.checked = style.option.verticalAlign == 'middle';
+					valignbottom.checked = style.option.verticalAlign == 'bottom';
+				}
+				if (!!style.option.whiteSpace) {
+					whiteSpace.checked = true;
+				}
+				if (!!style.option.fontWeight) {
+					bold.checked = true;
+				}
+				if (!!style.option.fontStyle) {
+					italic.checked = true;
+				}
+
+			}
+
+			const selection = _this.$sheet.selection;
+			const seletction2 = _this.$sheet.s_computedExtendSelection(selection);
+			if (JSON.stringify(seletction2) != JSON.stringify(selection)) {
+				merge.checked = true;
+			}
+			Object.assign(_this.toolbars, {
+				cellFormat,
+				fontSize,
+				fontFamily,
+				bgColor,
+				color:
+				colorTemp,
+				borderStyle,
+				valigntop,
+				valignmiddle,
+				valignbottom,
+				alignleft,
+				aligncenter,
+				alignright,
+				merge,
+				whiteSpace,
+				bold,
+				italic,
+			});
 		});
 	},
 	methods: {

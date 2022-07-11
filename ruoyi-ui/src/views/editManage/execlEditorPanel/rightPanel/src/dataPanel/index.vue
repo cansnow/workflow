@@ -55,8 +55,8 @@ export default {
       const h = this.$createElement;
       this.$msgbox({
         title: '数据管理',
-        message: h(Tree, { 
-          props: { data: this.data, defaultProps: this.defaultProps },
+        message: h(Tree, {
+          props: { data: this.data, defaultProps: this.props, nodeKey: this.props.value },
           on: {
             hhhh: function() { console.log('ddd') },
           },
