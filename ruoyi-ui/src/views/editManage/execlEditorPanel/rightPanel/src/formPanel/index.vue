@@ -86,10 +86,21 @@
 							<el-option label="自定义" value="custom" />
 							<el-option label="数据集" value="api" />
 						</el-select>
-						<el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="change" placeholder="请选择" style="width: 100%">
+						<!-- TODO -->
+						<TreeSelect
+							v-if="form.selectSrc == 'api'"
+							style="width: 100%"
+							:props="treeProps"
+							:options="options"
+							:value="form.api"
+							:clearable="true"
+							:accordion="true"
+							@getValue="getTreeSelectValue($event)"
+						/>
+						<!-- <el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="change" placeholder="请选择" style="width: 100%">
 							<el-option label="数据集1" value="api1" />
 							<el-option label="数据集2" value="api2" />
-						</el-select>
+						</el-select> -->
 						<el-input v-else type="textarea" :rows="4" v-model="form.defaultSelect" placeholder="请输入" @change="change" />
 					</el-form-item>
 				</template>
@@ -136,8 +147,11 @@
 
 <script>
 import Radio from './src/radio.vue';
+import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
+import { getDBTable, getTableFieldByName } from '@/api/editManage';
 export default {
   inject: ['$rightPanel'],
+	components: { TreeSelect },
   data() {
     return {
       form: {
@@ -162,7 +176,7 @@ export default {
 				// }, // 默认值
 				default: '', // 默认值
 				selectSrc: 'custom', // 选项
-				api: 'api1', // 数据集
+				api: '', // 数据集
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
@@ -171,7 +185,12 @@ export default {
 				buttonType: 'submit',
 				buttonText: '',
 			},
-      
+			options: [],
+			treeProps: {
+        value:'id',             // ID字段名
+        label: 'resourcename',         // 显示名称
+        children: 'children'    // 子级字段名
+      }
     };
   },
   computed: {
@@ -313,6 +332,24 @@ export default {
 		},
 	},
   methods: {
+		getTreeSelectValue(e) {
+			console.log('getTreeSelectValue e',e);
+			const _this = this;
+			Object.assign(this.form, { api: e[0] });
+			getTableFieldByName({ table: e[0] })
+				.then((res) => {
+					console.log('res', res);
+					const data = [];
+					_.map(res.data.columns, item => {
+						data.push({
+							label: item.aliasName || item.columnName,
+							value: item.columnName,
+						});
+					});
+					Object.assign(_this.form, { defaultSelect: data });
+					_this.change();
+				});
+    },
     // 表单信息修改
     change() {
 			this.$rightPanel.formChange(this.form);
@@ -397,23 +434,28 @@ export default {
 				case 'selectMultiple':
 				case 'treeSelect': // 下拉树单选
 				case 'treeSelectMultiple': // 下拉树多选
-					// 单选 多选 下拉，转成字符串，树直接转JSON字符串
 					let defValue = '';
-					if (data.options.length > 0) {
-						const labels = [];
-						data.options.forEach(item => {
-							labels.push(item.label);
-						});
-						defValue = labels.join(',');
+					if (data.p.ds == 'custom') {
+						// 单选 多选 下拉，转成字符串，树直接转JSON字符串
+						if (data.options.length > 0) {
+							const labels = [];
+							data.options.forEach(item => {
+								labels.push(item.label);
+							});
+							defValue = labels.join(',');
+						}
+						// 树
+						defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
+						Object.assign(temp, { defaultSelect: defValue });
+					} else {
+						Object.assign(temp, { defaultSelect: data.options, api: data.p.api });
 					}
-					// 树
-					defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
+					
 					Object.assign(temp, {
 						componentType: 'select',
 						selectType: data.c,
 						default: cellValue,
-						defaultSelect: defValue,
-						selectSrc: 'custom',
+						selectSrc: data.p.ds,
 					});
 					break;
 				case 'text': // 输入
@@ -519,6 +561,13 @@ export default {
 		setFormFiled() {
 			this.selectField();
 		},
+  },
+	mounted() {
+    const _this = this;
+    getDBTable().then((res) => {
+      console.log('res', res);
+      _this.options = res.data;
+    });
   },
 }
 </script>

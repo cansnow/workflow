@@ -79,17 +79,25 @@ export default {
         getTableFieldByName({ table: value })
           .then((res) => {
             console.log('res', res);
-            if (res.code == 200) {
-              _this.data = [];
-              _this.checkList = [];
-              _.map(res.rows, item => {
-                _this.data.push({
-                  label: item.columnComment || item.columnName,
-                  value: item.columnName,
-                  disabled: false,
-                });
+            _this.data = [];
+            _.map(res.data.columns, item => {
+              _this.data.push({
+                label: item.aliasName || item.columnName,
+                value: item.columnName,
+                disabled: false,
               });
-            }
+            });
+            // if (res.code == 200) {
+            //   _this.data = [];
+            //   _this.checkList = [];
+            //   _.map(res.rows, item => {
+            //     _this.data.push({
+            //       label: item.columnComment || item.columnName,
+            //       value: item.columnName,
+            //       disabled: false,
+            //     });
+            //   });
+            // }
           });
       },
     },
@@ -103,16 +111,24 @@ export default {
       getTableFieldByName({ table: this.dataSrc })
         .then((res) => {
           console.log('res', res);
-          if (res.code == 200) {
-            _this.data = [];
-            _this.checkList = [];
-            _.map(res.rows, item => {
-              _this.data.push({
-                label: item.columnComment || item.columnName,
-                value: item.columnName,
-                disabled: false,
-              });
+          _this.data = [];
+          _.map(res.data.columns, item => {
+            _this.data.push({
+              label: item.aliasName || item.columnName,
+              value: item.columnName,
+              disabled: false,
             });
+          });
+          if (res.code == 200) {
+            // _this.data = [];
+            // _this.checkList = [];
+            // _.map(res.rows, item => {
+            //   _this.data.push({
+            //     label: item.columnComment || item.columnName,
+            //     value: item.columnName,
+            //     disabled: false,
+            //   });
+            // });
           }
         });
     },

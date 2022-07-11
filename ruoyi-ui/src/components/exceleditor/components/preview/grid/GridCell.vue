@@ -14,15 +14,16 @@
             style="height: 100%;" 
             v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
         >
-            <el-input type="text" v-model="value" @change="handleChange" v-if="cellType == 'text'" />
-            <el-input type="text" show-password @change="handleChange" v-model="value" v-if="cellType == 'password'" />
-            <el-input-number type="text" @change="handleChange" v-model="value" v-if="cellType == 'number'" />
+            <el-input type="text" :disabled="!props.option.p.r.w" v-model="value" @change="handleChange" v-if="cellType == 'text'" />
+            <el-input type="text" :disabled="!props.option.p.r.w" show-password @change="handleChange" v-model="value" v-if="cellType == 'password'" />
+            <el-input-number type="text" :disabled="!props.option.p.r.w" @change="handleChange" v-model="value" v-if="cellType == 'number'" />
         </div>
 		<el-upload
 			v-if="cellType == 'upload'"
 			class="upload-demo"
 			action="https://jsonplaceholder.typicode.com/posts/"
 			:on-preview="handlePreview"
+            :disabled="!props.option.p.r.w"
 			:on-remove="handleRemove"
 			:before-remove="beforeRemove"
 			multiple
@@ -38,6 +39,7 @@
 		<el-date-picker
 			:value="value"
             placement ="bottom"
+            :disabled="!props.option.p.r.w"
 			type="datetime"
 			placeholder="选择日期时间"
 			v-if="cellType == 'datetime'">
@@ -56,18 +58,18 @@
 			placeholder="选择时间"
 			v-if="cellType == 'time'">
 		</el-date-picker>
-		<el-radio-group v-model="value" v-if="cellType == 'radio'">
+		<el-radio-group v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'radio'">
 			<el-radio :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
-		<el-checkbox-group v-model="checkboxValue" v-if="cellType == 'checkbox'">
+		<el-checkbox-group v-model="checkboxValue" :disabled="!props.option.p.r.w" v-if="cellType == 'checkbox'">
 			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
 		</el-checkbox-group>
-		<el-select v-model="value" v-if="cellType == 'select'">
+		<el-select v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'select'">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
         <!-- 下拉多选 -->
-        <el-select v-model="value" multiple v-if="cellType == 'selectMultiple'">
+        <el-select v-model="value" :disabled="!props.option.p.r.w" multiple v-if="cellType == 'selectMultiple'">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
@@ -76,6 +78,7 @@
             style="width: 100%"
             v-if="cellType == 'treeSelect'"
             :options="options"
+            :disabled="!props.option.p.r.w"
             :value="value"
             :clearable="true"
             :accordion="true"
@@ -87,6 +90,7 @@
             v-if="cellType == 'treeSelectMultiple'"
             :options="options"
             :value="value"
+            :disabled="!props.option.p.r.w"
             :clearable="true"
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"

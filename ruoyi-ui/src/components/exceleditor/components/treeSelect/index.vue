@@ -1,5 +1,5 @@
 <template>
-  <el-select v-model="valueTitle" placeholder="请选择" :clearable="clearable" @clear="clearHandle">
+  <el-select v-model="valueTitle" placeholder="请选择" :disabled="disabled" :clearable="clearable" @clear="clearHandle">
     <el-option :value="valueTitle" :label="valueTitle" class="options">
       <el-tree  
         id="tree-option"
@@ -41,7 +41,12 @@ export default {
     clearable:{ type:Boolean, default: () => { return true } },
     
     // 自动收起
-    accordion:{ type:Boolean, default: () => { return false } }
+    accordion:{ type:Boolean, default: () => { return false } },
+
+    disabled: {
+      type: Boolean,
+      default: () => { return false },
+    }
   },
 
   data() {
@@ -60,9 +65,9 @@ export default {
     initHandle(){
       if(this.valueId){
         setTimeout(() => {
-          window.console.log(this.options)
-          this.valueTitle = this.$refs.selectTree.getNode(Number(this.valueId)).data[this.props.label]     // 初始化显示
-          this.$refs.selectTree.setCurrentKey(Number(this.valueId))       // 设置默认选中
+          // window.console.log(this.options)
+          this.valueTitle = this.$refs.selectTree.getNode(this.valueId).data[this.props.label]     // 初始化显示
+          this.$refs.selectTree.setCurrentKey(this.valueId)       // 设置默认选中
           this.defaultExpandedKey = [this.valueId]      // 设置默认展开
         }, 500);
       } else {

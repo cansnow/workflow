@@ -1,5 +1,5 @@
 <template>
-	<div style="width: 300px;height: 100%; padding: 10px; border-top: 1px solid #ddd;">
+	<div style="width: 300px;height: 100%; padding: 10px; border: 1px solid #ddd;">
 		<div style="display: flex;">
 			<div style="flex:1;">
 				<el-tabs v-model="activeName" @tab-click="handleTabClick" stretch>
@@ -8,15 +8,23 @@
 					<el-tab-pane label="全局" name="overallPanel" />
 				</el-tabs>
 			</div>
-			<!-- <div style="width: 50px; text-align: center;">
+			<div style="width: 40px; text-align: center; position: relative;">
+				<div style="
+					position: absolute;
+					bottom: 14px;
+					left: 0px;
+					height: 2px;
+					width: 100%;
+					background-color: #dfe4ed;
+					z-index: 1;"></div>
 				<el-button type="text">
-					<i class="mdi mdi-close"></i>
+					<i class="mdi mdi-close" @click="closePanel"></i>
 				</el-button>
-			</div> -->
+			</div>
 		</div>
 		<!-- <el-button size="mini" @click="test">test</el-button> -->
-		<div style="overflow: hidden; height: calc(100vh - 120px);">
-			<div style="overflow-y: scroll; text-align: left; height: 100%; width: 297px;">
+		<div style="overflow: hidden; height: calc(100% - 64px);">
+			<div style="overflow-y: scroll; text-align: left; height: 100%; width: 295px;">
 				<div>
 					<!-- 单元格表单 -->
 					<FormPanel ref="FormPanel" v-show="activeName == 'attribute'"/>
@@ -154,6 +162,10 @@ export default {
 		// 数据
 		getDataPanelRef() {
 			return this.$refs.DataPanel;
+		},
+		// 关闭面板
+		closePanel() {
+			this.$emit('closePanel');
 		},
 	}
 }

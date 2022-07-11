@@ -1,5 +1,5 @@
 <template>
-  <el-select :value="valueTitle" :clearable="clearable" @clear="clearHandle">
+  <el-select :value="valueTitle" :clearable="clearable" :disabled="disabled" @clear="clearHandle">
     <el-option :value="valueTitle" :label="valueTitle" class="options">
       <el-tree
         id="tree-option"
@@ -63,6 +63,11 @@ export default {
         return false;
       },
     },
+
+    disabled: {
+      type: Boolean,
+      default: () => { return false },
+    }
   },
   data() {
     return {

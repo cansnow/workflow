@@ -1,5 +1,5 @@
 /** 格式化数据 */
-export function formatData(data) {
+export function formatData(data, ifPreview = false) {
   // 行的信息
   const rows = [];
   // 列的信息
@@ -77,7 +77,16 @@ export function formatData(data) {
           cellList.push(null);
         }
       }
-      cellList.push(temp);
+      // // 是否可见
+      if (ifPreview) {
+        if (typeof temp.p != 'undefined' && !temp.p.r.s) {
+          cellList.push(null);
+        } else {
+          cellList.push(temp);
+        }
+      } else {
+        cellList.push(temp);
+      }
       cells[pos] = cellList;
     } else {
       /** 判断null */
@@ -87,7 +96,15 @@ export function formatData(data) {
           cells[pos].push(null);
         }
       }
-      cells[pos].push(temp);
+      if (ifPreview) {
+        if (typeof temp.p != 'undefined' && !temp.p.r.s) {
+           cells[pos].push(null);
+        } else {
+           cells[pos].push(temp);
+        }
+      } else {
+        cells[pos].push(temp);
+      }
     }
     /** 组装样式 */
     if (typeof(item.s) != 'undefined') {

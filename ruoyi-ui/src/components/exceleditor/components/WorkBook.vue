@@ -120,6 +120,7 @@ export default {
         },
         setMenusHeigth() {
             this.menusHeigth = this.$refs.menus.$el.offsetHeight;
+            this.$emit('menusHeigth', this.menusHeigth);
         },
         handleClickHead() {
             this.$emit('click-head');

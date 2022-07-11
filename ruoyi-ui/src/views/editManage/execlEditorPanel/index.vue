@@ -17,7 +17,7 @@
 					<el-button type="primary" @click="handleRelease" :disabled="dialogVisible">发布</el-button>
 				</el-button-group>
 			</div>
-			<div class="flex_row" style="flex:1;">
+			<div class="flex_row" style="flex:1; position: relative;">
 				<vspread
 					ref="vspread"
 					@updateOptions="updateOptions"
@@ -25,9 +25,18 @@
 					@selectEnd="handleSelectEnd"
 					@click-head="handleClickHead"
 					@changSheet="handleChangeSheet"
+					@menusHeigth="handleMenusHeigth"
 					style="flex:1; width: calc(100vw - 300px)"
 				/>
-				<rightPanel ref="rightPanel" @formChange="handleFormChange" @showSelectCells="showSelectionCells"></rightPanel>
+				<rightPanel
+					v-show="showPanel"
+					ref="rightPanel"
+					@closePanel="showPanel = false"
+					@formChange="handleFormChange"
+					@showSelectCells="showSelectionCells"
+					style="position: absolute; background-color: white; right: 30px; z-index: 999; border-radius: 6px; box-shadow: 0px 0px 5px #888888;"
+					:style="{ height: `calc(100vh - 52px - ${menusHeigth}px - 26px - 46px - 26px)`, top: `calc(${menusHeigth}px + 26px`}"
+				></rightPanel>
 			</div>
 		</div>
 
@@ -87,6 +96,8 @@ export default {
 			updateInfo: {}, // 编辑信息
 			sheetTitles: [],
 			time: null, // 定时器
+			menusHeigth: 40,
+			showPanel: false,
 		};
 	},
 	computed: {
@@ -103,6 +114,9 @@ export default {
 		...mapGetters(["getTemplateId"]),
 	},
 	methods: {
+		handleMenusHeigth(v) {
+			this.menusHeigth = v;
+		},
 		handleChangeTitle(e) {
 				const data = this.$refs.vspread.data;
 				// sheet title 不能同名，用于唯一标识
@@ -325,6 +339,9 @@ export default {
 		// 选择单元格
 		handleSelectCell() {
 			this.$nextTick(function() {
+				if (!this.showPanel) {
+					this.showPanel = true;
+				}
 				const curCell = this.curCell();
 				console.log('handleSelectCell curCell', curCell);
 				if(curCell != null) {
@@ -376,19 +393,24 @@ export default {
 				case 'select': // 单元格选择
 					// checkbox radio select selectM
 					temp.c = data.selectType;
-					// 非树结构
-					const valueList = data.defaultSelect.split(',');
 					let options = [];
-					valueList.forEach(item => {
-						options.push({ value: item, label: item });
-					});
-					// 树结构 将字符串转JSON对象
-					if (
-						data.selectType == 'treeSelect' ||
-						data.selectType == 'treeSelectMultiple'
-					) {
-						options = JSON.parse(data.defaultSelect);
+					if (data.selectSrc == 'custom') {
+						// 非树结构
+						const valueList = data.defaultSelect.split(',');
+						valueList.forEach(item => {
+							options.push({ value: item, label: item });
+						});
+						// 树结构 将字符串转JSON对象
+						if (
+							data.selectType == 'treeSelect' ||
+							data.selectType == 'treeSelectMultiple'
+						) {
+							options = JSON.parse(data.defaultSelect);
+						}
+					} else {
+						options = data.defaultSelect;
 					}
+					
 					// 多选 v 是数组
 					if (
 						data.selectType == 'treeSelectMultiple' ||
@@ -441,6 +463,12 @@ export default {
 				};
 				if (temp.componentType == 'upload') {
 					Object.assign(props, { t: data.uploadType });
+				}
+				if (data.componentType == 'select') {
+					if (data.selectSrc != 'custom') {
+						Object.assign(props, { api: data.api });
+					}
+					Object.assign(props, { ds: data.selectSrc });
 				}
 				Object.assign(temp, { p: props });
 			}

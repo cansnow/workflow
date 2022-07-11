@@ -6,7 +6,8 @@
         draggable
         :allow-drop="() => false"
         :data="data"
-        :props="defaultProps"
+        :props="props"
+        :node-key="props.value"
         @node-drag-start="handleDragStart"
       ></el-tree>
     </div>
@@ -16,12 +17,14 @@
 
 <script>
 import Tree from './src/tree.vue';
+import { getDBTable } from '@/api/editManage';
 export default {
   inject: ['$rightPanel'],
   data() {
     return {
       data: [
         {
+          id: 1,
           label: '省份',
           children: [
             {
@@ -35,12 +38,16 @@ export default {
             { label: '城市2' },
             { label: '城市3' },
           ]
+        },{
+          id: 30,
+          label: 'dafds',
         }
       ],
-      defaultProps: {
-        children: 'children',
-        label: 'label'
-      }
+      props: {
+        value:'id',             // ID字段名
+        label: 'resourcename',  // 显示名称
+        children: 'children',   // 子级字段名
+      },
     };
   },
   methods: {
@@ -82,9 +89,17 @@ export default {
       console.log(data);
     },
     handleDragStart(node, event) {
-      event.dataTransfer.setData("Text", node.label + ' ' + node.id);
+      console.log('node', node);
+      event.dataTransfer.setData("Text", node.label + ' ' + node.key);
       console.log('handleDragStart');
     },
+  },
+  mounted() {
+    const _this = this;
+    getDBTable().then((res) => {
+      console.log('res', res);
+      _this.data = res.data;
+    });
   },
 }
 </script>

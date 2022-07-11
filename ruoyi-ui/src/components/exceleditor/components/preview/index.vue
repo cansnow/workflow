@@ -112,7 +112,7 @@ export default {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
-        const temp = formatData(state.previewData.cells);
+        const temp = formatData(state.previewData.cells, true);
         // TODO 权限规则
         if (state.previewData.formList && state.previewData.formList.length > 0) {
           // temp.cells

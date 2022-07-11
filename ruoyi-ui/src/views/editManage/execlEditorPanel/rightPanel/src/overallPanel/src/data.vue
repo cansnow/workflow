@@ -2,14 +2,23 @@
   <div>
     <el-form label-width="80px" label-position="left" size="small">
       <el-form-item label="数据集">
-        <el-select v-model="title" @change="handleChangeTitle" placeholder="请选择" style="width: 100%">
+        <!-- <el-select v-model="title" @change="handleChangeTitle" placeholder="请选择" style="width: 100%">
           <el-option
             v-for="item in options"
             :key="item.value"
             :label="item.label"
             :value="item.value">
           </el-option>
-        </el-select>
+        </el-select> -->
+        <TreeSelect
+            style="width: 100%"
+            :props="treeProps"
+            :options="options"
+            :value="title"
+            :clearable="true"
+            :accordion="true"
+            @getValue="getTreeSelectValue($event)"
+        />
       </el-form-item>
       <el-form-item label="字段">
         <el-button type="text" size="medium" @click="handleAddField">
@@ -88,8 +97,9 @@
 import Dialog from '../../dialog/index.vue';
 import Transfer from './transfer.vue';
 import { getDBTable } from '@/api/editManage';
+import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
 export default {
-  components: { Dialog, Transfer },
+  components: { Dialog, Transfer, TreeSelect },
   data() {
     return {
       title: '',
@@ -112,6 +122,11 @@ export default {
       }],
       selectIndex: -1,
       dialogVisible: false,
+      treeProps: {
+        value:'id',             // ID字段名
+        label: 'resourcename',         // 显示名称
+        children: 'children'    // 子级字段名
+      }
     };
   },
   computed: {
@@ -120,6 +135,11 @@ export default {
     }
   },
   methods: {
+    getTreeSelectValue(e) {
+        console.log('getTreeSelectValue e',e);
+        this.title = e[0] + '';
+        this.filedList = [];
+    },
     handleClose() {
       this.dialogVisible = false;
     },
@@ -143,6 +163,10 @@ export default {
     },
     /** 增加字段 */
     handleAddField() {
+      if (this.title == '') {
+        this.$modal.msgError('请选择数据集！');
+        return;
+      }
       this.dialogVisible = true;
     },
     /** 选中表 */
@@ -204,16 +228,17 @@ export default {
     const _this = this;
     getDBTable().then((res) => {
       console.log('res', res);
-      if (res.code == 200) {
-        // res.rows.forEach(() => {});
-        _this.options = [];
-        _.map(res.rows, item => {
-          _this.options.push({
-            label: item.tableComment || item.tableName,
-            value: item.tableName,
-          });
-        });
-      }
+      _this.options = res.data;
+      // if (res.code == 200) {
+      //   // res.rows.forEach(() => {});
+      //   _this.options = [];
+      //   _.map(res.rows, item => {
+      //     _this.options.push({
+      //       label: item.tableComment || item.tableName,
+      //       value: item.tableName,
+      //     });
+      //   });
+      // }
     });
   },
 }
