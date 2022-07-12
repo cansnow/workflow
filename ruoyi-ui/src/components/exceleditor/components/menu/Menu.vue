@@ -418,7 +418,6 @@ export default {
 			borderStyle.value = 'solid';
 			if (!!cell && typeof cell.s != 'undefined') {
 				const style = _this.$sheet.getStyle(cell.s);
-				debugger;
 				// 设置字号
 				if (!!style.option.fontSize) {
 					fontSize.value = style.option.fontSize;
@@ -439,28 +438,32 @@ export default {
 				if (!!style.option.borderStyle) {
 					borderStyle.value = style.option.borderStyle;
 				}
+				// 设置水平
 				if (!!style.option.textAlign) {
 					alignleft.checked = style.option.textAlign == 'left';
 					aligncenter.checked = style.option.textAlign == 'center';
 					alignright.checked = style.option.textAlign == 'right';
 				}
+				// 设置垂直
 				if (!!style.option.verticalAlign) {
 					valigntop.checked = style.option.verticalAlign == 'top';
 					valignmiddle.checked = style.option.verticalAlign == 'middle';
 					valignbottom.checked = style.option.verticalAlign == 'bottom';
 				}
+				// 设置换行
 				if (!!style.option.whiteSpace) {
 					whiteSpace.checked = true;
 				}
+				// 设置粗体
 				if (!!style.option.fontWeight) {
 					bold.checked = true;
 				}
+				// 设置斜体
 				if (!!style.option.fontStyle) {
 					italic.checked = true;
 				}
-
 			}
-
+			// 设置合并
 			const selection = _this.$sheet.selection;
 			const seletction2 = _this.$sheet.s_computedExtendSelection(selection);
 			if (JSON.stringify(seletction2) != JSON.stringify(selection)) {

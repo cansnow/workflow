@@ -2,20 +2,27 @@
 	<div style="width: 100%;height: 100%;">
 		<div id="ExcelEditor" ref="ExcelEditor">
 			<div class="header">
+				<breadcrumb
+					id="breadcrumb-container"
+					class="breadcrumb-container"
+					:matched="matched"
+				/>
 				<div class="flex_row space-between">
 					<el-button type="text" icon="arrow-left"></el-button>
-					<el-input v-model="title" @change="handleChangeTitle" class="inputbb" placeholder="请输入内容"></el-input>
+					<!-- <el-input v-model="title" @change="handleChangeTitle" class="inputbb" placeholder="请输入内容"></el-input> -->
+					<span>{{ title }}</span>
 				</div>
 				<!-- <el-button-group>
 					<el-button type="primary">设计</el-button>
 					<el-button type="default">数据</el-button>
 					<el-button type="default" @click="saveData">设置</el-button>
 				</el-button-group> -->
-				<el-button-group>
+				<rightMenu />
+				<!-- <el-button-group>
 					<el-button type="primary" @click="handlePreview">预览</el-button>
 					<el-button type="default" @click="viewData">查看代码</el-button>
 					<el-button type="primary" @click="handleRelease" :disabled="dialogVisible">发布</el-button>
-				</el-button-group>
+				</el-button-group> -->
 			</div>
 			<div class="flex_row" style="flex:1; position: relative;">
 				<vspread
@@ -58,6 +65,8 @@
 <script>
 import style from '@mdi/font/css/materialdesignicons.min.css';
 import vspread from '@/components/exceleditor';
+import Breadcrumb from "./src/Breadcrumb";
+import rightMenu from './src/rightMenu';
 import rightPanel from './rightPanel';
 import testData from './testData';
 import Dialog from './src/dialog.vue';
@@ -66,6 +75,7 @@ import Preview from './preview/index.vue';
 
 import { mapGetters } from "vuex";
 import { getTemplateId } from '@/utils/auth';
+import cache from '@/plugins/cache'
 
 import { formatData } from './src/utils';
 
@@ -79,6 +89,30 @@ export default {
 		Dialog,
 		ReleaseForm,
 		Preview,
+		Breadcrumb,
+		rightMenu,
+	},
+	beforeRouteEnter(to, from, next) {
+		next(vm=>{
+			console.log('to', to);
+			console.log('from', from);
+			vm.$nextTick(() => {
+				// vm.matched = from.matched;
+				from.matched.forEach(item => {
+					vm.matched.push({
+						meta: { title: item.meta.title },
+						path: item.path,
+						redirect: item.redirect,
+					});
+				});
+				if (vm.matched.length <= 0) {
+					vm.matched = cache.session.getJSON('DesignMatched');
+				} else {
+					cache.session.setJSON('DesignMatched', vm.matched);
+				}
+				vm.matched.push({ path: '/design', meta: { title: '设计器' }});
+			});
+		});
 	},
 	data() {
 		return {
@@ -98,6 +132,7 @@ export default {
 			time: null, // 定时器
 			menusHeigth: 40,
 			showPanel: false,
+			matched: [], // 路由
 		};
 	},
 	computed: {
@@ -299,6 +334,7 @@ export default {
 				});
 			}
 			this.handleClose();
+			debugger;
 			this.$router.go(-1);
 		},
 		//发布
@@ -542,6 +578,17 @@ export default {
 				_this.sheetData.splice(index, 1, temp);
 			}
 		});
+		this.$nextTick(() => {
+			this.matched = cache.session.getJSON('DesignMatched');
+			this.matched.push({ path: '/design', meta: { title: '设计器' }});
+		});
+
+		this.$refs.vspread.$on('handlePreview', function() {
+			_this.handlePreview();
+		})
+		this.$refs.vspread.$on('handleRelease', function() {
+			_this.handleRelease();
+		})
 	},
 	created:  function() {
 		const tempId = getTemplateId();
@@ -686,6 +733,7 @@ export default {
 		padding: 5px 15px;
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 	}
 }
 </style>

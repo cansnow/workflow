@@ -9,7 +9,13 @@
         :props="props"
         :node-key="props.value"    
         :default-expanded-keys="defaultExpandedKey"
-        @node-click="handleNodeClick">
+        @node-click="handleNodeClick"
+      >
+        <span v-if="ifIcons" class="custom-tree-node" slot-scope="{ node, data }">
+          <i v-if="data.resourcetype == 4" class="mdi mdi-database" />
+          <i v-else class="mdi mdi-folder" />
+          <span>{{ node.label }}</span>
+        </span>
       </el-tree>
     </el-option>
   </el-select>
@@ -44,6 +50,11 @@ export default {
     accordion:{ type:Boolean, default: () => { return false } },
 
     disabled: {
+      type: Boolean,
+      default: () => { return false },
+    },
+
+    ifIcons: {
       type: Boolean,
       default: () => { return false },
     }

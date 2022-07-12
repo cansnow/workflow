@@ -1,6 +1,13 @@
 <template>
     <div tabIndex="999" class="meg-workbook" @parse="handleParse" @keydown="handleKeyMap">
-        <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex-wrap: wrap; height: auto; min-height: 40px;"/>
+        <div style="display: flex; align-items: center;">
+            <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex: 1; flex-wrap: wrap; height: auto; min-height: 40px;"/>
+            <div class="meg-workbook-btn">
+                <el-button type="primary" size="small" @click="handlePreview">预览</el-button>
+                <!-- <el-button type="default" @click="viewData">查看代码</el-button> -->
+                <el-button  type="default" size="small" @click="handleRelease" :disabled="dialogVisible">发布</el-button>
+            </div>
+        </div>
         <!-- 多个sheet，防止重叠，将不显示的放到最外面 -->
         <div
             style="position: relative; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;"
@@ -90,6 +97,12 @@ export default {
         },
     },
     methods: {
+        handlePreview() {
+            this.$emit('handlePreview');
+        },
+        handleRelease() {
+            this.$emit('handleRelease');
+        },
         init() {
             let _this = this;
             _this.update(this.$piniastore.$state);
@@ -191,5 +204,15 @@ export default {
 <style>
     .meg-workbook .el-tabs--border-card > .el-tabs__content {
         padding: 0px !important;
+    }
+
+    .meg-workbook-btn {
+        width: 200px;
+        display: flex;
+        height: 100%;
+        /* padding: 5px; */
+        justify-content: space-evenly;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
     }
 </style>

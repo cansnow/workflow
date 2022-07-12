@@ -95,6 +95,7 @@
 							:value="form.api"
 							:clearable="true"
 							:accordion="true"
+							:ifIcons="true"
 							@getValue="getTreeSelectValue($event)"
 						/>
 						<!-- <el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="change" placeholder="请选择" style="width: 100%">

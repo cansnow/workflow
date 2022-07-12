@@ -35,7 +35,7 @@
 		</el-upload>
 		
 		<el-image v-if="cellType == 'image'" :src="value"></el-image>
-		<el-button type="primary" v-if="cellType == 'button'" @click="handleCellBtnClick" >{{value}}</el-button>
+		<el-button type="primary" :style="setBtnStyle(cell.style.css)" v-if="cellType == 'button'" @click="handleCellBtnClick" >{{value}}</el-button>
 		<el-date-picker
 			:value="value"
             placement ="bottom"
@@ -137,6 +137,13 @@ export default {
         });
     },
     methods: {
+        setBtnStyle(style) {
+            const temp = JSON.parse(JSON.stringify(style));
+            if (!!temp.backgroundColor) {
+                Object.assign(temp, { borderColor: style.backgroundColor });
+            }
+            return temp;
+        },
         handlePreview(){},
         handleRemove(){},
         beforeRemove(){},

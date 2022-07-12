@@ -17,6 +17,7 @@
             :value="title"
             :clearable="true"
             :accordion="true"
+            :ifIcons="true"
             @getValue="getTreeSelectValue($event)"
         />
       </el-form-item>

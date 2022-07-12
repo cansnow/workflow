@@ -5,21 +5,49 @@
       <el-tree
         draggable
         :allow-drop="() => false"
-        :data="data"
+        :allow-drag="handleAllowDrag"
+        :data="showData"
         :props="props"
         :node-key="props.value"
         @node-drag-start="handleDragStart"
-      ></el-tree>
+      >
+      </el-tree>
     </div>
-    <!-- <div draggable id="test" style="cursor: pointer;" @drag="handleDrag">test</div> -->
+    <Dialog
+      title="数据管理"
+      :puncture="false"
+      :appendToBody="true"
+      width="30%"
+      :dialogVisible="dialogVisible"
+      @handleClose="handleClose"
+      @handleIsOk="handleIsOk"
+    >
+      <el-tree
+        :data="data"
+        show-checkbox
+        ref="selectTree"
+        default-expand-all
+        :props="props"
+        :node-key="props.value"
+        check-on-click-node
+        @check="handleNodeCheck"
+      >
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <i v-if="data.resourcetype == 4" class="mdi mdi-database" />
+          <i v-else class="mdi mdi-folder" />
+          <span>{{ node.label }}</span>
+        </span>
+      </el-tree>
+		</Dialog>
   </div>
 </template>
 
 <script>
-import Tree from './src/tree.vue';
-import { getDBTable } from '@/api/editManage';
+import { getDBTable, getTableFieldByName } from '@/api/editManage';
+import Dialog from '../dialog/index.vue';
 export default {
   inject: ['$rightPanel'],
+  components: { Dialog },
   data() {
     return {
       data: [
@@ -48,50 +76,89 @@ export default {
         label: 'resourcename',  // 显示名称
         children: 'children',   // 子级字段名
       },
+      dialogVisible: false,
+      checkData: [],
+      showData: [],
     };
   },
   methods: {
-    open() {
-      const h = this.$createElement;
-      this.$msgbox({
-        title: '数据管理',
-        message: h(Tree, {
-          props: { data: this.data, defaultProps: this.props, nodeKey: this.props.value },
-          on: {
-            hhhh: function() { console.log('ddd') },
-          },
-        }),
-        showCancelButton: true,
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
-            instance.confirmButtonLoading = true;
-            instance.confirmButtonText = '执行中...';
-            setTimeout(() => {
-              done();
-              setTimeout(() => {
-                instance.confirmButtonLoading = false;
-              }, 300);
-            }, 3000);
-          } else {
-            done();
-          }
-        }
-      }).then(action => {
-        this.$message({
-          type: 'info',
-          message: 'action: ' + action
+    handleAllowDrag(node) {
+      return node.data.resourcetype == 0;
+    },
+    handleClose() {
+      this.dialogVisible = false;
+      this.checkData.forEach(item => {
+        this.$refs.selectTree.setChecked(item, false, true);
+      });
+      this.checkData = [];
+    },
+    test(data, index) {
+      const _this = this;
+      const temp = JSON.parse(JSON.stringify(data[index]));
+      getTableFieldByName({ table: temp.id }).then((res) => {
+        const children = [];
+        _.map(res.data.columns, item => {
+          children.push({
+            id: item.columnName,
+            relativeData: item.aliasName || item.columnName,
+            resourcename: item.columnName,
+            resourcetype: 0,
+          });
         });
+        Object.assign(temp, { children });
+        _this.showData.push(temp);
+        if (data.length - 1 > index) {
+          setTimeout(() => {
+            this.test(data, index + 1);
+          }, 1000);
+        }
       });
     },
+    handleIsOk() {
+      // _.map(this.checkData, (item, index) => {
+      //   setTimeout(() => {
+      //     const temp = JSON.parse(JSON.stringify(item));
+      //     getTableFieldByName({ table: item.id }).then((res) => {
+      //       const children = [];
+      //       _.map(res.data.columns, item => {
+      //         children.push({
+      //           id: item.columnName,
+      //           relativeData: item.aliasName || item.columnName,
+      //           resourcename: item.columnName,
+      //         });
+      //       });
+      //       Object.assign(temp, { children });
+      //       _this.showData.push(temp);
+      //     });
+      //   }, 1500 * index);
+      // });
+      this.test(this.checkData, 0);
+      this.handleClose();
+    },
+    open() {
+      this.dialogVisible = true;
+    },
     handleNodeClick(data) {
-      console.log(data);
+      console.log('data', data);
+    },
+    // 勾选事件
+    handleNodeCheck(data, state) {
+      console.log('handleNodeCheck', data, state);
+      if (state.checkedKeys.length > 0) {
+        this.checkData = [];
+        state.checkedNodes.forEach(item => {
+          this.checkData.push(item);
+        });
+      } else {
+        this.checkData.forEach(item => {
+          this.$refs.selectTree.setChecked(item, false, true);
+        });
+        this.checkData = [];
+      }
     },
     handleDragStart(node, event) {
-      console.log('node', node);
-      event.dataTransfer.setData("Text", node.label + ' ' + node.key);
-      console.log('handleDragStart');
+      console.log('handleDragStart node', node);
+      event.dataTransfer.setData("Text", 'dataset.' + node.parent.key + '.' + node.key);
     },
   },
   mounted() {
