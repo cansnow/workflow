@@ -181,11 +181,16 @@ export default {
                 rowIndex: this.row.rowIndex
             };
             const text = event.dataTransfer.getData("Text");
-            let cell = this.$sheet.getPosCell(pos);
-            if (!cell) {
-                cell = text
+            // const p = { f: text, r: { r: [''], s: true } };
+            // this.$sheet.setCellAttribute(pos, text, 'p', p);
+            const value = {
+                p: { f: text, r: { r: [''], s: true } },
+                v: text,
             }
-            this.$sheet.setCellAttribute(pos, cell, 'v', text);
+            this.$sheet.setSelectArea(pos, pos);
+            this.$sheet.doEditCell();
+            this.$sheet.doCancelEdit();
+            this.$sheet.doEditCellValue(value);
             event.preventDefault();
         },
         // 拖拽到内部

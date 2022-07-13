@@ -57,6 +57,7 @@ export default {
       // 提交数据
       if (res.p.t == 'submit') {
         // 根据回写规则提交数据
+        // TODO 表单校验
         if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
           const dataList = _this.previewData.dataList;
           _.map(dataList, (item, index) => {
@@ -173,6 +174,24 @@ export default {
             temp[pItem] = item[pItem];
           }
         });
+        // 获取p.f 变量，替换v
+        if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {
+          const fList = temp.p.f.split('.');
+          console.log('fList', fList);
+          if (fList[0] == 'dataSetList') {
+            _.map(this.dataSetList, item => {
+              if (item.dataSetId == fList[1]) {
+                // TODO 默认去第一个下标
+                _.map(Object.keys(item.valueList[0]), vItem => {
+                  if (vItem == fList[2]) {
+                    const value = item.valueList[0][vItem];
+                    Object.assign(temp, { v: value });
+                  }
+                });                    
+              }
+            });
+          }
+        }
         if (typeof(cells[pos]) == 'undefined') {
           const cellList = [];
           /** 判断null */
@@ -182,6 +201,7 @@ export default {
               cellList.push(null);
             }
           }
+          // 设置显示隐藏
           if (typeof temp.p != 'undefined' && !temp.p.r.s) {
             cellList.push(null);
           } else {
@@ -196,6 +216,7 @@ export default {
               cells[pos].push(null);
             }
           }
+          // 设置显示隐藏
           if (typeof temp.p != 'undefined' && !temp.p.r.s) {
             cells[pos].push(null);
           } else {
@@ -278,7 +299,6 @@ export default {
         if (state.previewData.formList && state.previewData.formList.length > 0) {
           // temp.cells
           _.map(state.previewData.formList, item => {
-            debugger;
             // 获取判断条件，获取变量
             // 1.获取变量，从this.userInfo[field]取值
             // 2.获取判断条，== < > != <= >=

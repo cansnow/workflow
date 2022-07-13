@@ -158,7 +158,7 @@ export default {
     },
     handleDragStart(node, event) {
       console.log('handleDragStart node', node);
-      event.dataTransfer.setData("Text", 'dataset.' + node.parent.key + '.' + node.key);
+      event.dataTransfer.setData("Text", 'dataSetList.' + node.parent.key + '.' + node.key);
     },
   },
   mounted() {

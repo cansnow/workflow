@@ -334,7 +334,6 @@ export default {
 				});
 			}
 			this.handleClose();
-			debugger;
 			this.$router.go(-1);
 		},
 		//发布
