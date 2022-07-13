@@ -210,12 +210,12 @@ export default {
     },
     watch: {
         options(options){
-            console.log('options', options);
+            // console.log('options', options);
             this.init(options);
         },
         optionsTemp: {
             handler: function(options) {
-                console.log('optionsTemp', options);
+                // console.log('optionsTemp', options);
                 this.init(options);
             },
             immediate: true,

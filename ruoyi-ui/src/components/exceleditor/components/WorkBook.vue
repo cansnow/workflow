@@ -5,19 +5,19 @@
             <div class="meg-workbook-btn">
                 <el-button type="primary" size="small" @click="handlePreview">预览</el-button>
                 <!-- <el-button type="default" @click="viewData">查看代码</el-button> -->
-                <el-button  type="default" size="small" @click="handleRelease" :disabled="dialogVisible">发布</el-button>
+                <el-button  type="default" size="small" @click="handleRelease">发布</el-button>
             </div>
         </div>
         <!-- 多个sheet，防止重叠，将不显示的放到最外面 -->
         <div
             style="position: relative; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;"
-            :style="{ height: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
+            :style="{ height: `calc(100vh - ${menusHeigth}px - 52px - 60px)` }"
         >
             <div
                 v-for="(sheet, index) in data"
                 :key="'_'+index"
                 style="height: 100%;"
-                :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 40px - 60px)` }"
+                :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 52px - 60px)` }"
             >
                 <Sheet
                     @selectCell="handleSelectCell"

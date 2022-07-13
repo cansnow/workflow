@@ -1,6 +1,18 @@
 import request from '@/utils/request';
 
 /**
+ * 获取数据集
+ * @returns 数据集
+ */
+export function getDBData(query) {
+  return request({
+    url: '/workflow/wfForm/user/db/list',
+    method: 'get',
+    params: query
+  })
+}
+
+/**
  * 回写提交接口
  * @param {*} data 
  * @returns 

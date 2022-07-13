@@ -42,7 +42,7 @@
 					@formChange="handleFormChange"
 					@showSelectCells="showSelectionCells"
 					style="position: absolute; background-color: white; right: 30px; z-index: 999; border-radius: 6px; box-shadow: 0px 0px 5px #888888;"
-					:style="{ height: `calc(100vh - 52px - ${menusHeigth}px - 26px - 46px - 26px)`, top: `calc(${menusHeigth}px + 26px`}"
+					:style="{ height: `calc(100vh - 52px - ${menusHeigth}px - 110px)`, top: `calc(${menusHeigth}px + 28px`}"
 				></rightPanel>
 			</div>
 		</div>
@@ -235,10 +235,10 @@ export default {
 						// 单元格的高度
 						const pos = sheet.s_getSelectionRect(selection);
 						Object.assign(temp, pos); // 位置 top left height width
-						console.log('col', col);
+						// console.log('col', col);
 						if (typeof(col.s) != 'undefined') {
 							const style = sheet.getStyle(col.s);
-							console.log('style.option', style);
+							// console.log('style.option', style);
 							if (style) {
 								Object.assign(temp, style.option); // 样式
 							}
@@ -248,7 +248,7 @@ export default {
 					}
 				})
 			});
-			console.log('cellsTemp', cellsTemp);
+			// console.log('cellsTemp', cellsTemp);
 			return cellsTemp;
 		},
 		/** 发送后端数据 */
@@ -357,14 +357,16 @@ export default {
 				const tempId = getTemplateId();
 				if (_this.getTemplateId || tempId) {
 					const form = _this.updateInfo;
-					const data = [];
-					_this.$refs.vspread.data.forEach((_, index) => {
-						data.push(_this.getCurSaveData(index));
-					});
-					Object.assign(form, { data: JSON.stringify(data), id: _this.getTemplateId || tempId });
-					updateTemplate(form).then((result) => {
-						console.log('result', result);
-					});
+					let data = [];
+					if (typeof _this.$refs.vspread != 'undefined') {
+						_this.$refs.vspread.data.forEach((_, index) => {
+							data.push(_this.getCurSaveData(index));
+						});
+						Object.assign(form, { data: JSON.stringify(data), id: _this.getTemplateId || tempId });
+						updateTemplate(form).then((result) => {
+							console.log('result', result);
+						});
+					}
 				}
 			}, 1000 * 30);
 		},

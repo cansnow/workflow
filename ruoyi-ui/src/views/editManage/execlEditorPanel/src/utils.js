@@ -119,12 +119,6 @@ export function formatData(data, ifPreview = false) {
       }
     }
   });
-  
-  console.log('rows', rows);
-  console.log('columns', columns);
-  console.log('merges', merges);
-  console.log('cells', cells);
-  console.log('styles', styles);
 
   return {
     rows,

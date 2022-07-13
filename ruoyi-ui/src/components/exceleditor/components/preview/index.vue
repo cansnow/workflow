@@ -14,8 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { formatData } from '@/views/editManage/execlEditorPanel/src/utils';
-import { saveFormData } from '@/api/editManage';
+import { saveFormData, getDBData } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -26,6 +25,8 @@ export default {
       title: testData[0].title,
       previewData: {},
       ifPreview: true,
+      userInfo: {},
+      dataSetList: [],
     };
   },
   computed: {
@@ -35,8 +36,18 @@ export default {
     ...mapGetters(["name"]),
   },
   mounted() {
-    this.init();
     const _this = this;
+    // 获取数据集
+    getDBData().then((res) => {
+      if (!!res.data.userInfo) {
+        _this.userInfo = res.data.userInfo;
+      } 
+      if (!!res.data.dataSetList) {
+        _this.dataSetList = res.data.dataSetList;
+      }
+      _this.init();
+    });
+    
     this.$refs['sheet_' + this.index].$on('clikcCellBtn', function(res) {
       if (_this.ifPreview) {
         return;
@@ -87,11 +98,132 @@ export default {
           });
         }
       } else {
+        // 重置
         _this.update(_this.$piniastore.$state);
       }
     });
   },
   methods: {
+    formatCellData(data) {
+      // 行的信息
+      const rows = [];
+      // 列的信息
+      const columns = [];
+      // 合并单元格的信息
+      const merges = [];
+      // 单元格信息
+      const cells = {};
+      // 样式信息
+      const styles = {};
+
+      let pos = -1;
+
+      const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'fc', 'sv', 'fcv', 'd', 'options'];
+      
+      const stylePro = [
+        'border',
+        'borderStyle',
+        'backgroundColor',
+        'color',
+        'fontFamily',
+        'fontSize',
+        'fontStyle',
+        'fontWeight',
+        'textDecoration',
+        'textAlign',
+        'verticalAlign',
+        'whiteSpace',
+      ];
+      
+      _.each(data, item => {
+        /** 行信息 */
+        if (typeof(rows[item.pos.start.rowIndex]) == 'undefined') {
+          if (item.pos.start.rowIndex > rows.length) {
+            const nullLen = item.pos.start.rowIndex - rows.length;
+            for (let i = 0; i < nullLen; i++) {
+              rows.push(null);
+            }
+          }
+          rows.push({ hpx: item.height });          
+        }
+        /** 列信息 */
+        if (typeof(columns[item.pos.start.columnIndex]) == 'undefined') {
+          if (item.pos.start.columnIndex > columns.length) {
+            const nullLen = item.pos.start.columnIndex - columns.length;
+            for (let i = 0; i < nullLen; i++) {
+              columns.push(null);
+            }
+          }
+          columns.push({ wpx: item.width });          
+        } else {
+          if (columns[item.pos.start.columnIndex] == null) {
+            columns[item.pos.start.columnIndex] = { wpx: item.width };
+          }
+        }
+        /** 合并信息 */
+        if(typeof(item.merges) != 'undefined') {
+          merges.push(item.merges);
+        }
+        /** 单元格信息 */
+        pos = item.pos.start.rowIndex;
+        let temp = {};
+        // 将 s fs f v c p
+        cellPro.forEach(pItem => {
+          if (typeof(item[pItem]) != 'undefined') {
+            temp[pItem] = item[pItem];
+          }
+        });
+        if (typeof(cells[pos]) == 'undefined') {
+          const cellList = [];
+          /** 判断null */
+          if (item.pos.start.columnIndex != 0) {
+            const nullLen = item.pos.start.columnIndex;
+            for (let i = 0; i < nullLen; i++) {
+              cellList.push(null);
+            }
+          }
+          if (typeof temp.p != 'undefined' && !temp.p.r.s) {
+            cellList.push(null);
+          } else {
+            cellList.push(temp);
+          }
+          cells[pos] = cellList;
+        } else {
+          /** 判断null */
+          if (item.pos.start.columnIndex > cells[pos].length) {
+            const nullLen = item.pos.start.columnIndex - cells[pos].length;
+            for (let i = 0; i < nullLen; i++) {
+              cells[pos].push(null);
+            }
+          }
+          if (typeof temp.p != 'undefined' && !temp.p.r.s) {
+            cells[pos].push(null);
+          } else {
+            cells[pos].push(temp);
+          }
+        }
+        /** 组装样式 */
+        if (typeof(item.s) != 'undefined') {
+          if(typeof(styles[item.s]) == 'undefined') {
+            let tempStyle = {};
+            stylePro.forEach(sItem => {
+              if (typeof(item[sItem]) != 'undefined') {
+                tempStyle[sItem] = item[sItem];
+              }
+            });
+            styles[item.s] = tempStyle;
+          }
+        }
+      });
+
+      return {
+        rows,
+        columns,
+        merges,
+        cells,
+        styles,
+      };
+    },
     init() {
         let _this = this;
         _this.update(this.$piniastore.$state);
@@ -108,31 +240,103 @@ export default {
       rowIndex = rowIndex - 1;
       return { columnIndex, rowIndex };
     },
+    // 获取比对值
+    getComparisonValue(data) {
+      // == < > != <= >=
+      const operator = ['==', '<', '>', '!=', '<=', '>='];
+      const index = operator.findIndex(item => {
+        const index = data.indexOf(item);
+        return index != -1;
+      });
+      return [index, data.replace(/[^a-zA-Z]/g,'')];
+    },
+    comparison(variable, operator, value) {
+      switch(operator) {
+        // '==', '<', '>', '!=', '<=', '>='
+        case 0:
+          return variable == value;
+        case 1:
+          return variable < value;
+        case 2:
+          return variable > value;
+        case 3:
+          return variable != value;
+        case 4:
+          return variable <= value;
+        case 5:
+          return variable >= value;
+        default:
+          return false;
+      }
+    },
     update(state) {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
-        const temp = formatData(state.previewData.cells, true);
+        const temp = this.formatCellData(state.previewData.cells);
         // TODO 权限规则
         if (state.previewData.formList && state.previewData.formList.length > 0) {
           // temp.cells
           _.map(state.previewData.formList, item => {
-            const list = item.range.split(':');
-            // G9
-            if (list.length <= 1) {
-              const data = this.formatData(list[0]);
-              if (item.type == 'hide') {
-                temp.cells[data.rowIndex].splice(data.columnIndex, 1, null);
+            debugger;
+            // 获取判断条件，获取变量
+            // 1.获取变量，从this.userInfo[field]取值
+            // 2.获取判断条，== < > != <= >=
+            // 3.获取对比值，如：admin
+            const expression = item.expression;// '$userName$ == "admin"';
+            let ifStart = false;
+            const index = expression.indexOf('$');
+            if (index != -1) {
+              const strList = expression.split('$').filter(item => !!item);
+              if (strList.length > 1) {
+                // 取变量
+                const value = this.userInfo[strList[index == 0 ? index : 1]];
+                if (typeof value != 'undefined') {
+                  // 取值
+                  const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
+                  if (comparison[0] != -1) {
+                    // 判断是否生效规则
+                    ifStart = this.comparison(value, comparison[0], comparison[1]);
+                  }
+                }
               }
             }
-            // G9:G10
-            if (list.length > 1) {
-              const start = this.formatData(list[0]);
-              const end = this.formatData(list[1]);
-              for (let i = start.rowIndex; i <= end.rowIndex; i++) {
-                for(let j = start.columnIndex; j <= end.columnIndex; j++) {
-                  if (item.type == 'hide') {
-                    temp.cells[i].splice(j, 1, null);
+            if (ifStart) {
+              const list = item.range.split(':');
+              // G9
+              if (list.length <= 1) {
+                const data = this.formatData(list[0]);
+                if (item.type == 'hide') {
+                  temp.cells[data.rowIndex].splice(data.columnIndex, 1, null);
+                } else {
+                  // 禁用
+                  const tempCell = temp.cells[data.rowIndex][data.columnIndex];
+                  if (typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                    const p = tempCell.p;
+                    p.r.w = false;
+                    Object.assign(tempCell, { p });
+                  }
+                  temp.cells[data.rowIndex].splice(data.columnIndex, 1, tempCell);
+                }
+              }
+              // G9:G10
+              if (list.length > 1) {
+                const start = this.formatData(list[0]);
+                const end = this.formatData(list[1]);
+                for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                  for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                    if (item.type == 'hide') {
+                      temp.cells[i].splice(j, 1, null);
+                    } else {
+                      // 禁用
+                      const tempCell = temp.cells[i][j];
+                      if (typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                        const p = tempCell.p;
+                        p.r.w = false;
+                        Object.assign(tempCell, { p });
+                      }
+                      temp.cells[i].splice(j, 1, tempCell);
+                    }
                   }
                 }
               }
