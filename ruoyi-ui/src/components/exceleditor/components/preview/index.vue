@@ -16,6 +16,7 @@ import '../../helpers/lodashMixins';
 import testData from './testData';
 import { saveFormData, getDBData } from '@/api/editManage';
 import { mapGetters } from "vuex";
+import { index } from '../../libs/formula';
 export default {
   components: { Sheet },
   data() {
@@ -48,7 +49,7 @@ export default {
       _this.init();
     });
     
-    this.$refs['sheet_' + this.index].$on('clikcCellBtn', function(res) {
+    this.$curSheet.$on('clikcCellBtn', function(res) {
       if (_this.ifPreview) {
         return;
       }
@@ -58,6 +59,26 @@ export default {
       if (res.p.t == 'submit') {
         // 根据回写规则提交数据
         // TODO 表单校验
+        // _this.$curSheet.cells
+        _.each(_this.$curSheet.cells, (cell, key) => {
+          _.each(cell, (col, index) => {
+            if (
+              !!col &&
+              typeof col.c != 'undefined' &&
+              col.c != 'Cell' &&
+              col.c != 'image' &&
+              col.c != 'button'
+            ) {
+              if (col.p.vd.r && col.p.r.w && col.p.r.s) {
+                if (!col.v) {
+                  console.log('pos', key, index);
+                  _this.$modal.msgError('有必填项未填写，请填写！！！');
+                  return;
+                }
+              }
+            }
+          })
+        });
         if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
           const dataList = _this.previewData.dataList;
           _.map(dataList, (item, index) => {
@@ -192,6 +213,42 @@ export default {
             });
           }
         }
+        // 设置禁用
+        if (
+          typeof temp.p != 'undefined' &&
+          typeof temp.p.r != 'undefined' &&
+          typeof temp.p.r.w != 'undefined'
+        ) {
+          const expression = temp.p.r.r[1];
+          if (!!expression) {
+            const ifStart = this.getResult(expression);
+            if (!ifStart) {
+              const p = temp.p;
+              const r = p.r;
+              r.w = !r.w;
+              Object.assign(p, { r });
+              Object.assign(temp, { p });
+            }
+          }
+        }
+        // 设置隐藏
+        if (
+          typeof temp.p != 'undefined' &&
+          typeof temp.p.r != 'undefined' &&
+          typeof temp.p.r.s != 'undefined'
+        ) {
+          const expression = temp.p.r.r[0];
+          if (!!expression) {
+            const ifStart = this.getResult(expression);
+            if (!ifStart) {
+              const p = temp.p;
+              const r = p.r;
+              r.s = !r.s;
+              Object.assign(p, { r });
+              Object.assign(temp, { p });
+            }
+          }
+        }
         if (typeof(cells[pos]) == 'undefined') {
           const cellList = [];
           /** 判断null */
@@ -290,6 +347,30 @@ export default {
           return false;
       }
     },
+    getResult(data) {
+      // 1.获取变量，从this.userInfo[field]取值
+      // 2.获取判断条，== < > != <= >=
+      // 3.获取对比值，如：admin
+      const expression = data;// '$userName$ == "admin"';
+      let ifStart = false;
+      const index = expression.indexOf('$');
+      if (index != -1) {
+        const strList = expression.split('$').filter(item => !!item);
+        if (strList.length > 1) {
+          // 取变量
+          const value = this.userInfo[strList[index == 0 ? index : 1]];
+          if (typeof value != 'undefined') {
+            // 取值
+            const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
+            if (comparison[0] != -1) {
+              // 判断是否生效规则
+              ifStart = this.comparison(value, comparison[0], comparison[1]);
+            }
+          }
+        }
+      }
+      return ifStart;
+    },
     update(state) {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
@@ -300,27 +381,7 @@ export default {
           // temp.cells
           _.map(state.previewData.formList, item => {
             // 获取判断条件，获取变量
-            // 1.获取变量，从this.userInfo[field]取值
-            // 2.获取判断条，== < > != <= >=
-            // 3.获取对比值，如：admin
-            const expression = item.expression;// '$userName$ == "admin"';
-            let ifStart = false;
-            const index = expression.indexOf('$');
-            if (index != -1) {
-              const strList = expression.split('$').filter(item => !!item);
-              if (strList.length > 1) {
-                // 取变量
-                const value = this.userInfo[strList[index == 0 ? index : 1]];
-                if (typeof value != 'undefined') {
-                  // 取值
-                  const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
-                  if (comparison[0] != -1) {
-                    // 判断是否生效规则
-                    ifStart = this.comparison(value, comparison[0], comparison[1]);
-                  }
-                }
-              }
-            }
+            const ifStart = this.getResult(item.expression); // '$userName$ == "admin"';
             if (ifStart) {
               const list = item.range.split(':');
               // G9

@@ -280,6 +280,10 @@ export default {
             flex-wrap: wrap;
             justify-content: left;
     }
+
+    .el-input .el-input__inner {
+        background-color: rgba(238, 238, 238, 0.479) !important;
+    }
 }
 
 .meg-cellval-warp {

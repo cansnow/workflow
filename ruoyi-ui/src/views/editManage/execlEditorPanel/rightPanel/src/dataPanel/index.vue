@@ -92,7 +92,7 @@ export default {
       });
       this.checkData = [];
     },
-    test(data, index) {
+    getData(data, index) {
       const _this = this;
       const temp = JSON.parse(JSON.stringify(data[index]));
       getTableFieldByName({ table: temp.id }).then((res) => {
@@ -109,30 +109,13 @@ export default {
         _this.showData.push(temp);
         if (data.length - 1 > index) {
           setTimeout(() => {
-            this.test(data, index + 1);
+            this.getData(data, index + 1);
           }, 1000);
         }
       });
     },
     handleIsOk() {
-      // _.map(this.checkData, (item, index) => {
-      //   setTimeout(() => {
-      //     const temp = JSON.parse(JSON.stringify(item));
-      //     getTableFieldByName({ table: item.id }).then((res) => {
-      //       const children = [];
-      //       _.map(res.data.columns, item => {
-      //         children.push({
-      //           id: item.columnName,
-      //           relativeData: item.aliasName || item.columnName,
-      //           resourcename: item.columnName,
-      //         });
-      //       });
-      //       Object.assign(temp, { children });
-      //       _this.showData.push(temp);
-      //     });
-      //   }, 1500 * index);
-      // });
-      this.test(this.checkData, 0);
+      this.getData(this.checkData, 0);
       this.handleClose();
     },
     open() {
@@ -147,7 +130,9 @@ export default {
       if (state.checkedKeys.length > 0) {
         this.checkData = [];
         state.checkedNodes.forEach(item => {
-          this.checkData.push(item);
+          if (item.resourcetype == 4) {
+            this.checkData.push(item);
+          }
         });
       } else {
         this.checkData.forEach(item => {
