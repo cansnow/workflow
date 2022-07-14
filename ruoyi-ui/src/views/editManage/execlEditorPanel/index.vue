@@ -97,20 +97,24 @@ export default {
 			console.log('to', to);
 			console.log('from', from);
 			vm.$nextTick(() => {
-				// vm.matched = from.matched;
-				from.matched.forEach(item => {
-					vm.matched.push({
-						meta: { title: item.meta.title },
-						path: item.path,
-						redirect: item.redirect,
-					});
-				});
-				if (vm.matched.length <= 0) {
-					vm.matched = cache.session.getJSON('DesignMatched');
+				const matched = cache.session.getJSON('DesignMatched');
+				if (matched.length > 0) {
+					vm.matched = matched;
 				} else {
-					cache.session.setJSON('DesignMatched', vm.matched);
+					from.matched.forEach(item => {
+						vm.matched.push({
+							meta: { title: item.meta.title },
+							path: item.path,
+							redirect: item.redirect,
+						});
+					});
+					if (vm.matched.length <= 0) {
+						vm.matched = cache.session.getJSON('DesignMatched');
+					} else {
+						cache.session.setJSON('DesignMatched', vm.matched);
+					}
+					vm.matched.push({ path: '/design', meta: { title: '设计器' }});
 				}
-				vm.matched.push({ path: '/design', meta: { title: '设计器' }});
 			});
 		});
 	},
@@ -417,7 +421,8 @@ export default {
 				p: {
 						r: {
 								s: true, // show 可见
-								r: [''], // [0] 可见规则， [1] 可编辑规则
+								r: ['', ''], // [0] 可见规则， [1] 可编辑规则
+								w: true, // 可编辑
 						}, // rule 权限
 				},
 			});
@@ -518,9 +523,14 @@ export default {
 				const props = {
 						r: {
 								s: data.power.ifShow, // show 可见
-								r: [data.power.showCondition], // [0] 可见规则， [1] 可编辑规则
+								r: [data.power.showCondition, ''], // [0] 可见规则， [1] 可编辑规则
+								w: true,
 						}, // rule 权限
 				};
+				// 单元格扩展
+				if (data.componentType == 'Cell') {
+					Object.assign(props, { e: data.extendType, f: data.formFiled });
+				}
 
 				if (data.componentType == 'button') {
 					Object.assign(props, { t: data.buttonType });

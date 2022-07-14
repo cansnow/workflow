@@ -181,10 +181,9 @@ export default {
                 rowIndex: this.row.rowIndex
             };
             const text = event.dataTransfer.getData("Text");
-            // const p = { f: text, r: { r: [''], s: true } };
-            // this.$sheet.setCellAttribute(pos, text, 'p', p);
             const value = {
-                p: { f: text, r: { r: [''], s: true } },
+                c: 'Cell',
+                p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
                 v: text,
             }
             this.$sheet.setSelectArea(pos, pos);

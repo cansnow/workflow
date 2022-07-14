@@ -180,14 +180,18 @@ export default {
             const text = event.dataTransfer.getData("Text");
             // const p = { f: text, r: { r: [''], s: true } };
             // this.$sheet.setCellAttribute(pos, text, 'p', p);
+            // this.cell.option
+            const temp = !!this.cell.option ? JSON.parse(JSON.stringify(this.cell.option)) : {};
             const value = {
-                p: { f: text, r: { r: [''], s: true } },
+                c: 'Cell',
+                p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
                 v: text,
             }
+            Object.assign(temp, value);
             this.$sheet.setSelectArea(pos, pos);
             this.$sheet.doEditCell();
             this.$sheet.doCancelEdit();
-            this.$sheet.doEditCellValue(value);
+            this.$sheet.doEditCellValue(temp);
             event.preventDefault();
         },
         // 拖拽到内部

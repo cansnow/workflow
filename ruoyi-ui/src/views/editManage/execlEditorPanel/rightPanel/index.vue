@@ -133,11 +133,13 @@ export default {
 		// 重置表单信息
 		resetForm() {
 			this.cellIfBtn = false;
+			// this.activeName = 'attribute';
 			this.$refs.FormPanel.resetForm();
 		},
 		// 更新表单信息
 		updataForm(data) {
 			this.cellIfBtn = false;
+			// this.activeName = 'attribute';
 			if (data && typeof data != 'undefined' && typeof data.c != 'undefined' && data.c == 'button') {
 				this.cellIfBtn = true;
 			}

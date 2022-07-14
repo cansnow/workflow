@@ -97,7 +97,24 @@ export default {
             this.recordChange('cellsChange', this.selctionExpand);
             this.eachAreaCell(this.selctionExpand, (cell, pos) => {
                 if (cell) {
-                    this.delCellValue(pos);
+                    const temp = JSON.parse(JSON.stringify(cell));
+                    let ifDelProps = false;
+                    _.map(['c', 'p'], item => {
+                        if (typeof temp[item] != 'undefined') {
+                            delete temp[item];
+                            if (!ifDelProps) {
+                                ifDelProps = true;
+                            }
+                        }
+                    });
+                    if (ifDelProps) {
+                        Object.assign(temp, { v: undefined });
+                        this.doEditCell();
+                        this.doCancelEdit();
+                        this.doEditCellValue(temp);
+                    } else {
+                        this.delCellValue(pos);
+                    }
                 }
             });
         },

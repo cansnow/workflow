@@ -138,6 +138,9 @@ export default {
       // 样式信息
       const styles = {};
 
+      // 扩展信息
+      const extendList = [];
+
       let pos = -1;
 
       const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'fc', 'sv', 'fcv', 'd', 'options'];
@@ -197,11 +200,23 @@ export default {
         });
         // 获取p.f 变量，替换v
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {
+          console.log('temp', temp);
+          console.log('temp.p.f', temp.p.f);
           const fList = temp.p.f.split('.');
           console.log('fList', fList);
+          const itemPost = item.pos;
           if (fList[0] == 'dataSetList') {
-            _.map(this.dataSetList, item => {
+            _.map(this.dataSetList, (item, index) => {
               if (item.dataSetId == fList[1]) {
+                // 扩展信息
+                extendList.push({
+                  pos: itemPost, // 位置信息
+                  fieldInfo: temp.p.f, // 变量信息
+                  fieldIndex: index, // 数据集下标
+                  field: fList[2], // 变量
+                  extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+                  merges: typeof(item.merges) != 'undefined', // 是否合并
+                });
                 // TODO 默认去第一个下标
                 _.map(Object.keys(item.valueList[0]), vItem => {
                   if (vItem == fList[2]) {
@@ -293,6 +308,100 @@ export default {
           }
         }
       });
+
+      // 设置扩展
+      if (extendList.length > 0) {
+        console.log('extendList', extendList);
+        const extendInfo = {
+          column: {}, // 列
+          row: {},
+        };
+        _.map(extendList, item => {
+          const rowIndex = item.pos.start.rowIndex;
+          const columnIndex = item.pos.start.columnIndex;
+          const valueList = this.dataSetList[item.fieldIndex].valueList; // 变量集合
+          const len = valueList.length; // 长度
+          // 获取填充数据
+          const tempList = [];
+          const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex];
+          const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
+          _.map(valueList, (value, index) => {
+            if (index != 0) {
+              const template = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
+              Object.assign(template, { v: value[item.field]});
+              tempList.push(template);
+            }
+          });
+
+          // none 无 bottom 向下 right 向右
+          if (item.extendType == 'bottom') {
+            if (tempList.length > 0) {
+              let posBom = cellRowIndex + 1;
+              // 记录位置
+              if (typeof extendInfo.column[columnIndex] == 'undefined') {
+                extendInfo.column[columnIndex] = len - 1;
+              } else {
+                // posBom += extendInfo.column[columnIndex]; // 将前面加过的位置加上
+                extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
+              }
+              const tempReplace = []; // 记录替换的数据，后面加回去
+              const cellsLen = Object.keys(cells).length;
+              _.map(tempList, (item, index) => {
+                const temp = !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : cells[posBom + index][columnIndex];
+                tempReplace.push(temp); // 记录数据
+                if (columnIndex >= cells[posBom + index].length) {
+                  const nullLen = columnIndex - cells[posBom + index].length;
+                  for (let i = 0; i < nullLen; i++) {
+                    cells[posBom + index].push(null);
+                  }
+                  cells[posBom + index].push(item);
+                } else {
+                  cells[posBom + index].splice(columnIndex, 1, item);
+                }
+                // 添加新增数据
+                cells[cellsLen + index] = [];
+              });
+              console.log('tempReplace', tempReplace);
+              // 数据向下移动
+              let replaceIndex = 0;
+              _.map(cells, (item, key) => {
+                if (key >= posBom + tempList.length) {
+                  // 判断是否为空
+                  if (cellColumnIndex >= cells[key].length) {
+                    const nullLen = cellColumnIndex - cells[key].length;
+                    for (let i = 0; i < nullLen; i++) {
+                      cells[key].push(null);
+                    }
+                    tempReplace.push(null); // 记录替换
+                    cells[key].push(tempReplace[replaceIndex]);
+                  } else {
+                    tempReplace.push(cells[key][cellColumnIndex]); // 记录替换
+                    cells[key].splice(cellColumnIndex, 1, tempReplace[replaceIndex]);
+                  }
+                  replaceIndex += 1;
+                }
+              })
+
+            }
+          }
+          if (item.extendType == 'right') {
+            if (tempList.length > 0) {
+              let pos = columnIndex + 1;
+              // 记录位置
+              if (typeof extendInfo.row[rowIndex] == 'undefined') {
+                extendInfo.row[rowIndex] = len - 1;
+              } else {
+                pos += extendInfo.row[rowIndex]; // 将前面加过的位置加上
+                extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
+              }
+              cells[cellRowIndex].splice(pos, 0, ...tempList);
+            }
+          }
+          console.log('tempList', tempList);
+          console.log('extendInfo', extendInfo);
+        });
+      }
+
 
       return {
         rows,
@@ -392,7 +501,7 @@ export default {
                 } else {
                   // 禁用
                   const tempCell = temp.cells[data.rowIndex][data.columnIndex];
-                  if (typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                  if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
                     const p = tempCell.p;
                     p.r.w = false;
                     Object.assign(tempCell, { p });
@@ -411,7 +520,7 @@ export default {
                     } else {
                       // 禁用
                       const tempCell = temp.cells[i][j];
-                      if (typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                      if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
                         const p = tempCell.p;
                         p.r.w = false;
                         Object.assign(tempCell, { p });

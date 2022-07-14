@@ -53,15 +53,13 @@
 							placeholder="请输入"
 						/>
 				</el-form-item>
-				<!-- <el-form-item label="公式" v-if="form.cellFormula">
-					<el-input
-							type="text"
-							v-model="form.formula"
-							@change="change"
-							disabled
-							placeholder="请输入"
-						/>
-				</el-form-item> -->
+				<el-form-item label="扩展">
+					<el-select v-model="form.extendType" @change="change" placeholder="请选择" style="width: 100%">
+						<el-option label="无" value="none" />
+						<el-option label="向下" value="bottom" />
+						<el-option label="向右" value="right" />
+					</el-select>
+				</el-form-item>
 			</template>
       <!-- 为单元格 没有上传图片 -->
       <template v-if="form.componentType != 'Cell'">
@@ -185,6 +183,7 @@ export default {
 				uploadType: 'word', //上传类型
 				buttonType: 'submit',
 				buttonText: '',
+				extendType: 'none', // 扩展
 			},
 			options: [],
 			treeProps: {
@@ -387,6 +386,7 @@ export default {
 				uploadType: 'word', //上传类型
 				buttonType: 'submit',
 				buttonText: '',
+				extendType: 'none', // 扩展
 			};
 		},
     // 上传成功
@@ -501,12 +501,20 @@ export default {
 			) {
 				const power = {};
 				if (typeof(data.p) == 'undefined') {
-					Object.assign(power, { ifShow: true, showCondition: '' });
+					Object.assign(power, { ifShow: true, showCondition: '', ifEdit: true, editCondition: '' });
 				} else {
 					Object.assign(power, { 
 						ifShow: data.p.r.s, // show 可见
+						ifEdit: data.p.r.w, // write 可写
 						showCondition: data.p.r.r[0], // [0] 可见规则， [1] 可编辑规则
+						editCondition: data.p.r.r[1],
 					});
+					if (temp.componentType == 'Cell') {
+						Object.assign(temp, { 
+							extendType: typeof data.p.e != 'undefined' ? data.p.e : 'none',
+							formFiled: typeof data.p.f != 'undefined' ? data.p.f : '',
+						});
+					}
 				}
 				Object.assign(temp, {
 					power: power// rule 权限
