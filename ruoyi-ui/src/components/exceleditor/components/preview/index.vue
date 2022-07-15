@@ -159,7 +159,6 @@ export default {
         'verticalAlign',
         'whiteSpace',
       ];
-      
       _.each(data, item => {
         /** 行信息 */
         if (typeof(rows[item.pos.start.rowIndex]) == 'undefined') {
@@ -327,7 +326,7 @@ export default {
           const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
           _.map(valueList, (value, index) => {
             if (index != 0) {
-              const template = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
+              const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
               Object.assign(template, { v: value[item.field]});
               tempList.push(template);
             }
@@ -345,42 +344,71 @@ export default {
                 extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
               }
               const tempReplace = []; // 记录替换的数据，后面加回去
-              const cellsLen = Object.keys(cells).length;
+              // 长度不对
+              const cellsLen = Object.keys(cells).sort((a, b) => b - a)[0];
               _.map(tempList, (item, index) => {
-                const temp = !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : cells[posBom + index][columnIndex];
+                const ifCell = !!cells[posBom + index];
+                const temp = ifCell && !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : null;
                 tempReplace.push(temp); // 记录数据
-                if (columnIndex >= cells[posBom + index].length) {
-                  const nullLen = columnIndex - cells[posBom + index].length;
-                  for (let i = 0; i < nullLen; i++) {
-                    cells[posBom + index].push(null);
+                if (ifCell) {
+                  if (columnIndex >= cells[posBom + index].length) {
+                    const nullLen = columnIndex - cells[posBom + index].length;
+                    for (let i = 0; i < nullLen; i++) {
+                      cells[posBom + index].push(null);
+                    }
+                    cells[posBom + index].push(item);
+                  } else {
+                    cells[posBom + index].splice(columnIndex, 1, item);
                   }
-                  cells[posBom + index].push(item);
                 } else {
-                  cells[posBom + index].splice(columnIndex, 1, item);
+                  const cellList = [];
+                  const nullLen = columnIndex;
+                  for (let i = 0; i < nullLen; i++) {
+                    cellList.push(null);
+                  }
+                  cellList.push(item);
+                  cells[posBom + index] = cellList;
                 }
                 // 添加新增数据
-                cells[cellsLen + index] = [];
+                cells[parseInt(cellsLen) + index + 1] = [];
               });
               console.log('tempReplace', tempReplace);
               // 数据向下移动
               let replaceIndex = 0;
-              _.map(cells, (item, key) => {
+              const cellkeys = Object.keys(cells).sort((a, b) => a - b);
+              _.map(cellkeys, (key, index) => {
                 if (key >= posBom + tempList.length) {
                   // 判断是否为空
-                  if (cellColumnIndex >= cells[key].length) {
-                    const nullLen = cellColumnIndex - cells[key].length;
+                  if (columnIndex >= cells[key].length) {
+                    const nullLen = columnIndex - cells[key].length;
                     for (let i = 0; i < nullLen; i++) {
                       cells[key].push(null);
                     }
                     tempReplace.push(null); // 记录替换
                     cells[key].push(tempReplace[replaceIndex]);
                   } else {
-                    tempReplace.push(cells[key][cellColumnIndex]); // 记录替换
-                    cells[key].splice(cellColumnIndex, 1, tempReplace[replaceIndex]);
+                    tempReplace.push(cells[key][columnIndex]); // 记录替换
+                    cells[key].splice(columnIndex, 1, tempReplace[replaceIndex]);
                   }
                   replaceIndex += 1;
+                  // 判断下一个节点是否有值，没有值的时候就要补充进去，防止错位
+                  if (!cells[parseInt(key) + 1]) {
+                    if (index < cellkeys.length -1 ) {
+                      const repairLen = cellkeys[index + 1] - parseInt(key) + 1;
+                      for(let i = 0; i < repairLen; i++) {
+                        const cellList = [];
+                        for (let j = 0; j < columnIndex; j++) {
+                          cellList.push(null);
+                        }
+                        tempReplace.push(null); // 记录替换
+                        cellList.push(tempReplace[replaceIndex + i]);
+                        cells[parseInt(key) + i + 1] = cellList;
+                      }
+                      replaceIndex += repairLen;
+                    }
+                  }
                 }
-              })
+              });
 
             }
           }
@@ -394,7 +422,17 @@ export default {
                 pos += extendInfo.row[rowIndex]; // 将前面加过的位置加上
                 extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
               }
-              cells[cellRowIndex].splice(pos, 0, ...tempList);
+              if (!!cells[cellRowIndex]) {
+                cells[cellRowIndex].splice(pos, 0, ...tempList);
+              } else {
+                const cellList = [];
+                const nullLen = pos;
+                for (let i = 0; i < nullLen; i++) {
+                  cellList.push(null);
+                }
+                cellList.push(...tempList);
+                cells[cellRowIndex] = cellList;
+              }
             }
           }
           console.log('tempList', tempList);
@@ -579,18 +617,18 @@ export default {
     height: 40px;
     // border-bottom: 1px solid #ddd;
   }
-  .meg-gdlinewrap-column {
-    .meg-gdline {
-        border-right: unset !important;
-    }
-  }
+  // .meg-gdlinewrap-column {
+  //   .meg-gdline {
+  //       border-right: unset !important;
+  //   }
+  // }
 
-  .meg-gdlinewrap-row {
-      flex-direction: column;
+  // .meg-gdlinewrap-row {
+  //     flex-direction: column;
 
-      .meg-gdline {
-          border-bottom: unset !important;
-      }
-  }
+  //     .meg-gdline {
+  //         border-bottom: unset !important;
+  //     }
+  // }
 }  
 </style>

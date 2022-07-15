@@ -98,7 +98,7 @@ export default {
 			console.log('from', from);
 			vm.$nextTick(() => {
 				const matched = cache.session.getJSON('DesignMatched');
-				if (matched.length > 0) {
+				if (!!matched && matched.length > 0) {
 					vm.matched = matched;
 				} else {
 					from.matched.forEach(item => {
@@ -590,8 +590,10 @@ export default {
 			}
 		});
 		this.$nextTick(() => {
-			this.matched = cache.session.getJSON('DesignMatched');
-			this.matched.push({ path: '/design', meta: { title: '设计器' }});
+			this.matched = cache.session.getJSON('DesignMatched') || [];
+			if (!!this.matched && this.matched.length > 0) {
+				this.matched.push({ path: '/design', meta: { title: '设计器' }});
+			}
 		});
 
 		this.$refs.vspread.$on('handlePreview', function() {
