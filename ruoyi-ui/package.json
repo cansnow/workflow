@@ -36,9 +36,9 @@
     "url": "https://gitee.com/y_project/RuoYi-Cloud.git"
   },
   "dependencies": {
-    "@riophae/vue-treeselect": "0.4.0",
     "@datagridxl/datagridxl2": "^2.0.8",
     "@mdi/font": "^6.7.96",
+    "@riophae/vue-treeselect": "0.4.0",
     "@vue/composition-api": "^1.6.2",
     "axios": "^0.27.2",
     "clipboard": "2.0.8",
@@ -47,36 +47,37 @@
     "element-ui": "^2.15.9",
     "file-saver": "2.0.5",
     "fuse.js": "6.4.3",
+    "handsontable-secure-open-source": "^6.2.3",
     "highlight.js": "9.18.5",
     "js-beautify": "1.13.0",
     "js-cookie": "3.0.1",
     "jsencrypt": "3.0.0-rc.1",
     "nprogress": "0.2.0",
+    "pinia": "^2.0.0-rc.10",
+    "popper.js": "^1.16.1",
     "quill": "1.3.7",
     "screenfull": "5.0.2",
     "sortablejs": "1.10.2",
     "vue": "2.6.14",
     "vue-count-to": "1.0.13",
     "vue-cropper": "0.5.5",
+    "vue-draggable": "^2.0.6",
     "vue-meta": "2.4.0",
     "vue-router": "3.4.9",
-    "pinia": "^2.0.0-rc.10",
-    "popper.js": "^1.16.1",
     "vuedraggable": "2.24.3",
-    "vue-draggable": "^2.0.6",
-    "vuex": "3.6.0",
-    "handsontable-secure-open-source": "^6.2.3"
+    "vuex": "3.6.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/babel-preset-app": "^5.0.8",
     "@vue/cli-plugin-babel": "4.4.6",
     "@vue/cli-plugin-eslint": "4.4.6",
     "@vue/cli-service": "4.4.6",
-    "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
-    "babel-plugin-component": "^1.1.1",
-    "babel-preset-es2015": "^6.24.1",
     "babel-eslint": "10.1.0",
+    "babel-plugin-component": "^1.1.1",
     "babel-plugin-dynamic-import-node": "2.3.3",
+    "babel-preset-es2015": "^6.24.1",
     "chalk": "4.1.0",
     "compression-webpack-plugin": "5.0.2",
     "connect": "3.6.6",
@@ -96,6 +97,7 @@
   },
   "browserslist": [
     "> 1%",
-    "last 2 versions"
+    "last 2 versions",
+    "IE 11"
   ]
 }

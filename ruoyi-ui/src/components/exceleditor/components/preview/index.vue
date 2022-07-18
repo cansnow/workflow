@@ -360,6 +360,8 @@ export default {
                   } else {
                     cells[posBom + index].splice(columnIndex, 1, item);
                   }
+                  // 添加新增数据
+                  cells[parseInt(cellsLen) + index + 1] = [];
                 } else {
                   const cellList = [];
                   const nullLen = columnIndex;
@@ -368,9 +370,13 @@ export default {
                   }
                   cellList.push(item);
                   cells[posBom + index] = cellList;
+                  if (posBom + index != parseInt(cellsLen) + index + 1) {
+                    cells[parseInt(cellsLen) + index + 1] = [];
+                  } else {
+                    cells[parseInt(cellsLen) + index + 2] = [];
+                  }
                 }
-                // 添加新增数据
-                cells[parseInt(cellsLen) + index + 1] = [];
+                
               });
               console.log('tempReplace', tempReplace);
               // 数据向下移动
@@ -617,18 +623,18 @@ export default {
     height: 40px;
     // border-bottom: 1px solid #ddd;
   }
-  // .meg-gdlinewrap-column {
-  //   .meg-gdline {
-  //       border-right: unset !important;
-  //   }
-  // }
+  .meg-gdlinewrap-column {
+    .meg-gdline {
+        border-right: unset !important;
+    }
+  }
 
-  // .meg-gdlinewrap-row {
-  //     flex-direction: column;
+  .meg-gdlinewrap-row {
+      flex-direction: column;
 
-  //     .meg-gdline {
-  //         border-bottom: unset !important;
-  //     }
-  // }
+      .meg-gdline {
+          border-bottom: unset !important;
+      }
+  }
 }  
 </style>

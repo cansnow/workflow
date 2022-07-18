@@ -1,6 +1,6 @@
 <template>
     <div :class="['meg-gdlinewrap', `meg-gdlinewrap-${direction}`]">
-        <div class="meg-gdline" v-for="line in getLines()" :style="getStyle(line)" :key="line" />
+        <div class="meg-gdline1" style="border-right: unset !important; border-bottom: unset !important" v-for="line in getLines()" :style="getStyle(line)" :key="line" />
     </div>
 </template>
 
@@ -58,6 +58,7 @@ export default {
 .meg-gdlinewrap-column {
     .meg-gdline {
         border-right: 1px solid $border-color;
+        // border-right: unset !important;
     }
 }
 
@@ -66,6 +67,7 @@ export default {
 
     .meg-gdline {
         border-bottom: 1px solid $border-color;
+        // border-bottom: unset !important;
     }
 }
 </style>

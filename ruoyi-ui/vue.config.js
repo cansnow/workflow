@@ -137,5 +137,10 @@ module.exports = {
           }
         }
       )
-  }
+  },
+  transpileDependencies: [
+    'sockjs-client',
+    'pinia',
+    '@vue'
+  ],
 }
