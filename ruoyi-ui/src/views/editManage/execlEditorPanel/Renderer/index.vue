@@ -15,6 +15,7 @@ export default {
     this.$piniastore.setPreviewData({});
     const tempId = this.$route.params.id;
     console.log('id', this.$route.params.id);
+    const _this = this;
     if (tempId) {
       getTemplateInfoById(tempId).then((res) => {
         const data = JSON.parse(res.data.data);
@@ -24,10 +25,10 @@ export default {
           const temp = { ifPreview: false };
           if (index != -1) {
             Object.assign(temp, data[index]);
-            this.$piniastore.setPreviewData(temp);
+            _this.$piniastore.setPreviewData(temp);
           } else {
             Object.assign(temp, data[0]);
-            this.$piniastore.setPreviewData(temp);
+            _this.$piniastore.setPreviewData(temp);
           }
         }
       });

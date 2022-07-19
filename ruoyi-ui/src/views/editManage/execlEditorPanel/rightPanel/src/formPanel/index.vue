@@ -80,13 +80,13 @@
       <template v-if="form.componentType != 'Cell' && form.componentType != 'image' && form.componentType != 'button'">
 				<template v-if="form.componentType == 'select'">
 					<el-form-item label="选项">
-						<el-select v-model="form.selectSrc" @change="change" placeholder="请选择" style="width: 100%">
+						<el-select v-model="form.selectSrc" @change="handleSelectSrc" placeholder="请选择" style="width: 100%">
 							<el-option label="自定义" value="custom" />
 							<el-option label="数据集" value="api" />
 						</el-select>
 						<!-- TODO -->
 						<TreeSelect
-							v-if="form.selectSrc == 'api'"
+							v-if="form.selectSrc == 'api' && false"
 							style="width: 100%"
 							:props="treeProps"
 							:options="options"
@@ -96,12 +96,23 @@
 							:ifIcons="true"
 							@getValue="getTreeSelectValue($event)"
 						/>
-						<!-- <el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="change" placeholder="请选择" style="width: 100%">
-							<el-option label="数据集1" value="api1" />
-							<el-option label="数据集2" value="api2" />
-						</el-select> -->
+						<el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="handleApiChange" placeholder="请选择" style="width: 100%">
+							<el-option :label="item.resourcename" :value="item.tableName" v-for="(item, index) in options" :key="index" />
+						</el-select>
 						<el-input v-else type="textarea" :rows="4" v-model="form.defaultSelect" placeholder="请输入" @change="change" />
 					</el-form-item>
+					<template v-if="form.selectSrc == 'api' && !!form.api">
+						<el-form-item label="选项value">
+							<el-select v-model="form.apiValue" @change="change" placeholder="请选择" style="width: 100%">
+								<el-option :label="item.resourcename" :value="item.relativeData" v-for="(item, index) in apiOptions[form.api] || []" :key="index" />
+							</el-select>
+						</el-form-item>
+						<el-form-item label="选项label">
+							<el-select v-model="form.apiLabel" @change="change" placeholder="请选择" style="width: 100%">
+								<el-option :label="item.resourcename" :value="item.relativeData" v-for="(item, index) in apiOptions[form.api] || []" :key="index" />
+							</el-select>
+						</el-form-item>
+					</template>
 				</template>
         <el-form-item label="默认值" v-if="form.componentType == 'input' || form.componentType == 'select'">
           <!-- <el-select v-model="form.default.type" @change="change" placeholder="请选择" style="width: 100%">
@@ -147,7 +158,7 @@
 <script>
 import Radio from './src/radio.vue';
 import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
-import { getDBTable, getTableFieldByName } from '@/api/editManage';
+import { getDBTable, getTableFieldByName, getDBData } from '@/api/editManage';
 export default {
   inject: ['$rightPanel'],
 	components: { TreeSelect },
@@ -176,6 +187,8 @@ export default {
 				default: '', // 默认值
 				selectSrc: 'custom', // 选项
 				api: '', // 数据集
+				apiValue: '', // 数据集值
+				apiLabel: '', // 数据值显示
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
@@ -186,6 +199,7 @@ export default {
 				extendType: 'none', // 扩展
 			},
 			options: [],
+			apiOptions: {},
 			treeProps: {
         value:'id',             // ID字段名
         label: 'resourcename',         // 显示名称
@@ -330,10 +344,45 @@ export default {
 			});
 			return temp;
 		},
+		// 数据面板
+		$DataPanel: function() {
+			return this.$rightPanel.getDataPanelRef();
+		},
+	},
+	watch: {
+		options: {
+			handler(value) {
+				_.map(value, item => {
+					this.apiOptions[item.tableName] = item.children;
+				});
+			}
+		},
 	},
   methods: {
+		handleApiChange() {
+			const _this = this;
+			getDBData({ table: this.form.api }).then((res) => {
+				console.log('res', res);
+				const data = res.data.dataSetList;
+				if (!!data && data instanceof Array && data.length > 0) {
+					_this.form.defaultSelect = data[0].valueList;
+				}
+			});
+			this.form.apiValue = '';
+			this.form.apiLabel = '';
+			this.change();
+		},
+		handleSelectSrc() {
+			this.options = this.$DataPanel.showData || [];
+			_.map(this.options, item => {
+				this.apiOptions[item.tableName] = item.children;
+			});
+			this.change();
+		},
 		getTreeSelectValue(e) {
 			console.log('getTreeSelectValue e',e);
+			console.log('$DataPanel', this.$DataPanel);
+			console.log('$DataPanel showData', this.$DataPanel.showData);
 			const _this = this;
 			Object.assign(this.form, { api: e[0] });
 			getTableFieldByName({ table: e[0] })
@@ -378,7 +427,9 @@ export default {
 				// }, // 默认值
 				default: '', // 默认值
 				selectSrc: 'custom', // 选项
-				api: 'api1', // 数据集
+				api: '', // 数据集
+				apiValue: '', // 数据集值
+				apiLabel: '', // 数据值显示
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
@@ -449,7 +500,12 @@ export default {
 						defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
 						Object.assign(temp, { defaultSelect: defValue });
 					} else {
-						Object.assign(temp, { defaultSelect: data.options, api: data.p.api });
+						Object.assign(temp, { 
+							defaultSelect: data.options,
+							api: data.p.api,
+							apiValue: data.p.apiValue,
+							apiLabel: data.p.apiLabel,
+						});
 					}
 					
 					Object.assign(temp, {

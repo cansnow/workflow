@@ -16,7 +16,6 @@ import '../../helpers/lodashMixins';
 import testData from './testData';
 import { saveFormData, getDBData } from '@/api/editManage';
 import { mapGetters } from "vuex";
-import { index } from '../../libs/formula';
 export default {
   components: { Sheet },
   data() {
@@ -26,7 +25,7 @@ export default {
       title: testData[0].title,
       previewData: {},
       ifPreview: true,
-      userInfo: {},
+      constants: {},
       dataSetList: [],
     };
   },
@@ -40,12 +39,23 @@ export default {
     const _this = this;
     // 获取数据集
     getDBData({ table: 'lang' }).then((res) => {
-      if (!!res.data.userInfo) {
-        _this.userInfo = res.data.userInfo;
+      const constants = res.data.constants;
+      if (!!constants && constants instanceof Array) {
+        // _this.constants = constants;
+        constants.forEach((item, index) => {
+          _this.constants['key_' + index] = item.key;
+          _this.constants['value_' + index] = item.value
+          /**
+           * [{key: '${USER_ID}', value: '当前用户id' },
+           * { key: '${USER_NAME}', value: '当前用户名' },
+           * { key: '${ROLE_NAME}', value: '当前角色名称' },
+           * { key: '${ORG_NAME}', value: '当前部门名称'}]
+           */
+        });
       } 
-      if (!!res.data.dataSetList) {
-        _this.dataSetList = res.data.dataSetList;
-      }
+      // if (!!res.data.dataSetList) {
+      //   _this.dataSetList = res.data.dataSetList;
+      // }
       _this.init();
     });
     
@@ -60,6 +70,7 @@ export default {
         // 根据回写规则提交数据
         // TODO 表单校验
         // _this.$curSheet.cells
+        let ifOK = true;
         _.each(_this.$curSheet.cells, (cell, key) => {
           _.each(cell, (col, index) => {
             if (
@@ -72,15 +83,19 @@ export default {
               if (col.p.vd.r && col.p.r.w && col.p.r.s) {
                 if (!col.v) {
                   console.log('pos', key, index);
-                  _this.$modal.msgError('有必填项未填写，请填写！！！');
+                  ifOK = false;
                   return;
                 }
               }
             }
           })
         });
-        if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
+        if (!ifOK) {
+          _this.$modal.msgError('有必填项未填写，请填写！！！');
+        }
+        if (_this.previewData.dataList && _this.previewData.dataList.length > 0 && ifOK) {
           const dataList = _this.previewData.dataList;
+          const responseData = [];
           _.map(dataList, (item, index) => {
             const temp = { table: item.title };
             if (item.filedList && item.filedList.length > 0) {
@@ -114,9 +129,10 @@ export default {
               Object.assign(temp, { fields });
             }
             console.log('temp', temp);
-            saveFormData(temp).then((res) => {
-              console.log('saveFormData', res);
-            });
+            responseData.push(temp);
+          });
+          saveFormData(responseData).then((res) => {
+            console.log('saveFormData', res);
           });
         }
       } else {
@@ -205,26 +221,54 @@ export default {
           console.log('fList', fList);
           const itemPost = item.pos;
           if (fList[0] == 'dataSetList') {
-            _.map(this.dataSetList, (item, index) => {
-              if (item.dataSetId == fList[1]) {
-                // 扩展信息
-                extendList.push({
-                  pos: itemPost, // 位置信息
-                  fieldInfo: temp.p.f, // 变量信息
-                  fieldIndex: index, // 数据集下标
-                  field: fList[2], // 变量
-                  extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
-                  merges: typeof(item.merges) != 'undefined', // 是否合并
-                });
-                // TODO 默认去第一个下标
-                _.map(Object.keys(item.valueList[0]), vItem => {
-                  if (vItem == fList[2]) {
-                    const value = item.valueList[0][vItem];
-                    Object.assign(temp, { v: value });
+            const _this = this;
+            // 获取替换数据
+            getDBData({ table: fList[1] }).then((res) => {
+              const dataSetListTemp = res.data.dataSetList;
+              if (!!dataSetListTemp && dataSetListTemp instanceof Array) {
+                // _this.dataSetList = 
+                dataSetListTemp.forEach((item) => {
+                  const fIndex = _this.dataSetList.findIndex(fItem => fItem.dataSetId == item.dataSetId);
+                  if (fIndex == -1) {
+                    _this.dataSetList.push(item);
+                  } else {
+                    _this.dataSetList.splice(fIndex, 1, item);
                   }
-                });                    
+                });
+                const index = _this.dataSetList.findIndex(fItem => fItem.dataSetId == fList[1]);
+                if (index != -1) {
+                  // 扩展信息
+                  extendList.push({
+                    pos: itemPost, // 位置信息
+                    fieldInfo: temp.p.f, // 变量信息
+                    fieldIndex: index, // 数据集下标
+                    field: fList[2], // 变量
+                    extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+                    merges: typeof(item.merges) != 'undefined', // 是否合并
+                  });
+                }
               }
             });
+            // _.map(this.dataSetList, (item, index) => {
+            //   if (item.dataSetId == fList[1]) {
+            //     // 扩展信息
+            //     extendList.push({
+            //       pos: itemPost, // 位置信息
+            //       fieldInfo: temp.p.f, // 变量信息
+            //       fieldIndex: index, // 数据集下标
+            //       field: fList[2], // 变量
+            //       extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+            //       merges: typeof(item.merges) != 'undefined', // 是否合并
+            //     });
+            //     // TODO 默认去第一个下标
+            //     _.map(Object.keys(item.valueList[0]), vItem => {
+            //       if (vItem == fList[2]) {
+            //         const value = item.valueList[0][vItem];
+            //         Object.assign(temp, { v: value });
+            //       }
+            //     });                    
+            //   }
+            // });
           }
         }
         // 设置禁用
@@ -233,8 +277,20 @@ export default {
           typeof temp.p.r != 'undefined' &&
           typeof temp.p.r.w != 'undefined'
         ) {
-          const expression = temp.p.r.r[1];
+          let expression = temp.p.r.r[1];
           if (!!expression) {
+            // 获取判断条件，获取变量
+            _.map(this.constants, (value, key) => {
+              if (key.indexOf('key_') != -1) {
+                // 判断是否包含替换变量
+                if (expression.indexOf(value) != -1) {
+                  // 获取值的key
+                  const valueKey = key.replace('key_', 'value_');
+                  // ${USER_ID} == admin => '$userName$ == "admin"';
+                  expression = expression.replace(value, '$' + valueKey + '$');
+                }
+              }
+            });
             const ifStart = this.getResult(expression);
             if (!ifStart) {
               const p = temp.p;
@@ -251,8 +307,21 @@ export default {
           typeof temp.p.r != 'undefined' &&
           typeof temp.p.r.s != 'undefined'
         ) {
-          const expression = temp.p.r.r[0];
+          // 表达式
+          let expression = temp.p.r.r[0];
           if (!!expression) {
+            // 获取判断条件，获取变量
+            _.map(this.constants, (value, key) => {
+              if (key.indexOf('key_') != -1) {
+                // 判断是否包含替换变量
+                if (expression.indexOf(value) != -1) {
+                  // 获取值的key
+                  const valueKey = key.replace('key_', 'value_');
+                  // ${USER_ID} == admin => '$userName$ == "admin"';
+                  expression = expression.replace(value, '$' + valueKey + '$');
+                }
+              }
+            });
             const ifStart = this.getResult(expression);
             if (!ifStart) {
               const p = temp.p;
@@ -325,17 +394,21 @@ export default {
           const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex];
           const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
           _.map(valueList, (value, index) => {
-            if (index != 0) {
+            // if (index != 0) {
               const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
               Object.assign(template, { v: value[item.field]});
               tempList.push(template);
-            }
+            // }
           });
+
+          if (item.extendType == 'none') {
+            cells[rowIndex].splice(columnIndex, 1, tempList[0]);
+          }
 
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
             if (tempList.length > 0) {
-              let posBom = cellRowIndex + 1;
+              let posBom = cellRowIndex; //cellRowIndex + 1;
               // 记录位置
               if (typeof extendInfo.column[columnIndex] == 'undefined') {
                 extendInfo.column[columnIndex] = len - 1;
@@ -420,7 +493,7 @@ export default {
           }
           if (item.extendType == 'right') {
             if (tempList.length > 0) {
-              let pos = columnIndex + 1;
+              let pos = columnIndex; // columnIndex + 1;
               // 记录位置
               if (typeof extendInfo.row[rowIndex] == 'undefined') {
                 extendInfo.row[rowIndex] = len - 1;
@@ -501,7 +574,7 @@ export default {
       }
     },
     getResult(data) {
-      // 1.获取变量，从this.userInfo[field]取值
+      // 1.获取变量，从this.constants[field]取值
       // 2.获取判断条，== < > != <= >=
       // 3.获取对比值，如：admin
       const expression = data;// '$userName$ == "admin"';
@@ -511,7 +584,7 @@ export default {
         const strList = expression.split('$').filter(item => !!item);
         if (strList.length > 1) {
           // 取变量
-          const value = this.userInfo[strList[index == 0 ? index : 1]];
+          const value = this.constants[strList[index == 0 ? index : 1]];
           if (typeof value != 'undefined') {
             // 取值
             const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
@@ -533,8 +606,21 @@ export default {
         if (state.previewData.formList && state.previewData.formList.length > 0) {
           // temp.cells
           _.map(state.previewData.formList, item => {
+            // 表达式
+            let expression = item.expression;
             // 获取判断条件，获取变量
-            const ifStart = this.getResult(item.expression); // '$userName$ == "admin"';
+            _.map(this.constants, (value, key) => {
+              if (key.indexOf('key_') != -1) {
+                // 判断是否包含替换变量
+                if (expression.indexOf(value) != -1) {
+                  // 获取值的key
+                  const valueKey = key.replace('key_', 'value_');
+                  // ${USER_ID} == admin => '$userName$ == "admin"';
+                  expression = expression.replace(value, '$' + valueKey + '$');
+                }
+              }
+            });
+            const ifStart = this.getResult(expression); //'$userName$ == "admin"';
             if (ifStart) {
               const list = item.range.split(':');
               // G9

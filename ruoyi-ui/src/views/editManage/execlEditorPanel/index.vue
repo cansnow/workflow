@@ -450,7 +450,18 @@ export default {
 							options = JSON.parse(data.defaultSelect);
 						}
 					} else {
-						options = data.defaultSelect;
+						// api
+						// apiValue
+						// apiLabel
+						if (data.apiValue || data.apiLabel) {
+							_.map(data.defaultSelect, item => {
+								options.push({ 
+									value: item[data.apiValue || data.apiLabel],
+									label: item[data.apiLabel || data.apiValue]
+								});
+							});
+						}
+						// options = data.defaultSelect;
 					}
 					
 					// 多选 v 是数组
@@ -508,7 +519,7 @@ export default {
 				}
 				if (data.componentType == 'select') {
 					if (data.selectSrc != 'custom') {
-						Object.assign(props, { api: data.api });
+						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel });
 					}
 					Object.assign(props, { ds: data.selectSrc });
 				}

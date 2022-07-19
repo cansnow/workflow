@@ -206,6 +206,10 @@ export default {
         padding: 0px !important;
     }
 
+    .meg-workbook .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap {
+        width: calc(100vw - 30px) !important;
+    }
+
     .meg-workbook-btn {
         width: 200px;
         display: flex;

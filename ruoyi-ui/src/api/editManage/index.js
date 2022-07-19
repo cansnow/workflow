@@ -118,7 +118,7 @@ export function delTemplateById(id) {
  */
 export function getTemplateInfoById(id) {
   return request({
-    url: '/workflow/template/' + id,
+    url: '/workflow/template/' + id + '?&tiemstamp=' + (new Date().getTime()),
     method: 'get',
   })
 }
