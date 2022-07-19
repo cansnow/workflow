@@ -7,8 +7,11 @@ import request from '@/utils/request';
 export function getDBData(query) {
   return request({
     url: '/workflow/wfForm/user/db/list',
-    method: 'get',
-    params: query
+    method: 'post',
+    params: query,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
   })
 }
 

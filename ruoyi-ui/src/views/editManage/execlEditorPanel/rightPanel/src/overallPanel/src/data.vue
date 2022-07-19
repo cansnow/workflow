@@ -124,7 +124,7 @@ export default {
       selectIndex: -1,
       dialogVisible: false,
       treeProps: {
-        value:'id',             // ID字段名
+        value:'tableName',             // ID字段名
         label: 'resourcename',         // 显示名称
         children: 'children'    // 子级字段名
       }

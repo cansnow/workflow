@@ -72,7 +72,7 @@ export default {
         }
       ],
       props: {
-        value:'id',             // ID字段名
+        value:'tableName',             // ID字段名
         label: 'resourcename',  // 显示名称
         children: 'children',   // 子级字段名
       },
@@ -95,13 +95,13 @@ export default {
     getData(data, index) {
       const _this = this;
       const temp = JSON.parse(JSON.stringify(data[index]));
-      getTableFieldByName({ table: temp.id }).then((res) => {
+      getTableFieldByName({ table: temp.tableName }).then((res) => {
         const children = [];
         _.map(res.data.columns, item => {
           children.push({
-            id: item.columnName,
-            relativeData: item.aliasName || item.columnName,
-            resourcename: item.columnName,
+            tableName: item.columnName,
+            relativeData: item.columnName,
+            resourcename: item.aliasName || item.columnName,
             resourcetype: 0,
           });
         });

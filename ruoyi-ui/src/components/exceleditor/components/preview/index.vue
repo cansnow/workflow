@@ -39,7 +39,7 @@ export default {
   mounted() {
     const _this = this;
     // 获取数据集
-    getDBData().then((res) => {
+    getDBData({ table: 'lang' }).then((res) => {
       if (!!res.data.userInfo) {
         _this.userInfo = res.data.userInfo;
       } 

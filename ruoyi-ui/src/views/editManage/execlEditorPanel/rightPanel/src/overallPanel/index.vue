@@ -62,9 +62,7 @@
     <div style="margin-left: 2px;">
       <template v-if="dataList.length > 0">
         <div v-for="(dItem, index) in dataList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
-          <div style="flex: 1; display: flex; align-items: center; max-width: 60%; overflow: hidden;">
-            <span>{{ dItem.title }}</span>
-          </div>
+          <span style="flex: 1; display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.title }}</span>
           <div>
             <el-button type="text" @click="handleSort">
               <i class="mdi mdi-sort"></i>
