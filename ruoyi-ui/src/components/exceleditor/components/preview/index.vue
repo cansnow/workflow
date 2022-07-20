@@ -35,42 +35,38 @@ export default {
     },
     ...mapGetters(["name"]),
   },
-  mounted() {
+  async mounted() {
     const _this = this;
     // 获取数据集
-    getDBData({ table: 'lang' }).then((res) => {
-      const constants = _.map(res.data.constants, (item, key) => {
-        // orgName roleName userId userName
-        const temp = {
-          userId: '${USER_ID}',
-          userName: '${USER_NAME}',
-          roleName: '${ROLE_NAME}',
-          orgName: '${ORG_NAME}',
-        };
-        return {
-          key: temp[key],
-          value: item,
-        };
-      });
-      // const constants = res.data.constants;
-      if (!!constants && constants instanceof Array) {
-        // _this.constants = constants;
-        constants.forEach((item, index) => {
-          _this.constants['key_' + index] = item.key;
-          _this.constants['value_' + index] = item.value
-          /**
-           * [{key: '${USER_ID}', value: '当前用户id' },
-           * { key: '${USER_NAME}', value: '当前用户名' },
-           * { key: '${ROLE_NAME}', value: '当前角色名称' },
-           * { key: '${ORG_NAME}', value: '当前部门名称'}]
-           */
-        });
-      } 
-      // if (!!res.data.dataSetList) {
-      //   _this.dataSetList = res.data.dataSetList;
-      // }
-      _this.init();
+    const res = await getDBData({ table: 'lang' });
+    const constants = _.map(res.data.constants, (item, key) => {
+      // orgName roleName userId userName
+      const temp = {
+        userId: '${USER_ID}',
+        userName: '${USER_NAME}',
+        roleName: '${ROLE_NAME}',
+        orgName: '${ORG_NAME}',
+      };
+      return {
+        key: temp[key],
+        value: item,
+      };
     });
+    // const constants = res.data.constants;
+    if (!!constants && constants instanceof Array) {
+      // _this.constants = constants;
+      constants.forEach((item, index) => {
+        _this.constants['key_' + index] = item.key;
+        _this.constants['value_' + index] = item.value
+        /**
+         * [{key: '${USER_ID}', value: '当前用户id' },
+         * { key: '${USER_NAME}', value: '当前用户名' },
+         * { key: '${ROLE_NAME}', value: '当前角色名称' },
+         * { key: '${ORG_NAME}', value: '当前部门名称'}]
+         */
+      });
+    }
+    this.init();
     
     this.$curSheet.$on('clikcCellBtn', function(res) {
       if (_this.ifPreview) {
@@ -144,8 +140,25 @@ export default {
             console.log('temp', temp);
             responseData.push(temp);
           });
-          saveFormData(responseData).then((res) => {
+          const resData = {};
+          _.map(responseData, item => {
+            if (typeof resData[item.table] == 'undefined') {
+              const temp = [];
+              temp.push(item.fields);
+              resData[item.table] = temp;
+            } else {
+              resData[item.table].push(item.fields);
+            }
+          });
+          const data = _.map(resData, (item, key) => {
+            return {
+              table: key,
+              fields: item,
+            }
+          });
+          saveFormData(data).then((res) => {
             console.log('saveFormData', res);
+            _this.$modal.msgSuccess('提交成功！！！');
           });
         }
       } else {
@@ -155,7 +168,7 @@ export default {
     });
   },
   methods: {
-    formatCellData(data) {
+    async formatCellData(data) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -169,6 +182,9 @@ export default {
 
       // 扩展信息
       const extendList = [];
+
+      // 选项值信息
+      const selectOptionInfo = [];
 
       let pos = -1;
 
@@ -188,7 +204,7 @@ export default {
         'verticalAlign',
         'whiteSpace',
       ];
-      _.each(data, item => {
+      _.each(data, (item) => {
         /** 行信息 */
         if (typeof(rows[item.pos.start.rowIndex]) == 'undefined') {
           if (item.pos.start.rowIndex > rows.length) {
@@ -226,6 +242,30 @@ export default {
             temp[pItem] = item[pItem];
           }
         });
+        // 设置选项值
+        if (
+          typeof temp.c != 'undefined' &&
+          (
+            temp.c == 'radio' ||
+            temp.c == 'checkbox' ||
+            temp.c == 'select' ||
+            temp.c == 'selectMultiple'
+          ) &&
+          typeof temp.p != 'undefined' &&
+          typeof temp.p.ds != 'undefined' &&
+          temp.p.ds == 'api' &&
+          typeof temp.p.api != 'undefined' && !!temp.p.api &&
+          (typeof temp.p.apiLabel != 'undefined' || typeof temp.p.apiValue != 'undefined') &&
+          (!!temp.p.apiLabel || !!temp.p.apiValue)
+        ) {
+          selectOptionInfo.push({
+            pos: item.pos, // 位置信息
+            field: temp.p.api, // 变量
+            apiLabel: temp.p.apiLabel || temp.p.apiValue,
+            apiValue: temp.p.apiValue || temp.p.apiLabel,
+          });
+        }
+
         // 获取p.f 变量，替换v
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {
           console.log('temp', temp);
@@ -234,54 +274,14 @@ export default {
           console.log('fList', fList);
           const itemPost = item.pos;
           if (fList[0] == 'dataSetList') {
-            const _this = this;
-            // 获取替换数据
-            getDBData({ table: fList[1] }).then((res) => {
-              const dataSetListTemp = res.data.dataSetList;
-              if (!!dataSetListTemp && dataSetListTemp instanceof Array) {
-                // _this.dataSetList = 
-                dataSetListTemp.forEach((item) => {
-                  const fIndex = _this.dataSetList.findIndex(fItem => fItem.dataSetId == item.dataSetId);
-                  if (fIndex == -1) {
-                    _this.dataSetList.push(item);
-                  } else {
-                    _this.dataSetList.splice(fIndex, 1, item);
-                  }
-                });
-                const index = _this.dataSetList.findIndex(fItem => fItem.dataSetId == fList[1]);
-                if (index != -1) {
-                  // 扩展信息
-                  extendList.push({
-                    pos: itemPost, // 位置信息
-                    fieldInfo: temp.p.f, // 变量信息
-                    fieldIndex: index, // 数据集下标
-                    field: fList[2], // 变量
-                    extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
-                    merges: typeof(item.merges) != 'undefined', // 是否合并
-                  });
-                }
-              }
+            extendList.push({
+              pos: itemPost, // 位置信息
+              fieldInfo: temp.p.f, // 变量信息
+              fieldIndex: fList[1], // 数据集下标
+              field: fList[2], // 变量
+              extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+              merges: typeof(item.merges) != 'undefined', // 是否合并
             });
-            // _.map(this.dataSetList, (item, index) => {
-            //   if (item.dataSetId == fList[1]) {
-            //     // 扩展信息
-            //     extendList.push({
-            //       pos: itemPost, // 位置信息
-            //       fieldInfo: temp.p.f, // 变量信息
-            //       fieldIndex: index, // 数据集下标
-            //       field: fList[2], // 变量
-            //       extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
-            //       merges: typeof(item.merges) != 'undefined', // 是否合并
-            //     });
-            //     // TODO 默认去第一个下标
-            //     _.map(Object.keys(item.valueList[0]), vItem => {
-            //       if (vItem == fList[2]) {
-            //         const value = item.valueList[0][vItem];
-            //         Object.assign(temp, { v: value });
-            //       }
-            //     });                    
-            //   }
-            // });
           }
         }
         // 设置禁用
@@ -390,6 +390,25 @@ export default {
         }
       });
 
+      // 选项赋值
+      if (selectOptionInfo.length > 0) {
+        console.log('selectOptionInfo', selectOptionInfo);
+        _.map(selectOptionInfo, async (item) => {
+          const res = await getDBData({ table: item.field });
+          const dataSetListTemp = res.data.dataSetList;
+          const options = _.map(dataSetListTemp[0].valueList, value => {
+            return {
+              label: value[item.apiLabel],
+              value: value[item.apiValue],
+            };
+          });
+          const cellsIndex = item.pos.start;
+          const cell = JSON.parse(JSON.stringify(cells[cellsIndex.rowIndex][cellsIndex.columnIndex]));
+          cell.options = options;
+          cells[cellsIndex.rowIndex].splice(cellsIndex.columnIndex, 1, cell);
+        });
+      }
+
       // 设置扩展
       if (extendList.length > 0) {
         console.log('extendList', extendList);
@@ -397,10 +416,12 @@ export default {
           column: {}, // 列
           row: {},
         };
-        _.map(extendList, item => {
+        _.map(extendList, async (item) => {
           const rowIndex = item.pos.start.rowIndex;
           const columnIndex = item.pos.start.columnIndex;
-          const valueList = this.dataSetList[item.fieldIndex].valueList; // 变量集合
+          const res = await getDBData({ table: item.fieldIndex });
+          const dataSetListTemp = res.data.dataSetList;
+          const valueList = dataSetListTemp[0].valueList; // 变量集合
           const len = valueList.length; // 长度
           // 获取填充数据
           const tempList = [];
@@ -610,11 +631,12 @@ export default {
       }
       return ifStart;
     },
-    update(state) {
+    async update(state) {
+      console.warn('update');
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
-        const temp = this.formatCellData(state.previewData.cells);
+        const temp = await this.formatCellData(state.previewData.cells);
         // TODO 权限规则
         if (state.previewData.formList && state.previewData.formList.length > 0) {
           // temp.cells
@@ -721,19 +743,6 @@ export default {
     justify-content: center;
     height: 40px;
     // border-bottom: 1px solid #ddd;
-  }
-  .meg-gdlinewrap-column {
-    .meg-gdline {
-        border-right: unset !important;
-    }
-  }
-
-  .meg-gdlinewrap-row {
-      flex-direction: column;
-
-      .meg-gdline {
-          border-bottom: unset !important;
-      }
   }
 }  
 </style>

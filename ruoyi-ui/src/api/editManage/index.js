@@ -12,6 +12,7 @@ export function getDBData(query) {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
+    interval: true,
   })
 }
 
