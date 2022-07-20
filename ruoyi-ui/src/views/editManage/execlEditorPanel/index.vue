@@ -305,6 +305,7 @@ export default {
 			const tempId = getTemplateId();
 			if (this.getTemplateId || tempId) {
 				this.$nextTick(() => {
+					Object.assign(this.updateInfo, { sheet: this.updateInfo.sheet || this.title, title: this.updateInfo.title || this.title });
 					this.$refs.relForm.setData(this.updateInfo);
 				})
 			}
@@ -367,6 +368,7 @@ export default {
 				const tempId = getTemplateId();
 				if (_this.getTemplateId || tempId) {
 					const form = _this.updateInfo;
+					Object.assign(form, { sheet: _this.title, title: this.form.title || this.title });
 					let data = [];
 					if (typeof _this.$refs.vspread != 'undefined') {
 						_this.$refs.vspread.data.forEach((_, index) => {
@@ -687,7 +689,7 @@ export default {
 			_this.updateInfo = {
 				"description": "",
 				"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
-				"sheet": "",
+				"sheet": _this.title,
 				"status": "0",
 				"title": "",
 				"data": ""
