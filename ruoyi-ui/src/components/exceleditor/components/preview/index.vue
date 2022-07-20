@@ -127,7 +127,17 @@ export default {
                 }
                 // 参数 parameter
                 if (fObj.type == 'parameter') {
-                  fieldValue = _this[fObj.value] || '';
+                  let valueKey = '';
+                  _.map(_this.constants, (value, key) => {
+                    if (key.indexOf('key_') != -1) {
+                      // 判断是否包含替换变量
+                      if (fObj.value.indexOf(value) != -1) {
+                        // 获取值的key
+                        valueKey = key.replace('key_', 'value_');
+                      }
+                    }
+                  });
+                  fieldValue = _this.constants[valueKey] || '';
                 }
   
                 fields.push({

@@ -51,23 +51,7 @@ export default {
   },
   data() {
     return {
-      data: [
-        {
-          label: '名称',
-          value: 'name',
-          disabled: false,
-        },
-        {
-          label: '类型',
-          value: 'type',
-          disabled: false,
-        },
-        {
-          label: '性别',
-          value: 'sex',
-          disabled: false,
-        },
-      ],
+      data: [],
       checkList: [],
       search: '',
     };
@@ -80,6 +64,7 @@ export default {
           .then((res) => {
             console.log('res', res);
             _this.data = [];
+            _this.checkList = [];
             _.map(res.data.columns, item => {
               _this.data.push({
                 label: item.aliasName || item.columnName,
@@ -112,6 +97,7 @@ export default {
         .then((res) => {
           console.log('res', res);
           _this.data = [];
+          _this.checkList = [];
           _.map(res.data.columns, item => {
             _this.data.push({
               label: item.aliasName || item.columnName,

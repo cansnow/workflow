@@ -56,18 +56,18 @@
 			placeholder="选择时间"
 			v-if="cellType == 'time'">
 		</el-date-picker>
-		<el-radio-group v-model="value" v-if="cellType == 'radio'">
+		<el-radio-group v-model="value" v-if="cellType == 'radio'" @change="handleChange">
 			<el-radio :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
-		<el-checkbox-group v-model="checkboxValue" v-if="cellType == 'checkbox'">
+		<el-checkbox-group v-model="checkboxValue" v-if="cellType == 'checkbox'" @change="handleChange">
 			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
 		</el-checkbox-group>
-		<el-select v-model="value" v-if="cellType == 'select'">
+		<el-select v-model="value" v-if="cellType == 'select'" @change="handleChange">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
         <!-- 下拉多选 -->
-        <el-select v-model="value" multiple v-if="cellType == 'selectMultiple'">
+        <el-select v-model="value" multiple v-if="cellType == 'selectMultiple'" @change="handleChange">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
 		</el-select>
