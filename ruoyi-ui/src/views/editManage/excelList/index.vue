@@ -205,7 +205,14 @@ export default {
       this.loading = true;
       templateList(this.queryParams).then((result) => {
         console.log('templateList result', result);
-        this.tList = result.rows;
+        // this.tList = result.rows;
+        this.tList = result.rows.map(item => {
+          const temp = item;
+          Object.assign(temp, {
+            link: location && location.origin ? location.origin + '/Renderer/' + item.id : '/Renderer/' + item.id,
+          });
+          return temp;
+        });
         this.total = result.total || 0;
         this.loading = false;
       });

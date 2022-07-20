@@ -640,9 +640,9 @@ export default {
 			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
-				// Object.assign(_this.updateInfo, {
-				// 	link: location && location.origin ? location.origin + '/Renderer/' + _this.getTemplateId || tempId : '/Renderer/' + _this.getTemplateId || tempId,
-				// });
+				Object.assign(_this.updateInfo, {
+					link: location && location.origin ? location.origin + '/Renderer/' + _this.getTemplateId || tempId : '/Renderer/' + _this.getTemplateId || tempId,
+				});
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];
 					_this.sheetData = [];
