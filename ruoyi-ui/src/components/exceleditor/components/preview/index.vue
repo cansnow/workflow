@@ -39,7 +39,20 @@ export default {
     const _this = this;
     // 获取数据集
     getDBData({ table: 'lang' }).then((res) => {
-      const constants = res.data.constants;
+      const constants = _.map(res.data.constants, (item, key) => {
+        // orgName roleName userId userName
+        const temp = {
+          userId: '${USER_ID}',
+          userName: '${USER_NAME}',
+          roleName: '${ROLE_NAME}',
+          orgName: '${ORG_NAME}',
+        };
+        return {
+          key: temp[key],
+          value: item,
+        };
+      });
+      // const constants = res.data.constants;
       if (!!constants && constants instanceof Array) {
         // _this.constants = constants;
         constants.forEach((item, index) => {

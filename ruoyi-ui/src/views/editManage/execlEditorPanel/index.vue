@@ -147,6 +147,9 @@ export default {
 		$OverallPanel: function() {
 			return this.$refs.rightPanel.getOverallPanelRef();
 		},
+		$DataPanel: function() {
+			return this.$refs.rightPanel.getDataPanelRef();
+		},
 		$curSheet: function() {
 			return this.$refs.vspread.getCurSheet()[0];
 		},
@@ -187,6 +190,7 @@ export default {
 				dataList: [], // 回写规则
 				start: '', // 开始行列
 				end: '', // 结束行列
+				dataOptions: [], // 数据面板选项
 			};
 			if (index == -1) {
 				Object.assign(temp, { title: data.title, });
@@ -196,10 +200,12 @@ export default {
 				Object.assign(temp, {
 					formList: tempData.formList, // 权限规则
 					dataList: tempData.dataList, // 回写规则
+					dataOptions: tempData.dataOptions, // 数据面板选项
 					start: tempData.start, // 开始行列
 					end: tempData.end, // 结束行列
 				});
 			}
+			this.$DataPanel.setSelectData(temp.dataOptions);
 			this.$OverallPanel.setData(temp);
 			this.$OverallPanel.setFreezeColumn(data.freezeColumn);
 			this.$OverallPanel.setFreezeRow(data.freezeRow);
@@ -274,6 +280,7 @@ export default {
 					formList: this.sheetData[sIndex].formList, // 权限规则
 					dataList: this.sheetData[sIndex].dataList, // 回写规则
 					start: this.sheetData[sIndex].start,
+					dataOptions: this.sheetData[sIndex].dataOptions, // 数据面板选项
 					end: this.sheetData[sIndex].end,
 				})
 			}
@@ -600,6 +607,16 @@ export default {
 				_this.sheetData.splice(index, 1, temp);
 			}
 		});
+		this.$DataPanel.$on('dataPanelSelect', function(data) {
+			const index = _this.sheetData.findIndex(item => item.title == _this.title);
+			if (index != -1) {
+				const temp = _this.sheetData[index];
+				Object.assign(temp, {
+					dataOptions: data instanceof Array && data.length > 0 ? data : temp.dataOptions,
+				});
+				_this.sheetData.splice(index, 1, temp);
+			}
+		});
 		this.$nextTick(() => {
 			this.matched = cache.session.getJSON('DesignMatched') || [];
 			if (!!this.matched && this.matched.length > 0) {
@@ -658,8 +675,10 @@ export default {
 							freezeRow: item.freezeRow,
 							formList: item.formList,
 							dataList: item.dataList,
+							dataOptions: item.dataOptions || [],
 						});
 					});
+					_this.$DataPanel.setSelectData(_this.sheetData[0].dataOptions);
 					_this.$OverallPanel.setData(_this.sheetData[0]);
 					_this.$piniastore.setData(sheetList);
 				}

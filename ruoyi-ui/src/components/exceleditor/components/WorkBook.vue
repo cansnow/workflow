@@ -138,11 +138,22 @@ export default {
         handleClickHead() {
             this.$emit('click-head');
         },
+        getNewSheetName() {
+            const titles = _.filter(_.map(this.data, item => {
+                if (item.title.indexOf('sheet') != -1) {
+                    return item.title.replace(/[^0-9]/g,'');
+                }
+            }), item => !!item).sort((a, b) => b - a);
+            if (titles.length <= 0) {
+                return `sheet${this.data.length + 1}`;
+            }
+            return `sheet${parseInt(titles[0]) + 1}`;
+        },
         // 新增sheet
         handleTabsEdit(targetName, action) {
             console.log(targetName, action);
             if (action == 'add') {
-                const title = `sheet${this.data.length + 1}`;
+                const title = this.getNewSheetName();
                 const data = JSON.parse(JSON.stringify(templateData));
                 const allData = this.data;
                 allData.push({ title, data });

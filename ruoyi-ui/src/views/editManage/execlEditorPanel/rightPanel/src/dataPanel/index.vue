@@ -81,7 +81,17 @@ export default {
       showData: [],
     };
   },
+  watch: {
+    showData: {
+      handler(value) {
+        this.$emit('dataPanelSelect', value);
+      }
+    }
+  },
   methods: {
+    setSelectData(data) {
+      this.showData = data;
+    },
     handleAllowDrag(node) {
       return node.data.resourcetype == 0;
     },

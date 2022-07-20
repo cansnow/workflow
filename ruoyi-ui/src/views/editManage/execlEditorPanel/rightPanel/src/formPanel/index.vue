@@ -158,7 +158,7 @@
 <script>
 import Radio from './src/radio.vue';
 import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
-import { getDBTable, getTableFieldByName, getDBData } from '@/api/editManage';
+import { getTableFieldByName, getDBData } from '@/api/editManage';
 export default {
   inject: ['$rightPanel'],
 	components: { TreeSelect },
@@ -629,10 +629,13 @@ export default {
   },
 	mounted() {
     const _this = this;
-    getDBTable().then((res) => {
-      console.log('res', res);
-      _this.options = res.data;
-    });
+    // getDBTable().then((res) => {
+    //   console.log('res', res);
+    //   _this.options = res.data;
+    // });
+		this.$DataPanel.$on('dataPanelSelect', function(data) {
+			_this.options = data;
+		});
   },
 }
 </script>
