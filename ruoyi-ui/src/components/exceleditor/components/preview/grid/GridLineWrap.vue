@@ -1,6 +1,6 @@
 <template>
     <div :class="['meg-gdlinewrap', `meg-gdlinewrap-${direction}`]">
-        <div class="meg-gdline1" style="border-right: unset !important; border-bottom: unset !important" v-for="line in getLines()" :style="getStyle(line)" :key="line" />
+        <div class="meg-gdline1" v-for="line in getLines()" :style="getStyle(line)" :key="line" />
     </div>
 </template>
 

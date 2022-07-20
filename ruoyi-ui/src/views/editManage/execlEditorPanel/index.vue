@@ -368,7 +368,7 @@ export default {
 				const tempId = getTemplateId();
 				if (_this.getTemplateId || tempId) {
 					const form = _this.updateInfo;
-					Object.assign(form, { sheet: _this.title, title: this.form.title || this.title });
+					Object.assign(form, { sheet: _this.title, title: form.title || this.title });
 					let data = [];
 					if (typeof _this.$refs.vspread != 'undefined') {
 						_this.$refs.vspread.data.forEach((_, index) => {
@@ -643,7 +643,7 @@ export default {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
 				Object.assign(_this.updateInfo, {
-					link: location && location.origin ? location.origin + '/Renderer/' + _this.getTemplateId || tempId : '/Renderer/' + _this.getTemplateId || tempId,
+					link: location && location.origin ? location.origin + '/Renderer/' + (_this.getTemplateId || tempId) : '/Renderer/' + (_this.getTemplateId || tempId),
 				});
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];

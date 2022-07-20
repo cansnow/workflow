@@ -77,7 +77,7 @@ export default {
       // 提交数据
       if (res.p.t == 'submit') {
         // 根据回写规则提交数据
-        // TODO 表单校验
+        // 表单校验
         // _this.$curSheet.cells
         let ifOK = true;
         _.each(_this.$curSheet.cells, (cell, key) => {
@@ -178,7 +178,7 @@ export default {
     });
   },
   methods: {
-    async formatCellData(data) {
+    async formatCellData(data, formList) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -214,6 +214,7 @@ export default {
         'verticalAlign',
         'whiteSpace',
       ];
+      
       _.each(data, (item) => {
         /** 行信息 */
         if (typeof(rows[item.pos.start.rowIndex]) == 'undefined') {
@@ -400,10 +401,73 @@ export default {
         }
       });
 
+      // 权限规则
+      if (formList && formList.length > 0) {
+        // temp.cells
+        _.map(formList, item => {
+          // 表达式
+          let expression = item.expression;
+          // 获取判断条件，获取变量
+          _.map(this.constants, (value, key) => {
+            if (key.indexOf('key_') != -1) {
+              // 判断是否包含替换变量
+              if (expression.indexOf(value) != -1) {
+                // 获取值的key
+                const valueKey = key.replace('key_', 'value_');
+                // ${USER_ID} == admin => '$userName$ == "admin"';
+                expression = expression.replace(value, '$' + valueKey + '$');
+              }
+            }
+          });
+          const ifStart = this.getResult(expression); //'$userName$ == "admin"';
+          if (ifStart) {
+            const list = item.range.split(':');
+            // G9
+            if (list.length <= 1) {
+              const data = this.formatData(list[0]);
+              if (item.type == 'hide') {
+                cells[data.rowIndex].splice(data.columnIndex, 1, null);
+              } else {
+                // 禁用
+                const tempCell = cells[data.rowIndex][data.columnIndex];
+                if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                  const p = tempCell.p;
+                  p.r.w = false;
+                  Object.assign(tempCell, { p });
+                }
+                cells[data.rowIndex].splice(data.columnIndex, 1, tempCell);
+              }
+            }
+            // G9:G10
+            if (list.length > 1) {
+              const start = this.formatData(list[0]);
+              const end = this.formatData(list[1]);
+              for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                  if (item.type == 'hide') {
+                    cells[i].splice(j, 1, null);
+                  } else {
+                    // 禁用
+                    const tempCell = cells[i][j];
+                    if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
+                      const p = tempCell.p;
+                      p.r.w = false;
+                      Object.assign(tempCell, { p });
+                    }
+                    cells[i].splice(j, 1, tempCell);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
       // 选项赋值
       if (selectOptionInfo.length > 0) {
         console.log('selectOptionInfo', selectOptionInfo);
-        _.map(selectOptionInfo, async (item) => {
+        for(let selectIndex = 0; selectIndex < selectOptionInfo.length; selectIndex++) {
+          const item = selectOptionInfo[selectIndex];
           const res = await getDBData({ table: item.field });
           const dataSetListTemp = res.data.dataSetList;
           const options = _.map(dataSetListTemp[0].valueList, value => {
@@ -414,9 +478,27 @@ export default {
           });
           const cellsIndex = item.pos.start;
           const cell = JSON.parse(JSON.stringify(cells[cellsIndex.rowIndex][cellsIndex.columnIndex]));
-          cell.options = options;
-          cells[cellsIndex.rowIndex].splice(cellsIndex.columnIndex, 1, cell);
-        });
+          if (!!cell) {
+            cell.options = options;
+            cells[cellsIndex.rowIndex].splice(cellsIndex.columnIndex, 1, cell);
+          }
+        }
+        // _.map(selectOptionInfo, async (item) => {
+        //   const res = await getDBData({ table: item.field });
+        //   const dataSetListTemp = res.data.dataSetList;
+        //   const options = _.map(dataSetListTemp[0].valueList, value => {
+        //     return {
+        //       label: value[item.apiLabel],
+        //       value: value[item.apiValue],
+        //     };
+        //   });
+        //   const cellsIndex = item.pos.start;
+        //   const cell = JSON.parse(JSON.stringify(cells[cellsIndex.rowIndex][cellsIndex.columnIndex]));
+        //   if (!!cell) {
+        //     cell.options = options;
+        //     cells[cellsIndex.rowIndex].splice(cellsIndex.columnIndex, 1, cell);
+        //   }
+        // });
       }
 
       // 设置扩展
@@ -426,7 +508,8 @@ export default {
           column: {}, // 列
           row: {},
         };
-        _.map(extendList, async (item) => {
+        for (let extendIndex = 0; extendIndex < extendList.length; extendIndex++) {
+          const item = extendList[extendIndex];
           const rowIndex = item.pos.start.rowIndex;
           const columnIndex = item.pos.start.columnIndex;
           const res = await getDBData({ table: item.fieldIndex });
@@ -437,22 +520,25 @@ export default {
           const tempList = [];
           const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex];
           const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
+          let tempListIndexValue = '';
           _.map(valueList, (value, index) => {
-            // if (index != 0) {
+            if (index != 0) {
               const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
               Object.assign(template, { v: value[item.field]});
               tempList.push(template);
-            // }
+            } else {
+              tempListIndexValue = value[item.field];
+            }
           });
 
-          if (item.extendType == 'none') {
-            cells[rowIndex].splice(columnIndex, 1, tempList[0]);
-          }
+          const temp = JSON.parse(JSON.stringify(cells[rowIndex][columnIndex]));
+          Object.assign(temp, { v: tempListIndexValue });
+          cells[rowIndex].splice(columnIndex, 1, temp);
 
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
             if (tempList.length > 0) {
-              let posBom = cellRowIndex; //cellRowIndex + 1;
+              let posBom = cellRowIndex + 1; //cellRowIndex + 1;
               // 记录位置
               if (typeof extendInfo.column[columnIndex] == 'undefined') {
                 extendInfo.column[columnIndex] = len - 1;
@@ -461,9 +547,9 @@ export default {
                 extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
               }
               const tempReplace = []; // 记录替换的数据，后面加回去
-              // 长度不对
-              const cellsLen = Object.keys(cells).sort((a, b) => b - a)[0];
               _.map(tempList, (item, index) => {
+                // 长度不对
+                const cellsLen = Object.keys(cells).sort((a, b) => b - a)[0];
                 const ifCell = !!cells[posBom + index];
                 const temp = ifCell && !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : null;
                 tempReplace.push(temp); // 记录数据
@@ -478,7 +564,7 @@ export default {
                     cells[posBom + index].splice(columnIndex, 1, item);
                   }
                   // 添加新增数据
-                  cells[parseInt(cellsLen) + index + 1] = [];
+                  cells[parseInt(cellsLen) + 1] = [];
                 } else {
                   const cellList = [];
                   const nullLen = columnIndex;
@@ -487,15 +573,21 @@ export default {
                   }
                   cellList.push(item);
                   cells[posBom + index] = cellList;
-                  if (posBom + index != parseInt(cellsLen) + index + 1) {
-                    cells[parseInt(cellsLen) + index + 1] = [];
+                  if (posBom + index != parseInt(cellsLen) + 1) {
+                    cells[parseInt(cellsLen) + 1] = [];
                   } else {
-                    cells[parseInt(cellsLen) + index + 2] = [];
+                    cells[parseInt(cellsLen) + 2] = [];
                   }
                 }
-                
+                // 判断最后的下一行是否有值
+                if (index == tempList.length - 1) {
+                  const ifNextCell = !!cells[posBom + tempList.length];
+                  if (!ifNextCell) {
+                    cells[posBom + tempList.length] = [];
+                  }
+                }
               });
-              console.log('tempReplace', tempReplace);
+              // console.warn('tempReplace', tempReplace);
               // 数据向下移动
               let replaceIndex = 0;
               const cellkeys = Object.keys(cells).sort((a, b) => a - b);
@@ -517,7 +609,7 @@ export default {
                   // 判断下一个节点是否有值，没有值的时候就要补充进去，防止错位
                   if (!cells[parseInt(key) + 1]) {
                     if (index < cellkeys.length -1 ) {
-                      const repairLen = cellkeys[index + 1] - parseInt(key) + 1;
+                      const repairLen = cellkeys[index + 1] - (parseInt(key) + 1);
                       for(let i = 0; i < repairLen; i++) {
                         const cellList = [];
                         for (let j = 0; j < columnIndex; j++) {
@@ -537,7 +629,7 @@ export default {
           }
           if (item.extendType == 'right') {
             if (tempList.length > 0) {
-              let pos = columnIndex; // columnIndex + 1;
+              let pos = columnIndex + 1; // columnIndex + 1;
               // 记录位置
               if (typeof extendInfo.row[rowIndex] == 'undefined') {
                 extendInfo.row[rowIndex] = len - 1;
@@ -558,11 +650,153 @@ export default {
               }
             }
           }
-          console.log('tempList', tempList);
-          console.log('extendInfo', extendInfo);
-        });
-      }
+        }
+        // _.map(extendList, async (item) => {
+        //   const rowIndex = item.pos.start.rowIndex;
+        //   const columnIndex = item.pos.start.columnIndex;
+        //   const res = await getDBData({ table: item.fieldIndex });
+        //   const dataSetListTemp = res.data.dataSetList;
+        //   const valueList = dataSetListTemp[0].valueList; // 变量集合
+        //   const len = valueList.length; // 长度
+        //   // 获取填充数据
+        //   const tempList = [];
+        //   const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex];
+        //   const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
+        //   let tempListIndexValue = '';
+        //   _.map(valueList, (value, index) => {
+        //     if (index != 0) {
+        //       const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
+        //       Object.assign(template, { v: value[item.field]});
+        //       tempList.push(template);
+        //     } else {
+        //       tempListIndexValue = value[item.field];
+        //     }
+        //   });
 
+        //   const temp = JSON.parse(JSON.stringify(cells[rowIndex][columnIndex]));
+        //   Object.assign(temp, { v: tempListIndexValue });
+        //   cells[rowIndex].splice(columnIndex, 1, temp);
+
+        //   // none 无 bottom 向下 right 向右
+        //   if (item.extendType == 'bottom') {
+        //     if (tempList.length > 0) {
+        //       let posBom = cellRowIndex + 1; //cellRowIndex + 1;
+        //       // 记录位置
+        //       if (typeof extendInfo.column[columnIndex] == 'undefined') {
+        //         extendInfo.column[columnIndex] = len - 1;
+        //       } else {
+        //         // posBom += extendInfo.column[columnIndex]; // 将前面加过的位置加上
+        //         extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
+        //       }
+        //       const tempReplace = []; // 记录替换的数据，后面加回去
+        //       _.map(tempList, (item, index) => {
+        //         // 长度不对
+        //         const cellsLen = Object.keys(cells).sort((a, b) => b - a)[0];
+        //         const ifCell = !!cells[posBom + index];
+        //         const temp = ifCell && !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : null;
+        //         tempReplace.push(temp); // 记录数据
+        //         if (ifCell) {
+        //           if (columnIndex >= cells[posBom + index].length) {
+        //             const nullLen = columnIndex - cells[posBom + index].length;
+        //             for (let i = 0; i < nullLen; i++) {
+        //               cells[posBom + index].push(null);
+        //             }
+        //             cells[posBom + index].push(item);
+        //           } else {
+        //             cells[posBom + index].splice(columnIndex, 1, item);
+        //           }
+        //           // 添加新增数据
+        //           cells[parseInt(cellsLen) + 1] = [];
+        //         } else {
+        //           const cellList = [];
+        //           const nullLen = columnIndex;
+        //           for (let i = 0; i < nullLen; i++) {
+        //             cellList.push(null);
+        //           }
+        //           cellList.push(item);
+        //           cells[posBom + index] = cellList;
+        //           if (posBom + index != parseInt(cellsLen) + 1) {
+        //             cells[parseInt(cellsLen) + 1] = [];
+        //           } else {
+        //             cells[parseInt(cellsLen) + 2] = [];
+        //           }
+        //         }
+        //         // 判断最后的下一行是否有值
+        //         if (index == tempList.length - 1) {
+        //           const ifNextCell = !!cells[posBom + tempList.length];
+        //           if (!ifNextCell) {
+        //             cells[posBom + tempList.length] = [];
+        //           }
+        //         }
+        //       });
+        //       // console.warn('tempReplace', tempReplace);
+        //       // 数据向下移动
+        //       let replaceIndex = 0;
+        //       const cellkeys = Object.keys(cells).sort((a, b) => a - b);
+        //       _.map(cellkeys, (key, index) => {
+        //         if (key >= posBom + tempList.length) {
+        //           // 判断是否为空
+        //           if (columnIndex >= cells[key].length) {
+        //             const nullLen = columnIndex - cells[key].length;
+        //             for (let i = 0; i < nullLen; i++) {
+        //               cells[key].push(null);
+        //             }
+        //             tempReplace.push(null); // 记录替换
+        //             cells[key].push(tempReplace[replaceIndex]);
+        //           } else {
+        //             tempReplace.push(cells[key][columnIndex]); // 记录替换
+        //             cells[key].splice(columnIndex, 1, tempReplace[replaceIndex]);
+        //           }
+        //           replaceIndex += 1;
+        //           // 判断下一个节点是否有值，没有值的时候就要补充进去，防止错位
+        //           if (!cells[parseInt(key) + 1]) {
+        //             if (index < cellkeys.length -1 ) {
+        //               const repairLen = cellkeys[index + 1] - (parseInt(key) + 1);
+        //               for(let i = 0; i < repairLen; i++) {
+        //                 const cellList = [];
+        //                 for (let j = 0; j < columnIndex; j++) {
+        //                   cellList.push(null);
+        //                 }
+        //                 tempReplace.push(null); // 记录替换
+        //                 cellList.push(tempReplace[replaceIndex + i]);
+        //                 cells[parseInt(key) + i + 1] = cellList;
+        //               }
+        //               replaceIndex += repairLen;
+        //             }
+        //           }
+        //         }
+        //       });
+
+        //     }
+        //   }
+        //   if (item.extendType == 'right') {
+        //     if (tempList.length > 0) {
+        //       let pos = columnIndex + 1; // columnIndex + 1;
+        //       // 记录位置
+        //       if (typeof extendInfo.row[rowIndex] == 'undefined') {
+        //         extendInfo.row[rowIndex] = len - 1;
+        //       } else {
+        //         pos += extendInfo.row[rowIndex]; // 将前面加过的位置加上
+        //         extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
+        //       }
+        //       if (!!cells[cellRowIndex]) {
+        //         cells[cellRowIndex].splice(pos, 0, ...tempList);
+        //       } else {
+        //         const cellList = [];
+        //         const nullLen = pos;
+        //         for (let i = 0; i < nullLen; i++) {
+        //           cellList.push(null);
+        //         }
+        //         cellList.push(...tempList);
+        //         cells[cellRowIndex] = cellList;
+        //       }
+        //     }
+        //   }
+        //   // console.log('tempList', tempList);
+        //   console.log('extendInfo', extendInfo);
+        //   console.warn('cells', cells);
+        // });
+      }
 
       return {
         rows,
@@ -646,68 +880,8 @@ export default {
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
-        const temp = await this.formatCellData(state.previewData.cells);
-        // TODO 权限规则
-        if (state.previewData.formList && state.previewData.formList.length > 0) {
-          // temp.cells
-          _.map(state.previewData.formList, item => {
-            // 表达式
-            let expression = item.expression;
-            // 获取判断条件，获取变量
-            _.map(this.constants, (value, key) => {
-              if (key.indexOf('key_') != -1) {
-                // 判断是否包含替换变量
-                if (expression.indexOf(value) != -1) {
-                  // 获取值的key
-                  const valueKey = key.replace('key_', 'value_');
-                  // ${USER_ID} == admin => '$userName$ == "admin"';
-                  expression = expression.replace(value, '$' + valueKey + '$');
-                }
-              }
-            });
-            const ifStart = this.getResult(expression); //'$userName$ == "admin"';
-            if (ifStart) {
-              const list = item.range.split(':');
-              // G9
-              if (list.length <= 1) {
-                const data = this.formatData(list[0]);
-                if (item.type == 'hide') {
-                  temp.cells[data.rowIndex].splice(data.columnIndex, 1, null);
-                } else {
-                  // 禁用
-                  const tempCell = temp.cells[data.rowIndex][data.columnIndex];
-                  if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
-                    const p = tempCell.p;
-                    p.r.w = false;
-                    Object.assign(tempCell, { p });
-                  }
-                  temp.cells[data.rowIndex].splice(data.columnIndex, 1, tempCell);
-                }
-              }
-              // G9:G10
-              if (list.length > 1) {
-                const start = this.formatData(list[0]);
-                const end = this.formatData(list[1]);
-                for (let i = start.rowIndex; i <= end.rowIndex; i++) {
-                  for(let j = start.columnIndex; j <= end.columnIndex; j++) {
-                    if (item.type == 'hide') {
-                      temp.cells[i].splice(j, 1, null);
-                    } else {
-                      // 禁用
-                      const tempCell = temp.cells[i][j];
-                      if (!!tempCell && typeof tempCell.c != 'undefined' && tempCell.c != 'Cell' ) {
-                        const p = tempCell.p;
-                        p.r.w = false;
-                        Object.assign(tempCell, { p });
-                      }
-                      temp.cells[i].splice(j, 1, tempCell);
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
+        const temp = await this.formatCellData(state.previewData.cells, state.previewData.formList);
+        
         // start: data.start, 
         let columnIndex = null;
         let rowIndex = null;
