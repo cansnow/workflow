@@ -111,6 +111,7 @@ export default {
                         Object.assign(temp, { v: undefined });
                         this.doEditCell();
                         this.doCancelEdit();
+                        this.$emit('selectCell');
                         this.doEditCellValue(temp);
                     } else {
                         this.delCellValue(pos);

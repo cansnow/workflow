@@ -411,6 +411,14 @@ export default {
 			const italic = _this.toolbars.italic;
 			italic.checked = false;
 
+			// 下划线
+			const underline = _this.toolbars.underline;
+			underline.checked = false;
+			// 删除线
+			const strikethrough = _this.toolbars.strikethrough;
+			strikethrough.checked = false;
+
+
 			fontSize.value = 11;
 			fontFamily.value = 'fontFamily';
 			bgColor.value = '';
@@ -462,6 +470,14 @@ export default {
 				if (!!style.option.fontStyle) {
 					italic.checked = true;
 				}
+				// 设置下划线
+				if (!!style.option.textDecoration) {
+					underline.checked = true;
+				}
+				// 设置删除线
+				if (!!style.option.textDel) {
+					strikethrough.checked = true;
+				}
 			}
 			// 设置合并
 			const selection = _this.$sheet.selection;
@@ -487,6 +503,8 @@ export default {
 				whiteSpace,
 				bold,
 				italic,
+				underline,
+				strikethrough,
 			});
 		});
 	},
@@ -570,7 +588,12 @@ export default {
 			this.setTextDecoration('underline');
 		},
 		strikethrough(){
-			this.setTextDecoration('line-through');
+			// this.setTextDecoration('line-through');
+			this.setTextDel('line-through');
+		},
+		setTextDel(decoration) {
+			this.toolbars['strikethrough'].value = this.toolbars['strikethrough'].value === decoration ? undefined : decoration;
+			this.$sheet.setTextDel(this.toolbars['strikethrough'].value);
 		},
 		setTextDecoration(decoration) {
 			let key = decoration == 'line-through' ? 'strikethrough' : decoration;

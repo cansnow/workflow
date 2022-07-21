@@ -95,8 +95,24 @@
             :accordion="true"
             @getValue="getTreeSelectMultipleValue($event)"
         />
-		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="!cellType">{{ formatValue(cell) }}</div>
-		<div class="meg-cellval" :class="[cell.style.alignCss]" v-if="cellType == 'Cell'">{{ value }}</div>
+		<div 
+            class="meg-cellval" 
+            :class="[cell.style.alignCss]" 
+            :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
+            v-if="!cellType"
+        >
+            <del v-if="!!cell.style.css.textDel">{{ formatValue(cell) }}</del>
+            <template v-else>{{ formatValue(cell) }}</template>
+        </div>
+		<div 
+            class="meg-cellval" 
+            :class="[cell.style.alignCss]"
+            :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
+            v-if="cellType == 'Cell'"
+        >
+            <del v-if="!!cell.style.css.textDel">{{ value }}</del>
+            <template v-else>{{ value }}</template>
+        </div>
     </div>
 </template>
 

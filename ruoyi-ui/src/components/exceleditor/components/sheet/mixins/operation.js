@@ -36,6 +36,9 @@ export default {
         setTextDecoration(textDecoration) {
             this.setSelctionExpandStyle({ textDecoration });
         },
+        setTextDel(textDel) {
+            this.setSelctionExpandStyle({ textDel });
+        },
         //设置水平对齐方式
         setTextAlign(textAlign) {
             this.setSelctionExpandStyle({ textAlign });

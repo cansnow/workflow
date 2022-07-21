@@ -213,6 +213,7 @@ export default {
         'textAlign',
         'verticalAlign',
         'whiteSpace',
+        'textDel',
       ];
       
       _.each(data, (item) => {
