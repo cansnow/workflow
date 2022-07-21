@@ -122,7 +122,14 @@ export default {
       direction: '',
       freezeColumn: 0,
       freezeRow: 0,
+      options: [], // 回写规则数据集
     };
+  },
+  computed: {
+    // 数据面板
+		$DataPanel: function() {
+			return this.$rightPanel.getDataPanelRef();
+		},
   },
   watch: {
     '$rightPanel.selectCell': {
@@ -170,6 +177,13 @@ export default {
     },
     end() {
       this.$emit('ovserallData', this.getData());
+    },
+    dialogVisible(newValue) {
+      if (newValue && this.dialogType == 1) {
+        this.$nextTick(() => {
+          this.$refs.Data.setOptions(this.options);
+        });
+      }
     },
   },
   methods: {
@@ -337,6 +351,13 @@ export default {
         this.$emit('freezeRow', e > 0 ? e : 0);
       }
     },
+  },
+  mounted() {
+    const _this = this;
+    this.options = this.$DataPanel.showData || [];
+		this.$DataPanel.$on('dataPanelSelect', function(data) {
+      _this.options = data;
+		});
   },
 }
 </script>

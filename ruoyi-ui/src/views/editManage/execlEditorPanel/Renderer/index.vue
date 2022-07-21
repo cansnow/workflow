@@ -13,6 +13,7 @@ export default {
   components: { Preview },
   created: function() {
     this.$piniastore.setPreviewData({});
+    console.log('$route', this.$route.query);
     const tempId = this.$route.params.id;
     console.log('id', this.$route.params.id);
     const _this = this;
@@ -22,7 +23,7 @@ export default {
         const sheet = res.data.sheet;
 				if (data instanceof Array && res.code == 200 && data.length > 0) {
 					const index = data.findIndex((item) => item.title == sheet);
-          const temp = { ifPreview: false };
+          const temp = { ifPreview: false, query: _this.$route.query };
           if (index != -1) {
             Object.assign(temp, data[index]);
             _this.$piniastore.setPreviewData(temp);

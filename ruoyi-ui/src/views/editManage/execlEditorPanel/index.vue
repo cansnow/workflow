@@ -634,7 +634,7 @@ export default {
 		})
 	},
 	created:  function() {
-		const tempId = getTemplateId();
+		const tempId = this.$route.params.id || getTemplateId();
 		const _this = this;
 		this.$piniastore.setData(testData);
 		// 编辑
@@ -675,8 +675,8 @@ export default {
 							end: item.end,
 							freezeColumn: item.freezeColumn,
 							freezeRow: item.freezeRow,
-							formList: item.formList,
-							dataList: item.dataList,
+							formList: item.formList || [],
+							dataList: item.dataList || [],
 							dataOptions: item.dataOptions || [],
 						});
 					});
@@ -704,7 +704,15 @@ export default {
 					}
 				});
 		}
-	}
+	},
+	beforeDestroy() {
+		console.log('beforeDestroy');
+		// debugger;
+	},
+	destroyed() {
+		console.log('destroyed');
+		// debugger;
+	},
 };
 </script>
 <style>

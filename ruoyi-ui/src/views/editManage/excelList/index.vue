@@ -163,7 +163,7 @@
 
 <script>
 // TODO 模板接口
-import { templateList, delTemplateById } from '@/api/editManage';
+import { templateList, delTemplateById, addTemplate } from '@/api/editManage';
 
 export default {
   name: 'ExcelList',
@@ -234,22 +234,36 @@ export default {
       this.handleQuery();
     },
     /** 新增按钮操作 */
-    handleAdd() {
-      this.$store.dispatch('setTemplateId', '');
-      // 跳转设计页面
-      this.$router.push({ path:'/design' });
+    async handleAdd() {
+      const temp = {
+				"description": "",
+				"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+				"sheet": "",
+				"status": "0",
+				"title": "",
+				"data": "[{\"freezeColumn\":0,\"freezeRow\":0,\"title\":\"未命名表单\",\"cells\":[]}]",
+			};
+			const res = await addTemplate(temp);
+			if (res.code == 200) {
+        this.$store.dispatch('setTemplateId', res.data.id);
+        // 跳转设计页面
+        this.$router.push({ path:'/design/' + res.data.id });					
+      }
     },
     // 行操作
     /** 修改按钮操作 */
     handleUpdate(row) {
       // 设置修改模板id
+      let id = '';
       if (row.id) {
         this.$store.dispatch('setTemplateId', row.id);
+        id = row.id;
       } else {
         this.$store.dispatch('setTemplateId', this.ids[0]);
+        id = this.ids[0];
       }
       // 跳转设计页面
-      this.$router.push({ path:'/design' });
+      this.$router.push({ path: '/design/' + id });
     },
     /** 删除按钮操作 */
     handleDelete(row) {

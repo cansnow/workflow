@@ -47,7 +47,7 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/design',
+    path: '/design/:id?',
     component: () => import('@/views/editManage/execlEditorPanel/index'),
     hidden: true
   },

@@ -2,24 +2,16 @@
   <div>
     <el-form label-width="80px" label-position="left" size="small">
       <el-form-item label="数据集">
-        <!-- <el-select v-model="title" @change="handleChangeTitle" placeholder="请选择" style="width: 100%">
+        <el-select v-model="title" @change="handleChangeTitle" placeholder="请选择" style="width: 100%">
           <el-option
             v-for="item in options"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
+            :value="item.value"
+          >
+            {{ item.label }}
           </el-option>
-        </el-select> -->
-        <TreeSelect
-            style="width: 100%"
-            :props="treeProps"
-            :options="options"
-            :value="title"
-            :clearable="true"
-            :accordion="true"
-            :ifIcons="true"
-            @getValue="getTreeSelectValue($event)"
-        />
+        </el-select>
       </el-form-item>
       <el-form-item label="字段">
         <el-button type="text" size="medium" @click="handleAddField">
@@ -97,30 +89,13 @@
 <script>
 import Dialog from '../../dialog/index.vue';
 import Transfer from './transfer.vue';
-import { getDBTable } from '@/api/editManage';
-import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
 export default {
-  components: { Dialog, Transfer, TreeSelect },
+  components: { Dialog, Transfer },
   data() {
     return {
       title: '',
       filedList: [],
-      options: [{
-        value: '选项1',
-        label: '黄金糕'
-      }, {
-        value: '选项2',
-        label: '双皮奶'
-      }, {
-        value: '选项3',
-        label: '蚵仔煎'
-      }, {
-        value: '选项4',
-        label: '龙须面'
-      }, {
-        value: '选项5',
-        label: '北京烤鸭'
-      }],
+      options: [],
       selectIndex: -1,
       dialogVisible: false,
       treeProps: {
@@ -136,11 +111,6 @@ export default {
     }
   },
   methods: {
-    getTreeSelectValue(e) {
-        console.log('getTreeSelectValue e',e);
-        this.title = e[0] + '';
-        this.filedList = [];
-    },
     handleClose() {
       this.dialogVisible = false;
     },
@@ -224,23 +194,16 @@ export default {
         this.filedList.splice(this.selectIndex, 1, temp);
       }
     },
-  },
-  mounted() {
-    const _this = this;
-    getDBTable().then((res) => {
-      console.log('res', res);
-      _this.options = res.data;
-      // if (res.code == 200) {
-      //   // res.rows.forEach(() => {});
-      //   _this.options = [];
-      //   _.map(res.rows, item => {
-      //     _this.options.push({
-      //       label: item.tableComment || item.tableName,
-      //       value: item.tableName,
-      //     });
-      //   });
-      // }
-    });
+    setOptions(data) {
+      if (!!data && data instanceof Array && data.length > 0) {
+        this.options = _.map(data, item => {
+          return {
+            value: item.tableName,
+            label: item.resourcename || item.tableName,
+          };
+        });
+      }
+    },
   },
 }
 </script>

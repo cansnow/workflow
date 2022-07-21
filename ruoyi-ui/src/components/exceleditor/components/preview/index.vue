@@ -877,10 +877,20 @@ export default {
       return ifStart;
     },
     async update(state) {
-      console.warn('update');
         this.previewData = state.previewData;
         const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
+        // 自定动态变量
+        if (!!state.previewData.query && Object.keys(state.previewData.query).length > 0) {
+          let index = 4;
+          const _this = this;
+          _.map(state.previewData.query, (value, key) => {
+            _this.constants['key_' + index] = '${' + key + '}';
+            _this.constants['value_' + index] = value;
+            index += 1;
+          });
+        }
+
         const temp = await this.formatCellData(state.previewData.cells, state.previewData.formList);
         
         // start: data.start, 
