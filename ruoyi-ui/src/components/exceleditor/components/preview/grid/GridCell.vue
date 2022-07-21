@@ -59,7 +59,7 @@
 			v-if="cellType == 'time'">
 		</el-date-picker>
 		<el-radio-group v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'radio'" @change="handleChange">
-			<el-radio :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
+			<el-radio :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
 		<el-checkbox-group v-model="checkboxValue" :disabled="!props.option.p.r.w" v-if="cellType == 'checkbox'" @change="handleChange">
 			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
