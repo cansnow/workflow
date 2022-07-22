@@ -190,6 +190,7 @@ export default {
 				start: '', // 开始行列
 				end: '', // 结束行列
 				dataOptions: [], // 数据面板选项
+				pos: 'center',
 			};
 			if (index == -1) {
 				Object.assign(temp, { title: data.title, });
@@ -202,6 +203,7 @@ export default {
 					dataOptions: tempData.dataOptions, // 数据面板选项
 					start: tempData.start, // 开始行列
 					end: tempData.end, // 结束行列
+					pos: tempData.pos, // 渲染布局
 				});
 			}
 			this.$DataPanel.setSelectData(temp.dataOptions);
@@ -281,6 +283,7 @@ export default {
 					start: this.sheetData[sIndex].start,
 					dataOptions: this.sheetData[sIndex].dataOptions, // 数据面板选项
 					end: this.sheetData[sIndex].end,
+					pos: this.sheetData[sIndex].pos,
 				})
 			}
 			return temp;
@@ -653,6 +656,7 @@ export default {
 					dataList: data.dataList.length > 0 ?  data.dataList : temp.dataList,
 					start: data.start == '' ? temp.start : data.start,
 					end: data.end == '' ? temp.end : data.end,
+					pos: data.pos || temp.pos || 'center',
 				});
 				_this.sheetData.splice(index, 1, temp);
 			}
@@ -728,6 +732,7 @@ export default {
 							formList: item.formList || [],
 							dataList: item.dataList || [],
 							dataOptions: item.dataOptions || [],
+							pos: item.pos || 'center',
 						});
 					});
 					_this.$DataPanel.setSelectData(_this.sheetData[0].dataOptions);

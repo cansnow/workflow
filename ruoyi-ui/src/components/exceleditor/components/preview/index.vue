@@ -1,5 +1,5 @@
 <template>
-  <div class="preview">
+  <div class="preview" :style="pos == 'center' ? { width: '60vw' } : ''">
     <div class="preview_title">{{ title }}</div>
     <Sheet
       style="height: calc(100vh - 40px)"
@@ -27,6 +27,7 @@ export default {
       ifPreview: true,
       constants: {},
       dataSetList: [],
+      pos: 'center',
     };
   },
   computed: {
@@ -893,6 +894,8 @@ export default {
           });
         }
 
+        this.pos = state.previewData.pos || 'center';
+
         const temp = await this.formatCellData(state.previewData.cells, state.previewData.formList);
         
         // start: data.start, 
@@ -930,7 +933,7 @@ export default {
 <style lang="scss">
 .preview {
   height: 100vh;
-  width: 60vw;
+  // width: 60vw;
   margin: auto;
   // border: 1px solid #ddd;
 

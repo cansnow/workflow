@@ -1,5 +1,14 @@
 <template>
   <div class="overall">
+    <div class="overall_title">渲染布局</div>
+    <el-form label-width="80px" label-position="left" size="mini">
+      <el-form-item label="布局方向">
+        <el-select v-model="pos" placeholder="请选择">
+          <el-option label="向右" value="right"></el-option>
+          <el-option label="居中" value="center"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
     <!-- 有效区域 -->
     <div class="overall_title">有效区域</div>
     <el-form label-width="80px" label-position="left" size="mini">
@@ -108,6 +117,7 @@ export default {
   },
   data() {
     return {
+      pos: 'center', // 渲染布局方向
       formList: [], // 权限规则
       dataList: [], // 回写规则
       dialogVisible: false,
@@ -178,6 +188,9 @@ export default {
     end() {
       this.$emit('ovserallData', this.getData());
     },
+    pos() {
+      this.$emit('ovserallData', this.getData());
+    },
     dialogVisible(newValue) {
       if (newValue && this.dialogType == 1) {
         this.$nextTick(() => {
@@ -198,6 +211,7 @@ export default {
       this.end = data.end;
       this.freezeColumn = data.freezeColumn;
       this.freezeRow = data.freezeRow;
+      this.pos = data.pos;
     },
     // 获取数据
     getData() {
@@ -206,6 +220,7 @@ export default {
         dataList: this.dataList,
         start: this.start,
         end: this.end,
+        pos: this.pos,
       }
     },
     /** 颠倒数组 */
