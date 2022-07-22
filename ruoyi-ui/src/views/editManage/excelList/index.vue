@@ -163,7 +163,8 @@
 
 <script>
 // TODO 模板接口
-import { templateList, delTemplateById, addTemplate } from '@/api/editManage';
+import { templateList, delTemplateById } from '@/api/editManage';
+import cache from '@/plugins/cache';
 
 export default {
   name: 'ExcelList',
@@ -198,6 +199,15 @@ export default {
   },
   created() {
     this.getList();
+    const matched = [];
+    this.$route.matched.forEach(item => {
+      matched.push({
+        meta: { title: item.meta.title },
+        path: item.path,
+        redirect: item.redirect,
+      });
+    });
+    cache.session.setJSON('DesignMatched', matched);
   },
   methods: {
     /** 查询菜单列表 */
@@ -234,21 +244,24 @@ export default {
       this.handleQuery();
     },
     /** 新增按钮操作 */
-    async handleAdd() {
-      const temp = {
-				"description": "",
-				"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
-				"sheet": "",
-				"status": "0",
-				"title": "",
-				"data": "[{\"freezeColumn\":0,\"freezeRow\":0,\"title\":\"未命名表单\",\"cells\":[]}]",
-			};
-			const res = await addTemplate(temp);
-			if (res.code == 200) {
-        this.$store.dispatch('setTemplateId', res.data.id);
-        // 跳转设计页面
-        this.$router.push({ path:'/design/' + res.data.id });					
-      }
+    handleAdd() {
+      // const temp = {
+			// 	"description": "",
+			// 	"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+			// 	"sheet": "",
+			// 	"status": "0",
+			// 	"title": "",
+			// 	"data": "[{\"freezeColumn\":0,\"freezeRow\":0,\"title\":\"未命名表单\",\"cells\":[]}]",
+			// };
+			// const res = await addTemplate(temp);
+			// if (res.code == 200) {
+      //   this.$store.dispatch('setTemplateId', res.data.id);
+      //   // 跳转设计页面
+      //   this.$router.push({ path:'/design/' + res.data.id });					
+      // }
+      this.$store.dispatch('setTemplateId', '');
+      let url = this.$router.resolve({ path: '/design' });
+      window.open(url.href, '_blank');
     },
     // 行操作
     /** 修改按钮操作 */
@@ -263,7 +276,9 @@ export default {
         id = this.ids[0];
       }
       // 跳转设计页面
-      this.$router.push({ path: '/design/' + id });
+      // this.$router.push({ path: '/design/' + id });
+      let url = this.$router.resolve({ path: '/design/' + id });
+      window.open(url.href, '_blank');
     },
     /** 删除按钮操作 */
     handleDelete(row) {

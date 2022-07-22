@@ -6,11 +6,44 @@
 
 <script>
 import PreviewDiv from '@/components/exceleditor/components/preview/index.vue';
+import { getTemplateInfoById } from '@/api/editManage';
+import cache from '@/plugins/cache';
 
 export default {
   name: 'Preview',
   components: {
     PreviewDiv
   },
+  created: function() {
+    const tempId = this.$route.params.id;
+    const _this = this;
+    this.$piniastore.setPreviewData({});
+    if (tempId) {
+      // 编辑预览
+      getTemplateInfoById(tempId).then((res) => {
+        const data = JSON.parse(res.data.data);
+        const sheet = res.data.sheet;
+				if (data instanceof Array && res.code == 200 && data.length > 0) {
+					const index = data.findIndex((item) => item.title == sheet);
+          const temp = { ifPreview: true, query: _this.$route.query };
+          if (index != -1) {
+            Object.assign(temp, data[index]);
+            _this.$piniastore.setPreviewData(temp);
+          } else {
+            Object.assign(temp, data[0]);
+            _this.$piniastore.setPreviewData(temp);
+          }
+        }
+      });
+    } else {
+      // 新建预览
+      const temp = { ifPreview: true, query: this.$route.query };
+      const cacheData = cache.session.getJSON('PreviewData');
+      if (!!cacheData) {
+        Object.assign(temp, cacheData);
+      }
+      this.$piniastore.setPreviewData(temp);
+    }
+	}
 }
 </script>

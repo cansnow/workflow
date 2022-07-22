@@ -52,7 +52,7 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/Preview',
+    path: '/Preview/:id?',
     component: () => import('@/views/editManage/execlEditorPanel/preview/index'),
     hidden: true
   },

@@ -73,14 +73,12 @@ import Dialog from './src/dialog.vue';
 import ReleaseForm from './src/releaseForm.vue';
 import Preview from './preview/index.vue';
 
-import { mapGetters } from "vuex";
-import { getTemplateId } from '@/utils/auth';
-import cache from '@/plugins/cache'
+import cache from '@/plugins/cache';
 
 import { formatData } from './src/utils';
 
 // Api
-import { addTemplate, updateTemplate, getTemplateInfoById } from '@/api/editManage';
+import { addTemplate, updateTemplate, getTemplateInfoById, delTemplateById } from '@/api/editManage';
 export default {
 	name: 'excelDesign',
 	components: { 
@@ -137,6 +135,8 @@ export default {
 			menusHeigth: 40,
 			showPanel: false,
 			matched: [], // 路由
+			tempId: '', // id
+			ifEdit: false,
 		};
 	},
 	computed: {
@@ -153,7 +153,6 @@ export default {
 		$curSheet: function() {
 			return this.$refs.vspread.getCurSheet()[0];
 		},
-		...mapGetters(["getTemplateId"]),
 	},
 	methods: {
 		handleMenusHeigth(v) {
@@ -290,24 +289,56 @@ export default {
 		saveData() {},
 		/** 预览表单 */
 		handlePreview() {
-			const temp = this.getCurSaveData(this.sheetIndex);
-			Object.assign(temp, { ifPreview: true });
-			this.$piniastore.setPreviewData(temp);
 			// this.$router.push({path:'/home',query: {id:'1'}})
 			// this.$router.push({ path:'/Preview' });
-			this.dialogVisible = true;
-			this.ifPreview = true;
+			// this.dialogVisible = true;
+			// this.ifPreview = true;
+			let url = '';
+			if (!!this.tempId) {
+				url = this.$router.resolve({ path: '/Preview/' + this.tempId });
+			} else {
+				const temp = this.getCurSaveData(this.sheetIndex);
+				Object.assign(temp, { ifPreview: true });
+				// this.$piniastore.setPreviewData(temp);
+				cache.session.setJSON('PreviewData', temp);
+				url = this.$router.resolve({ path: '/Preview' });
+			}
+      window.open(url.href, '_blank');
 		},
 		/** 发布 */
 		handleRelease() {
 			// 编辑
 			this.dialogVisible = true;
-			const tempId = getTemplateId();
-			if (this.getTemplateId || tempId) {
+			if (!!this.tempId) {
 				this.$nextTick(() => {
 					Object.assign(this.updateInfo, { sheet: this.updateInfo.sheet || this.title, title: this.updateInfo.title || this.title });
 					this.$refs.relForm.setData(this.updateInfo);
 				})
+			} else {
+				this.$nextTick(async () => {
+					// 新增
+					const data = []
+					this.$refs.vspread.data.forEach((_, index) => {
+						data.push(this.getCurSaveData(index));
+					});
+					this.updateInfo = {
+						"description": "",
+						"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+						"sheet": this.title,
+						"status": "0",
+						"title": this.title,
+						"data": JSON.stringify(data),
+					};
+					const res = await addTemplate(this.updateInfo);
+					if (res.code == 200) {
+						this.tempId = res.data.id;
+						Object.assign(this.updateInfo, {
+							link: this.updateInfo.link + '/' + res.data.id,
+							id: res.data.id,
+						});						
+					}
+					this.$refs.relForm.setData(this.updateInfo);
+				});
 			}
 			this.sheetTitles = [];
 			this.$refs.vspread.data.forEach((item) => {
@@ -320,6 +351,15 @@ export default {
 				this.ifPreview = false;
 			} else {
 				this.$refs.relForm.resetForm();
+				// 删除记录, 要判断时新增的才删除，编辑不删除
+				if (!!this.tempId && !this.ifEdit) {
+					const _this = this;
+					delTemplateById(this.tempId).then((res) => {
+						if (res.code == 200) {
+              _this.tempId = '';
+            }
+					});
+				}
 			}
 			this.dialogVisible = false;
 		},
@@ -333,8 +373,7 @@ export default {
 			});
 			Object.assign(form, { data: JSON.stringify(data) });
 			// 编辑
-			const tempId = getTemplateId();
-			if (this.getTemplateId || tempId) {
+			if (!!this.tempId) {
 				// 修改
 				updateTemplate(form).then((result) => {
 					console.log('result', result);
@@ -346,7 +385,12 @@ export default {
 				});
 			}
 			this.handleClose();
-			this.$router.go(-1);
+			window.close();
+			// 关闭失败时跳转路径
+			const _this = this;
+			setTimeout(() => {
+				_this.$router.push({ path: '/editManage/excelList' });
+			}, 1000);
 		},
 		//发布
 		postData() {
@@ -365,8 +409,7 @@ export default {
 			// 定时保存
 			this.time = setInterval(() => {
 				console.log('autoSave');
-				const tempId = getTemplateId();
-				if (_this.getTemplateId || tempId) {
+				if (!!_this.tempId) {
 					const form = _this.updateInfo;
 					Object.assign(form, { sheet: _this.title, title: form.title || this.title });
 					let data = [];
@@ -374,12 +417,17 @@ export default {
 						_this.$refs.vspread.data.forEach((_, index) => {
 							data.push(_this.getCurSaveData(index));
 						});
-						Object.assign(form, { data: JSON.stringify(data), id: _this.getTemplateId || tempId });
+						Object.assign(form, { data: JSON.stringify(data), id: _this.tempId });
 						updateTemplate(form).then((result) => {
 							console.log('result', result);
 						});
 					}
-				}
+				} 
+				// else {
+				// 	const temp = _this.getCurSaveData(_this.sheetIndex);
+				// 	Object.assign(temp, { ifPreview: true });
+				// 	cache.session.setJSON('PreviewData', temp);
+				// }
 			}, 1000 * 30);
 		},
 		// 当前单元格
@@ -634,16 +682,18 @@ export default {
 		})
 	},
 	created:  function() {
-		const tempId = this.$route.params.id || getTemplateId();
+		this.tempId = this.$route.params.id;
+		this.ifEdit = !!this.$route.params.id;
+		const tempId = this.$route.params.id;
 		const _this = this;
 		this.$piniastore.setData(testData);
 		// 编辑
-		if (this.getTemplateId || tempId) {
-			getTemplateInfoById(this.getTemplateId || tempId).then((res) => {
+		if (!!tempId) {
+			getTemplateInfoById(tempId).then((res) => {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
 				Object.assign(_this.updateInfo, {
-					link: location && location.origin ? location.origin + '/Renderer/' + (_this.getTemplateId || tempId) : '/Renderer/' + (_this.getTemplateId || tempId),
+					link: location && location.origin ? location.origin + '/Renderer/' + tempId : '/Renderer/' + tempId,
 				});
 				if (data instanceof Array && res.code == 200) {
 					const sheetList = [];
@@ -686,23 +736,23 @@ export default {
 				}
 			});
 		} else {
-			_this.updateInfo = {
-				"description": "",
-				"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
-				"sheet": _this.title,
-				"status": "0",
-				"title": "",
-				"data": ""
-			};
-			addTemplate(_this.updateInfo)
-				.then((res) => {
-					if (res.code == 200) {
-						_this.$store.dispatch('setTemplateId', res.data.id);
-						Object.assign(_this.updateInfo, {
-							link: _this.updateInfo.link + '/' + res.data.id,
-						});						
-					}
-				});
+			// _this.updateInfo = {
+			// 	"description": "",
+			// 	"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+			// 	"sheet": _this.title,
+			// 	"status": "0",
+			// 	"title": "",
+			// 	"data": ""
+			// };
+			// addTemplate(_this.updateInfo)
+			// 	.then((res) => {
+			// 		if (res.code == 200) {
+			// 			_this.$store.dispatch('setTemplateId', res.data.id);
+			// 			Object.assign(_this.updateInfo, {
+			// 				link: _this.updateInfo.link + '/' + res.data.id,
+			// 			});						
+			// 		}
+			// 	});
 		}
 	},
 	beforeDestroy() {

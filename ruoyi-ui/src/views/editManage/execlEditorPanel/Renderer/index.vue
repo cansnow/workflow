@@ -12,10 +12,8 @@ export default {
   name: 'Renderer',
   components: { Preview },
   created: function() {
-    this.$piniastore.setPreviewData({});
-    console.log('$route', this.$route.query);
     const tempId = this.$route.params.id;
-    console.log('id', this.$route.params.id);
+    this.$piniastore.setPreviewData({});
     const _this = this;
     if (tempId) {
       getTemplateInfoById(tempId).then((res) => {
@@ -34,7 +32,6 @@ export default {
         }
       });
     }
-    
 	}
 }
 </script>
