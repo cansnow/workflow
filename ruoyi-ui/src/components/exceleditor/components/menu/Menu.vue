@@ -1,7 +1,7 @@
 <template>
 	<div class="meg-menu">
 		<el-tooltip :content="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name" :hide-after="500">
-			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor'">
+			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor' || name == 'borderColor'">
 				<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
 				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
 				<Colorpick slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
@@ -179,7 +179,7 @@ export default {
 				},
 				borderStyle: {
 					value: 'solid',
-					title:"边框",
+					title:"边框样式",
 					name: 'borderStyle',
 					style: { width: '80px' },
 					options:[
@@ -198,6 +198,28 @@ export default {
 						{
 							label: '虚线',
 							value: 'dashed'
+						},
+					],
+				},
+				borderColor: {
+					icon: 'mdi mdi-border-color',
+					title: '边框颜色',
+					name: 'borderColor',
+					value: '',
+				},
+				borderBold: {
+					value: '1',
+					title:"边框尺寸",
+					name: 'borderBold',
+					style: { width: '80px' },
+					options:[
+						{
+							label: '细线',
+							value: '1'
+						},
+						{
+							label: '粗线线',
+							value: '2'
 						},
 					],
 				},
@@ -386,6 +408,9 @@ export default {
 			const colorTemp = _this.toolbars.color;
 			const borderStyle = _this.toolbars.borderStyle;
 
+			const borderColor = _this.toolbars.borderColor;
+			const borderBold = _this.toolbars.borderBold;
+
 			const valigntop = _this.toolbars.valigntop;
 			const valignmiddle = _this.toolbars.valignmiddle;
 			const valignbottom = _this.toolbars.valignbottom;
@@ -424,6 +449,8 @@ export default {
 			bgColor.value = '';
 			colorTemp.value = '';
 			borderStyle.value = 'solid';
+			borderColor.value = '';
+			borderBold.value = '1';
 			if (!!cell && typeof cell.s != 'undefined') {
 				const style = _this.$sheet.getStyle(cell.s);
 				// 设置字号
@@ -445,6 +472,14 @@ export default {
 				// 设置边框样式
 				if (!!style.option.borderStyle) {
 					borderStyle.value = style.option.borderStyle;
+				}
+				// 设置边框颜色
+				if (!!style.option.borderColor) {
+					borderColor.value = style.option.borderColor;
+				}
+				// 设置边框尺寸
+				if (!!style.option.borderBold) {
+					borderBold.value = style.option.borderBold;
 				}
 				// 设置水平
 				if (!!style.option.textAlign) {
@@ -505,6 +540,8 @@ export default {
 				italic,
 				underline,
 				strikethrough,
+				borderColor,
+				borderBold,
 			});
 		});
 	},
@@ -605,6 +642,12 @@ export default {
 		},
 		color() {
 			this.$sheet.setFillColor(this.toolbars['color'].value);
+		},
+		borderColor() {
+			this.$sheet.setBorderColor(this.toolbars['borderColor'].value);
+		},
+		borderBold() {
+			this.$sheet.setBorderBold(this.toolbars['borderBold'].value);
 		},
 		border() {
 			this.$sheet.setBorder(this.toolbars['border'].value);

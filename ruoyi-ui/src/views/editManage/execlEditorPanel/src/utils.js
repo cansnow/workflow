@@ -28,6 +28,9 @@ export function formatData(data, ifPreview = false) {
     'textAlign',
     'verticalAlign',
     'whiteSpace',
+    'textDel',
+    'borderColor',
+    'borderBold',
   ];
   
   _.each(data, item => {

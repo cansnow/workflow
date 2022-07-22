@@ -97,13 +97,15 @@ function createCss(option) {
   let left = 0;
   let top = 0;
   let borderStyle = option.borderStyle ? option.borderStyle : 'solid';
+  let borderColor = option.borderColor ? option.borderColor : '#000';
+  let borderBold = option.borderBold ? option.borderBold : '1';
   const handlers = {
     textAlign: 'none',
     verticalAlign: 'none',
     whiteSpace: 'none',
     border(borders) {
       _.each(borders, function (pos) {
-        style[`border-${ POS[pos] }`] = '1px ' + borderStyle + ' #000';
+        style[`border-${ POS[pos] }`] = borderBold + 'px ' + borderStyle + ' ' + borderColor;
       });
     },
     fontSize: 'pt',
@@ -119,11 +121,15 @@ function createCss(option) {
     } else if (_.isString(handle)) {
       Object.assign(style, { [key]: value + handle });
     } else {
-      if (key != 'borderStyle') {
-        Object.assign(style, {
-          [key]: value,
-        });
-      }
+      if (
+        key != 'borderStyle' &&
+        key != 'borderColor' &&
+        key != 'borderBold'
+      ) {
+      Object.assign(style, {
+        [key]: value,
+      });
+    }
     }
   });
 

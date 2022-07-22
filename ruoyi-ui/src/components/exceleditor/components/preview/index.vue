@@ -214,6 +214,8 @@ export default {
         'verticalAlign',
         'whiteSpace',
         'textDel',
+        'borderColor',
+        'borderBold',
       ];
       
       _.each(data, (item) => {

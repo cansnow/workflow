@@ -144,32 +144,131 @@ export default {
                 }
                 return cell;
             }).groupBy('s').value();
-
             this.s_setStyle(groupStyle, stylesCount, 'styles', iteratee, (cell, style) => {
                 this.setCellAttribute(cell.pos, cell.options, 's', style.id);
             });
         },
+        s_getTargetPos(pos, type) {
+            const targetPos = {};
+            if (type == 't') {
+                Object.assign(targetPos, pos, { rowIndex: pos.rowIndex - 1 });
+            }
+            if (type == 'b') {
+                Object.assign(targetPos, pos, { rowIndex: pos.rowIndex + 1 });
+            }
+            if (type == 'l') {
+                Object.assign(targetPos, pos, { columnIndex: pos.columnIndex - 1 });
+            }
+            if (type == 'r') {
+                Object.assign(targetPos, pos, { columnIndex: pos.columnIndex + 1 });
+            }
+            return targetPos;
+        },
+        // 去除边框重叠
+        s_removeBorderOverlap(curPos, type) {
+            // 1. 获取上下左右单元格样式 columnIndex rowIndex
+            // 2. 判断是否有边框
+            // 3. 判断是否有重叠
+            // 4. 修改重叠单元样式
+            const types = { t: 'b', b: 't', l: 'r', r: 'l' };
+            const pos = JSON.parse(JSON.stringify(curPos));
+            const style = this.s_ifBorderByType(pos, type);
+            if (!!style) {
+                const option = JSON.parse(JSON.stringify(style.option));
+                option.border = style.option.border.replace(types[type], '');
+                style.setOption(option);
+            }
+        },
+        s_ifBorderByType(pos, type) {
+            const types = { t: 'b', b: 't', l: 'r', r: 'l' };
+            const targetPos = this.s_getTargetPos(pos, type);
+            const cell = this.getPosCell(targetPos);
+            if (!!cell && typeof cell.s != 'undefined') {
+                const cellStyle = this.getStyle(cell.s);
+                if (!!cellStyle.option.border && cellStyle.option.border.indexOf(types[type]) != -1) {
+                    return cellStyle;
+                }
+                return undefined;
+            }
+            return undefined;
+        },
+
+        removeBorder(style, pos) {
+            if (style.option.border.indexOf('t') != -1) {
+                this.s_removeBorderOverlap(pos, 't');
+            }
+            if (style.option.border.indexOf('b') != -1) {
+                this.s_removeBorderOverlap(pos, 'b');
+            }
+            if (style.option.border.indexOf('l') != -1) {
+                this.s_removeBorderOverlap(pos, 'l');
+            }
+            if (style.option.border.indexOf('r') != -1) {
+                this.s_removeBorderOverlap(pos, 'r');
+            }
+
+            if (
+                !!style.option.borderStyle ||
+                !!style.option.borderColor ||
+                !!style.option.borderBold
+            ) {
+                // 设置样式，设置颜色，设置粗细
+                const option = JSON.parse(JSON.stringify(style.option));
+                const topCellStyle = this.s_ifBorderByType(pos, 't');
+                if (!!topCellStyle && style.option.border.indexOf('t') == -1) {
+                    this.s_removeBorderOverlap(pos, 't');
+                    option.border = option.border + 't';
+                }
+                const bottomCellStyle = this.s_ifBorderByType(pos, 'b');
+                if (!!bottomCellStyle && style.option.border.indexOf('b') == -1) {
+                    this.s_removeBorderOverlap(pos, 'b');
+                    option.border = option.border + 'b';
+                }
+                const leftCellStyle = this.s_ifBorderByType(pos, 'l');
+                if (!!leftCellStyle && style.option.border.indexOf('l') == -1) {
+                    this.s_removeBorderOverlap(pos, 'l');
+                    option.border = option.border + 'l';
+                }
+                const rightCellStyle = this.s_ifBorderByType(pos, 'r');
+                if (!!rightCellStyle && style.option.border.indexOf('r') == -1) {
+                    this.s_removeBorderOverlap(pos, 'r');
+                    option.border = option.border + 'r';
+                }
+                style.setOption(option);
+            }
+        },
 
         s_setStyle(groupStyle, stylesCount, type, iteratee, setIteratee) {
             _.each(groupStyle, (cells, sid) => {
-                let oldStyle = this.getStyle(sid, type);
-                let style;
-                if (oldStyle) {
-                    if (stylesCount[sid] == cells.length) {
-                        iteratee(oldStyle);
-                        return;
+                _.each(cells, (cell, index) => {                  
+
+                    let oldStyle = this.getStyle(sid, type);
+                    let style;
+                    if (oldStyle && index == 0) {
+                        if (stylesCount[sid] == cells.length) {
+                            iteratee(oldStyle);
+                            if (!!oldStyle.option.border) {
+                                this.removeBorder(oldStyle, cell.pos);
+                            }
+                            return;
+                        }
+                        style = oldStyle.clone();
+                        iteratee(style);
+                        if (!!oldStyle.option.border) {
+                            this.removeBorder(oldStyle, cell.pos);
+                        }
+                        if (style.equals(oldStyle)) {
+                            return;
+                        }
+                    } else {
+                        style = (new Style(STYLE_CONFIG.styleOptions())).clone();
+                        iteratee(style);
                     }
-                    style = oldStyle.clone();
-                    iteratee(style);
-                    if (style.equals(oldStyle)) {
-                        return;
+                    style = this.addStyle(style, type);
+                    // 判断是否设置边框
+                    if (!!style.option.border) {
+                        this.removeBorder(style, cell.pos);
                     }
-                } else {
-                    style = new Style(STYLE_CONFIG.styleOptions());
-                    iteratee(style);
-                }
-                style = this.addStyle(style, type);
-                _.each(cells, cell => {
                     setIteratee(cell, style);
                 });
             });
@@ -192,7 +291,7 @@ export default {
         },
         addStyle(style, type) {
             type = type || 'styles';
-            const t = this.findStyle(style, type);
+            const t = false; // this.findStyle(style, type);
             if (!t) {
                 this.$set(this[type], style.id, style);
             }

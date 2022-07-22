@@ -196,6 +196,8 @@ export default {
       this.dataList = data.dataList;
       this.start = data.start;
       this.end = data.end;
+      this.freezeColumn = data.freezeColumn;
+      this.freezeRow = data.freezeRow;
     },
     // 获取数据
     getData() {

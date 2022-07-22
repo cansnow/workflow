@@ -12,6 +12,14 @@ export default {
         setBackground(backgroundColor) {
             this.setSelctionExpandStyle({ backgroundColor });
         },
+        // 设置边框颜色
+        setBorderColor(borderColor) {
+            this.setSelctionExpandStyle({ borderColor });
+        },
+        // 设置边框尺寸
+        setBorderBold(borderBold) {
+            this.setSelctionExpandStyle({ borderBold });
+        },
         //设置前景颜色
         setFillColor(color) {
             this.setSelctionExpandStyle({ color });
