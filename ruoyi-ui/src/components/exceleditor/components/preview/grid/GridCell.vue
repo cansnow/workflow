@@ -35,7 +35,12 @@
 		</el-upload>
 		
 		<el-image v-if="cellType == 'image'" :src="value"></el-image>
-		<el-button type="primary" :style="setBtnStyle(cell.style.css)" v-if="cellType == 'button'" @click="handleCellBtnClick" >{{value}}</el-button>
+		<el-button
+            :type="cellProps.t == 'text' ? 'text' : 'primary'"
+            :style="setBtnStyle(cell.style.css)"
+            v-if="cellType == 'button'"
+            @click="handleCellBtnClick"
+        >{{value}}</el-button>
 		<el-date-picker
 			:value="value"
             placement ="bottom"
@@ -137,6 +142,7 @@ export default {
             value: undefined, // 默认值
             options: undefined, // select 组件必须参数
             ifCell: true, // 是否单元格 true 单元格，false 组件
+            cellProps: {},
 		}
 	},
     watch: {
@@ -154,8 +160,9 @@ export default {
     },
     methods: {
         setBtnStyle(style) {
-            const temp = JSON.parse(JSON.stringify(style));
-            if (!!temp.backgroundColor) {
+            const styleTemp = JSON.parse(JSON.stringify(style));
+            const temp = {};
+            if (!!styleTemp.backgroundColor) {
                 Object.assign(temp, { borderColor: style.backgroundColor });
             }
             return temp;
@@ -174,6 +181,7 @@ export default {
                     this.ifCell = this.cellType == 'Cell';
                 }
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
+                this.cellProps = typeof this.cell.option['p'] == 'undefined' ? {} : this.cell.option.p;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
             }
         },
@@ -245,7 +253,12 @@ export default {
         },
         // 点击了单元格按钮
         handleCellBtnClick() {
-            this.$sheet.$emit('clikcCellBtn', this.cell.option);
+            if (this.cellProps.t == 'text' && !!this.cellProps.bl) {
+                window.open(this.cellProps.bl, '_blank');
+            }
+            if (this.cellProps.t != 'text') {
+                this.$sheet.$emit('clikcCellBtn', this.cell.option);
+            }
         },
     },
 };

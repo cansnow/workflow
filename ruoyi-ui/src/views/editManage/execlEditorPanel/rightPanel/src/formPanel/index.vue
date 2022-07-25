@@ -196,6 +196,7 @@ export default {
 				uploadType: 'word', //上传类型
 				buttonType: 'submit',
 				buttonText: '',
+				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
 			},
 			options: [],
@@ -304,6 +305,7 @@ export default {
 						options: [
 							{ label: "提交", value: "submit" },
 							{ label: "重置", value: "reset" },
+							{ label: "超链接", value: "text" },
 						],
 						change: this.change,
 					},
@@ -312,6 +314,18 @@ export default {
 					label: '文本',
 					type: 'input',
 					field: 'buttonText',
+					ifShow: false,
+					props: {
+						placeholder: '请输入',
+						style: { width: '100%' },
+						focus: function() {},
+						change: this.change,
+					},
+				},
+				{
+					label: '超链接地址',
+					type: 'input',
+					field: 'buttonLink',
 					ifShow: false,
 					props: {
 						placeholder: '请输入',
@@ -333,6 +347,9 @@ export default {
 							item.field == 'buttonText'
 						) 
 							item.ifShow = this.form.componentType == 'button';
+						if (item.field == 'buttonLink') {
+							item.ifShow = this.form.buttonType == 'text';
+						}
 						if (item.field == 'formFiled') {
 							item.ifShow = 
 								this.form.componentType == 'upload' || 
@@ -437,6 +454,7 @@ export default {
 				uploadType: 'word', //上传类型
 				buttonType: 'submit',
 				buttonText: '',
+				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
 			};
 		},
@@ -571,6 +589,9 @@ export default {
 							formFiled: typeof data.p.f != 'undefined' ? data.p.f : '',
 						});
 					}
+				}
+				if (temp.componentType == 'button' && temp.buttonType == 'text') {
+					Object.assign(temp, { buttonLink: data.p.bl || '' });
 				}
 				Object.assign(temp, {
 					power: power// rule 权限

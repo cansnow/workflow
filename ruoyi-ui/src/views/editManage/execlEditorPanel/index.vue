@@ -546,7 +546,11 @@ export default {
 					temp.c = data.componentType;
 					temp.v = data.buttonText;
 					if (temp.v == '') {
-						temp.v = data.buttonType == 'submit' ? '提交' : '重置';
+						if (data.buttonType == 'text') {
+							temp.v = data.buttonLink || '超链接';
+						} else {
+							temp.v = data.buttonType == 'submit' ? '提交' : '重置';
+						}
 					}
 					break;
 			}
@@ -603,6 +607,9 @@ export default {
 
 				if (data.componentType == 'button') {
 					Object.assign(props, { t: data.buttonType });
+					if (data.buttonType == 'text') {
+						Object.assign(props, { bl: data.buttonLink });
+					}
 				}
 				Object.assign(temp, { p: props });
 			}
