@@ -143,6 +143,21 @@ export default {
             },
             immediate: true,
         },
+        value: {
+            handler(value) {
+                if (!this.cellType || this.cellType == 'Cell') {
+                    this.$sheet.doEditCell();
+                    const temp = !!this.cell.option ? JSON.parse(JSON.stringify(this.cell.option)) : {};
+                    if (!!this.cellProps && typeof this.cellProps.f != 'undefined') {
+                        Object.assign(this.cellProps, { f: value });
+                    }
+                    Object.assign(temp, { p: this.cellProps });
+                    this.$sheet.doCancelEdit();
+                    this.$sheet.$emit('selectCell');
+                    this.$sheet.doEditCellValue(temp);
+                }
+            },
+        },
     },
     mounted() {
         this.$sheet.$on('on-cellval-change', (data) => {
@@ -201,12 +216,25 @@ export default {
             // this.$sheet.setCellAttribute(pos, text, 'p', p);
             // this.cell.option
             const temp = !!this.cell.option ? JSON.parse(JSON.stringify(this.cell.option)) : {};
-            const value = {
-                c: 'Cell',
-                p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
-                v: text,
+            
+            // 如果是单元格组件
+            if (!!this.cell.option && temp.c) {
+                if (!!temp.p) {
+                    const p = temp.p;
+                    Object.assign(p, { f: text, e: 'none' });
+                    Object.assign(temp, { p });
+                } else {
+                    Object.assign(temp, { p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } } });
+                }
+                Object.assign(temp, { v: text });
+            } else {
+                const value = {
+                    c: 'Cell',
+                    p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
+                    v: text,
+                }
+                Object.assign(temp, value);
             }
-            Object.assign(temp, value);
             this.$sheet.setSelectArea(pos, pos);
             this.$sheet.doEditCell();
             this.$sheet.doCancelEdit();
@@ -252,9 +280,14 @@ export default {
         },
         handleChange(e) {
             this.$sheet.doEditCell();
+            const temp = !!this.cell.option ? JSON.parse(JSON.stringify(this.cell.option)) : {};
+            if (!!this.cellProps && typeof this.cellProps.f != 'undefined') {
+                Object.assign(this.cellProps, { f: e + ''});
+            }
+            Object.assign(temp, { p: this.cellProps, v: e + ''});
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');
-            this.$sheet.doEditCellValue(e + '');
+            this.$sheet.doEditCellValue(temp);
         },
     },
 };

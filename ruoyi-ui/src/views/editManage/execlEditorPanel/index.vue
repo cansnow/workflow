@@ -585,6 +585,13 @@ export default {
 					}
 					Object.assign(props, { ds: data.selectSrc });
 				}
+
+				if (
+					data.componentType == 'input' ||
+					data.componentType == 'select'
+				) {
+					Object.assign(props, { e: data.extendType, f: data.formFiled });
+				}
 				Object.assign(temp, { p: props });
 			}
 			// componentType 是 image button

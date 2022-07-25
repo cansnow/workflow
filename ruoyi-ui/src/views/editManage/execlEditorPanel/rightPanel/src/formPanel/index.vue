@@ -49,7 +49,7 @@
 					<el-input
 							type="text"
 							v-model="form.default"
-							@change="change"
+							@change="defaultChange"
 							placeholder="请输入"
 						/>
 				</el-form-item>
@@ -114,13 +114,23 @@
 						</el-form-item>
 					</template>
 				</template>
-        <el-form-item label="默认值" v-if="form.componentType == 'input' || form.componentType == 'select'">
-          <!-- <el-select v-model="form.default.type" @change="change" placeholder="请选择" style="width: 100%">
-            <el-option label="自定义" value="custom" />
-            <el-option label="公式" value="formula" />
-          </el-select> -->
-          <el-input type="text" v-model="form.default" placeholder="请输入" @change="change" />
-        </el-form-item>
+				<template v-if="form.componentType == 'input' || form.componentType == 'select'">
+					<el-form-item label="默认值">
+						<!-- <el-select v-model="form.default.type" @change="change" placeholder="请选择" style="width: 100%">
+							<el-option label="自定义" value="custom" />
+							<el-option label="公式" value="formula" />
+						</el-select> -->
+						<el-input type="text" v-model="form.default" placeholder="请输入" @change="defaultChange" />
+					</el-form-item>
+
+					<el-form-item label="扩展">
+						<el-select v-model="form.extendType" @change="change" placeholder="请选择" style="width: 100%">
+							<el-option label="无" value="none" />
+							<el-option label="向下" value="bottom" />
+							<el-option label="向右" value="right" />
+						</el-select>
+					</el-form-item>
+				</template>
 
         <el-form-item label="校验">
           <el-col :span="24">
@@ -416,6 +426,10 @@ export default {
 					_this.change();
 				});
     },
+		defaultChange() {
+			Object.assign(this.form, { formFiled: this.form.default });
+			this.change();
+		},
     // 表单信息修改
     change() {
 			this.$rightPanel.formChange(this.form);
@@ -563,6 +577,15 @@ export default {
 						editCondition: data.p.r.r[1],
 					}, // rule 权限
 				});
+				if (
+					temp.componentType == 'input' ||
+					temp.componentType == 'select'
+				) {
+					Object.assign(temp, {
+						extendType: typeof data.p.e != 'undefined' ? data.p.e : 'none',
+						formFiled: temp.default,
+					});
+				}
 				if (temp.componentType == 'upload') {
 					Object.assign(temp, { uploadType: data.p.t });
 				}
@@ -599,7 +622,7 @@ export default {
 			}
 			// Cell 单元格
 			if (temp.componentType == 'Cell') {
-				Object.assign(temp, { default: cellValue, cellFormula, formula });
+				Object.assign(temp, { default: cellValue, cellFormula, formula, formFiled: cellValue });
 			}
 			Object.assign(this.form, temp);
 		},
