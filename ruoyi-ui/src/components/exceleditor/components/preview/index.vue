@@ -280,6 +280,31 @@ export default {
             apiValue: temp.p.apiValue || temp.p.apiLabel,
           });
         }
+        // 判断默认值是否包含变量
+        if (typeof temp.v != 'undefined') {
+          const constant = new RegExp(/\$\{\w*\}/);
+          if(constant.test(temp.v)) { // 有包含变量
+            // 获取判断条件，获取变量
+            let expression = temp.v;
+            _.map(this.constants, (value, key) => {
+              if (key.indexOf('key_') != -1) {
+                // 判断是否包含替换变量
+                if (temp.v.indexOf(value) != -1) {
+                  // 获取值的key
+                  const valueKey = key.replace('key_', 'value_');
+                  // ${USER_ID} == admin => '$userName$ == "admin"';
+                  expression = expression.replaceAll(value, this.constants[valueKey]);
+                }
+              }
+            });
+            // 判断是否有 + - * / 符号
+            const exp = new RegExp(/\+|\-|\*|\//);
+            Object.assign(temp, { v: exp.test(expression) ? expression : expression.replace('=', '') });
+            if (exp.test(expression)) {
+              Object.assign(temp, { fs: exp.test(expression) ? expression.replace('=', '') : '' });
+            }
+          }
+        }
 
         // 获取p.f 变量，替换v
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {

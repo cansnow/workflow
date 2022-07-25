@@ -284,7 +284,10 @@ export default {
 
         setCellValue(pos, val) {
             this.c_addCell(pos.rowIndex, pos.columnIndex);
-            if (!_.isPlainObject(val) && _.$isFormula(val)) {
+            // 判断是否变量相加减
+            const constant = new RegExp(/\$\{\w*\}/);
+            console.log('val', constant.test(val));
+            if (!_.isPlainObject(val) && _.$isFormula(val) && !constant.test(val)) {
                 this.setCellFormula(pos, val);
                 this.computedCellFormula(pos);
             } else {

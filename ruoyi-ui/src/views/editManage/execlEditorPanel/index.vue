@@ -367,7 +367,7 @@ export default {
 			this.dialogVisible = false;
 		},
 		/** 确定发布 */
-		handleIsOk() {
+		async handleIsOk() {
 			clearInterval(this.time); // 清空定时器
 			const form = this.$refs.relForm.getFormData();
 			const data = [];
@@ -378,14 +378,12 @@ export default {
 			// 编辑
 			if (!!this.tempId) {
 				// 修改
-				updateTemplate(form).then((result) => {
-					console.log('result', result);
-				});
+				await updateTemplate(form);
 			} else {
 				// 新增
-				addTemplate(form).then((result) => {
-					console.log('result', result);
-				});
+				// addTemplate(form).then((result) => {
+				// 	console.log('result', result);
+				// });
 			}
 			this.handleClose();
 			window.close();

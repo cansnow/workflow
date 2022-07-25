@@ -3,7 +3,7 @@
     <div class="overall_title">渲染布局</div>
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="布局方向">
-        <el-select v-model="pos" placeholder="请选择">
+        <el-select v-model="pos" placeholder="请选择" @change="handlePosChenge">
           <el-option label="向右" value="right"></el-option>
           <el-option label="居中" value="center"></el-option>
         </el-select>
@@ -188,9 +188,6 @@ export default {
     end() {
       this.$emit('ovserallData', this.getData());
     },
-    pos() {
-      this.$emit('ovserallData', this.getData());
-    },
     dialogVisible(newValue) {
       if (newValue && this.dialogType == 1) {
         this.$nextTick(() => {
@@ -200,6 +197,11 @@ export default {
     },
   },
   methods: {
+    // 修改布局方向
+    handlePosChenge(e) {
+      // console.log('this.pos', this.pos, e);
+      this.$emit('ovserallData', this.getData());
+    },
     // 设置数据
     setData(data) {
       this.formList = _.map(data.formList, item => {

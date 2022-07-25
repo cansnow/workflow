@@ -12,6 +12,9 @@ export default {
         this.formulaGraph = new FormulaGraph();
         this.initFormula();
     },
+    updated() {
+        this.initFormula();
+    },
     methods: {
 
         initFormula() {
