@@ -297,13 +297,13 @@ export default {
 			// this.dialogVisible = true;
 			// this.ifPreview = true;
 			let url = '';
+			const temp = this.getCurSaveData(this.sheetIndex);
+			Object.assign(temp, { ifPreview: true });
+			// this.$piniastore.setPreviewData(temp);
+			cache.session.setJSON('PreviewData', temp);
 			if (!!this.tempId) {
 				url = this.$router.resolve({ path: '/Preview/' + this.tempId });
 			} else {
-				const temp = this.getCurSaveData(this.sheetIndex);
-				Object.assign(temp, { ifPreview: true });
-				// this.$piniastore.setPreviewData(temp);
-				cache.session.setJSON('PreviewData', temp);
 				url = this.$router.resolve({ path: '/Preview' });
 			}
       window.open(url.href, '_blank');
