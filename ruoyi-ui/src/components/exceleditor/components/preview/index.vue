@@ -29,6 +29,7 @@ export default {
       dataSetList: [],
       pos: 'center',
       cellFormData: [],// 单元格回写规则
+      extendInfo: {}, // 扩展信息记录
     };
   },
   computed: {
@@ -558,6 +559,20 @@ export default {
       // 设置扩展
       if (extendList.length > 0) {
         console.log('extendList', extendList);
+        // 扩展行列记录
+        // {
+        //   column: {
+        //     0: {
+        //       count: 25,
+        //       record: [
+        //         {
+        //           startRow: 0,
+        //           count: 25
+        //         }
+        //       ],
+        //     }
+        //   },
+        // }
         const extendInfo = {
           column: {}, // 列
           row: {},
@@ -572,8 +587,8 @@ export default {
           const len = valueList.length; // 长度
           // 获取填充数据
           const tempList = [];
-          const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex];
-          const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex];
+          const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex].count;
+          const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex].count;
           let tempListIndexValue = '';
           _.map(valueList, (value, index) => {
             if (index != 0) {
@@ -611,9 +626,9 @@ export default {
             }
           });
 
-          const temp = JSON.parse(JSON.stringify(cells[rowIndex][columnIndex]));
+          const temp = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
           Object.assign(temp, { v: tempListIndexValue + '' });
-          cells[rowIndex].splice(columnIndex, 1, temp);
+          cells[cellRowIndex].splice(cellColumnIndex, 1, temp);
 
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
@@ -621,10 +636,24 @@ export default {
               let posBom = cellRowIndex + 1; //cellRowIndex + 1;
               // 记录位置
               if (typeof extendInfo.column[columnIndex] == 'undefined') {
-                extendInfo.column[columnIndex] = len - 1;
+                // extendInfo.column[columnIndex] = len - 1;
+                extendInfo.column[columnIndex] = {
+                  count: len - 1,
+                  record: [
+                    {
+                      startRow: rowIndex,
+                      count: len - 1,
+                    }
+                  ],
+                }
               } else {
                 // posBom += extendInfo.column[columnIndex]; // 将前面加过的位置加上
-                extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
+                // extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
+                extendInfo.column[columnIndex].count += len - 1;
+                extendInfo.column[columnIndex].record.push({
+                  startRow: rowIndex,
+                  count: len - 1,
+                });
               }
               const tempReplace = []; // 记录替换的数据，后面加回去
               _.map(tempList, (item, index) => {
@@ -712,10 +741,26 @@ export default {
               let pos = columnIndex + 1; // columnIndex + 1;
               // 记录位置
               if (typeof extendInfo.row[rowIndex] == 'undefined') {
-                extendInfo.row[rowIndex] = len - 1;
+                // extendInfo.row[rowIndex] = len - 1;
+                extendInfo.row[rowIndex] = {
+                  count: len - 1,
+                  record: [
+                    {
+                      startCol: columnIndex,
+                      count: len - 1,
+                    }
+                  ],
+                }
               } else {
-                pos += extendInfo.row[rowIndex]; // 将前面加过的位置加上
-                extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
+                // pos += extendInfo.row[rowIndex]; // 将前面加过的位置加上
+                pos += extendInfo.row[rowIndex].count;
+                // extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
+                extendInfo.row[rowIndex].count += len - 1;
+                extendInfo.row[rowIndex].record.push({
+                  startCol: columnIndex,
+                  count: len - 1,
+                });
+                
               }
               if (!!cells[cellRowIndex]) {
                 cells[cellRowIndex].splice(pos, 0, ...tempList);
@@ -731,6 +776,9 @@ export default {
             }
           }
         }
+
+        // console.warn('extendInfo', extendInfo);
+        this.extendInfo = extendInfo;
       }
 
       return {
@@ -803,7 +851,11 @@ export default {
             const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
             if (comparison[0] != -1) {
               // 判断是否生效规则
-              ifStart = this.comparison(value, comparison[0], comparison[1]);
+              ifStart = this.comparison(
+                index == 0 ? value : comparison[1],
+                comparison[0],
+                index == 0 ? comparison[1] : value
+              );
             }
           }
         }
@@ -852,6 +904,15 @@ export default {
           maxColumnCount: columnIndex || 200,
           freezeColumn: state.previewData.freezeColumn, // 冻结行列
           freezeRow: state.previewData.freezeRow, // 冻结行列
+        });
+        // 对cells做处理，超出结束行列的cell要清空掉
+        _.map(temp.cells, (item, key) => {
+          if (parseInt(key) > parseInt(rowIndex)) {
+            delete temp.cells[key];
+          }
+          if (item.length > parseInt(columnIndex)) {
+            item.splice(parseInt(columnIndex), item.length);
+          }
         });
         Object.assign(tempData, temp);
         this.data = tempData;
