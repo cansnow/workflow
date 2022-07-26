@@ -14,7 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData } from '@/api/editManage';
+import { saveFormData, getDBData, updateFormData } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -103,6 +103,7 @@ export default {
         });
         if (!ifOK) {
           _this.$modal.msgError('有必填项未填写，请填写！！！');
+          return;
         }
         if (_this.previewData.dataList && _this.previewData.dataList.length > 0 && ifOK) {
           const dataList = _this.previewData.dataList;
@@ -173,9 +174,42 @@ export default {
             _this.$modal.msgSuccess('提交成功！！！');
           });
         }
+
+        // 单元格回写规则
+        if (_this.cellFormData.length > 0) {
+          const data = [];
+          const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
+            const fileds = _.chain(item).map(field => {
+              const cell = _this.$curSheet.getPosCell(field.pos);
+              return Object.assign({}, field, { value: cell.v });
+            }).groupBy('id').map((value, id) => {
+              const fileds = _.map(value, val => {
+                return {
+                  fieldName: val.field,
+                  fieldValue: val.value,
+                }
+              })
+              return {
+                idName: 'id',
+                idValue: id,
+                table: table,
+                fields: fileds,
+              }
+            }).value();
+            data.push(...fileds);
+            return fileds;
+          }).value();
+          console.log('temp', temp);
+          console.log('data', data);
+          updateFormData(data).then((res) => {
+            console.log('updateFormData', res);
+            _this.$modal.msgSuccess('提交成功！！！');
+          });
+        }
       } else {
         // 重置
         _this.update(_this.$piniastore.$state);
+        _this.cellFormData = [];
       }
     });
   },

@@ -17,6 +17,32 @@ export function getDBData(query) {
 }
 
 /**
+ * 回写删除接口
+ * @param {*} data
+ * @returns 
+ */
+ export function deleteFormData(data) {
+  return request({
+    url: '/workflow/template/deleteFormData',
+    method: 'delete',
+    data: data
+  })
+}
+
+/**
+ * 回写更新接口
+ * @param {*} data 
+ * @returns 
+ */
+ export function updateFormData(data) {
+  return request({
+    url: '/workflow/template/updateFormData',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
  * 回写提交接口
  * @param {*} data 
  * @returns 
