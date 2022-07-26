@@ -412,12 +412,17 @@ export default {
             }
           }
           // 设置显示隐藏
-          if (typeof temp.p != 'undefined' && !temp.p.r.s) {
+          if (
+            typeof temp.p != 'undefined' &&
+            typeof temp.p.r != 'undefined' &&
+            !temp.p.r.s
+          ) {
             cells[pos].push(null);
           } else {
             cells[pos].push(temp);
           }
         }
+
         /** 组装样式 */
         if (typeof(item.s) != 'undefined') {
           if(typeof(styles[item.s]) == 'undefined') {

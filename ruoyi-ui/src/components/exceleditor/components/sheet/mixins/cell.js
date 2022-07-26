@@ -392,6 +392,17 @@ export default {
                     ) {
                         this.computedFormatCell(pos, val);
                     } else {
+                        // 清空格式值
+                        if (typeof(cell.fcv) != 'undefined') {
+                            delete cell['fcv'];
+                        }
+                        if (typeof cell.p != 'undefined') {
+                            const p = cell.p;
+                            p.f = val;
+                            Object.assign(cell, { p });
+                        } else {
+                            Object.assign(cell, { p: { f: val, e: 'none', r: { r: ['', ''], s: true, w: true } } });
+                        }
                         if (cell.v !== val) {
                             cell.v = val;
                             this.$emit('on-cellval-change', {
@@ -399,17 +410,14 @@ export default {
                                 cell,
                             });
                         }
-                        // 清空格式值
-                        if (typeof(cell.fcv) != 'undefined') {
-                            delete cell['fcv'];
-                        }
                     }
                 } else {
                     Object.keys(cell).forEach(item => {
                         delete cell[item];
                     });
                     Object.assign(cell, val);
-                    if (typeof(val.v) != 'undefined' && _.$isFormula(val.v)) {
+                    const constant = new RegExp(/\$\{\w*\}/);
+                    if (typeof(val.v) != 'undefined' && _.$isFormula(val.v) && !constant.test(val.v)) {
                         this.setCellFormula(pos, val.v);
                         this.computedCellFormula(pos);
                     } else {

@@ -7,7 +7,7 @@
         @dragleave="handleDragleave"
         @contextmenu.prevent="showMenu"
         @dblclick="doEdit"
-        :style="cell.style.css"
+        :style="gridcellStyle(cell.style.css)"
     >   
         <div
             @keydown.enter.stop="() => {}"
@@ -163,9 +163,40 @@ export default {
             const styleTemp = JSON.parse(JSON.stringify(style));
             const temp = {};
             if (!!styleTemp.backgroundColor) {
-                Object.assign(temp, { borderColor: style.backgroundColor });
+                Object.assign(temp, { borderColor: style.backgroundColor, backgroundColor: style.backgroundColor });
             }
             return temp;
+        },
+        // 单元格样式
+        gridcellStyle(cellStyle) {
+            const css = JSON.parse(JSON.stringify(cellStyle));
+            const pos = {
+                columnIndex: this.cell.columnIndex,
+                rowIndex: this.cell.rowIndex,
+            };
+            if (typeof css['border-left'] != 'undefined') {
+                const temp = this.$sheet.getPosCell(Object.assign({}, pos, { columnIndex : pos.columnIndex - 1}));
+                console.log('temp', temp);
+                if (!!temp && typeof temp.s != 'undefined') {
+                    const style = this.$sheet.getStyle(temp.s);
+                    if (!!style.option.border && style.option.border.indexOf('r') != -1) {
+                        // debugger;
+                        delete css['border-left'];
+                    }
+                }
+            }
+            if (typeof css['border-top'] != 'undefined') {
+                const temp = this.$sheet.getPosCell(Object.assign({}, pos, { rowIndex : pos.rowIndex - 1}));
+                console.log('temp', temp);
+                if (!!temp && typeof temp.s != 'undefined') {
+                    const style = this.$sheet.getStyle(temp.s);
+                    if (!!style.option.border && style.option.border.indexOf('b') != -1) {
+                        // debugger;
+                        delete css['border-top'];
+                    }
+                }
+            }
+            return css;
         },
         handlePreview(){},
         handleRemove(){},

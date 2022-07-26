@@ -143,21 +143,6 @@ export default {
             },
             immediate: true,
         },
-        value: {
-            handler(value) {
-                if (!this.cellType || this.cellType == 'Cell') {
-                    this.$sheet.doEditCell();
-                    const temp = !!this.cell.option ? JSON.parse(JSON.stringify(this.cell.option)) : {};
-                    if (!!this.cellProps && typeof this.cellProps.f != 'undefined') {
-                        Object.assign(this.cellProps, { f: value });
-                    }
-                    Object.assign(temp, { p: this.cellProps });
-                    this.$sheet.doCancelEdit();
-                    this.$sheet.$emit('selectCell');
-                    this.$sheet.doEditCellValue(temp);
-                }
-            },
-        },
     },
     mounted() {
         this.$sheet.$on('on-cellval-change', (data) => {
@@ -169,7 +154,7 @@ export default {
             const styleTemp = JSON.parse(JSON.stringify(style));
             const temp = {};
             if (!!styleTemp.backgroundColor) {
-                Object.assign(temp, { borderColor: style.backgroundColor });
+                Object.assign(temp, { borderColor: style.backgroundColor, backgroundColor: style.backgroundColor });
             }
             return temp;
         },

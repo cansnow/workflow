@@ -108,7 +108,7 @@ export default {
                         }
                     });
                     if (ifDelProps) {
-                        Object.assign(temp, { v: undefined });
+                        Object.assign(temp, { v: undefined, c: 'Cell' });
                         this.doEditCell();
                         this.doCancelEdit();
                         this.$emit('selectCell');
