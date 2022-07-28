@@ -14,7 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData, updateFormData } from '@/api/editManage';
+import { saveFormData, getDBData, updateFormData, fileList } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -40,6 +40,7 @@ export default {
   },
   async mounted() {
     const _this = this;
+    await fileList();
     // 获取数据集
     const res = await getDBData({ table: 'lang' });
     const constants = _.map(res.data.constants, (item, key) => {
@@ -213,6 +214,54 @@ export default {
         _this.cellFormData = [];
       }
     });
+
+    this.$curSheet.$on('clikcCellLink', function(link) {
+      const cells = link.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+      let linkTemp = link;
+      if (cells.length > 0) {
+        _.map(cells, item => {
+          const str = item.replaceAll(/\$|\{|\}/g, '');
+          if (str.indexOf(':') == -1) {
+            const pos = _this.formatData(str);
+            const cell = _this.$curSheet.getPosCell(pos);
+            cell.v; // 字段值
+            linkTemp = linkTemp.replace(item, cell.v);
+          } else {
+            const strList = str.split(':');
+            const start = _this.formatData(strList[0]);
+            const end = _this.formatData(strList[1]);
+            const values = [];
+            for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+              for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                const cell = _this.$curSheet.getPosCell({ rowIndex: i, columnIndex: j });
+                if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                  values.push(cell.v);
+                }
+              }
+            }
+            linkTemp = linkTemp.replace(item, values);
+          }
+        });
+      }
+      // 变量取值
+      const constant = new RegExp(/\$\{\w*\}/);
+      if(constant.test(linkTemp)) { // 有包含变量
+        // 获取判断条件，获取变量
+        _.map(_this.constants, (value, key) => {
+          if (key.indexOf('key_') != -1) {
+            // 判断是否包含替换变量
+            if (linkTemp.indexOf(value) != -1) {
+              // 获取值的key
+              const valueKey = key.replace('key_', 'value_');
+              // ${USER_ID} == admin => '$userName$ == "admin"';
+              linkTemp = linkTemp.replaceAll(value, _this.constants[valueKey]);
+            }
+          }
+        });
+      }
+      window.open(linkTemp, '_blank');
+    });
+
   },
   methods: {
     async formatCellData(data, formList) {
@@ -232,6 +281,9 @@ export default {
 
       // 选项值信息
       const selectOptionInfo = [];
+
+      // 单元格超链接扩展记录
+      const cellLinks = {};
 
       let pos = -1;
 
@@ -342,7 +394,7 @@ export default {
           }
         }
 
-        // 获取p.f 变量，替换v
+        // 获取p.f 变量，替换v, 记录扩展
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {
           console.log('temp', temp);
           console.log('temp.p.f', temp.p.f);
@@ -350,7 +402,8 @@ export default {
           console.log('fList', fList);
           const itemPost = item.pos;
           if (fList[0] == 'dataSetList') {
-            extendList.push({
+            // 记录超链接属性，用于扩展
+            const extend = {
               c: temp.c,
               pos: itemPost, // 位置信息
               fieldInfo: temp.p.f, // 变量信息
@@ -358,7 +411,23 @@ export default {
               field: fList[2], // 变量
               extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
               merges: typeof(item.merges) != 'undefined', // 是否合并
-            });
+            };
+            // 单元格超链接属性
+            if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
+              Object.assign(extend, {
+                ct: temp.p.ct,
+                cl: temp.p.cl || '',
+              });
+              if (!!temp.p.cl) {
+                const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+                if (!!fields && fields.length > 0) {
+                  cellLinks[itemPost.start.rowIndex  + '' + itemPost.start.columnIndex] = {
+                    fields,
+                  };
+                }
+              }
+            }
+            extendList.push(extend);
           }
         }
         // 设置禁用
@@ -556,6 +625,43 @@ export default {
         }
       }
 
+      // 单元格超链接扩展取值
+      if (Object.keys(cellLinks).length > 0) {
+        _.map(cellLinks, (item, key) => {
+          const posList = _.map(item.fields, field => {
+            const pos = field.replaceAll(/\$|\{|\}/g, '');
+            const temp = {
+              start: {},
+              end: {},
+              only: true,
+            };
+            if (pos.indexOf(':') != -1) {
+              const cells = pos.split(':');
+              Object.assign(temp, {
+                start: this.formatData(cells[0]),
+                end: this.formatData(cells[1]),
+                only: false,
+              });
+            } else {
+              const cellPos = this.formatData(pos);
+              Object.assign(temp, {
+                start: cellPos,
+                end: cellPos,
+              });
+            }
+            if (temp.only) {
+              const cell = cells[temp.start.rowIndex][temp.start.columnIndex];
+              if (!!cell && !!cell.p && !!cell.p.e) {
+                Object.assign(temp, { e: cell.p.e });
+              }
+            }
+            return temp;
+          });
+          Object.assign(cellLinks[key], { posList });
+        });
+        console.log('cellLinks', cellLinks);
+      }
+
       // 设置扩展
       if (extendList.length > 0) {
         console.log('extendList', extendList);
@@ -594,6 +700,29 @@ export default {
             if (index != 0) {
               const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
               Object.assign(template, { v: value[item.field]});
+              // 判断是否超链接单元格
+              if (!!item.ct && typeof cellLinks[rowIndex + '' + columnIndex] != 'undefined') {
+                const cellLink = cellLinks[rowIndex + '' + columnIndex];
+                const p = template.p;
+                let link = p.cl;
+                if (cellLink.posList.length > 0) {
+                  _.map(cellLink.posList, (pos, Pindex) => {
+                    // _.$Number2ABC(columnIndex)
+                    // 单个单元格扩展
+                    if (pos.only) {
+                      if (pos.e != 'bottom') {
+                        const col = _.$Number2ABC(pos.start.columnIndex + index + 1);
+                        link = link.replace(cellLink.fields[Pindex], '${' + col + pos.start.rowIndex + '}');
+                      } else {
+                        const col = _.$Number2ABC(pos.start.columnIndex);
+                        link = link.replace(cellLink.fields[Pindex], '${' + col + (pos.start.rowIndex + index + 1) + '}');
+                      }
+                    }
+                  });
+                }
+                Object.assign(p, { cl: link });
+                Object.assign(template, { p });
+              }
               tempList.push(template);
             } else {
               tempListIndexValue = value[item.field];
@@ -733,7 +862,6 @@ export default {
                   }
                 }
               });
-
             }
           }
           if (item.extendType == 'right') {

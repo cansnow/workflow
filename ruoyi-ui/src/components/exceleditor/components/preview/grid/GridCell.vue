@@ -21,13 +21,16 @@
 		<el-upload
 			v-if="cellType == 'upload'"
 			class="upload-demo"
-			action="https://jsonplaceholder.typicode.com/posts/"
+			:action="uploadFileUrl"
 			:on-preview="handlePreview"
             :disabled="!props.option.p.r.w"
 			:on-remove="handleRemove"
 			:before-remove="beforeRemove"
+            :headers="headers"
+            name="uploadFile"
+            :data="{ type: 1, name: 'jhjj'}"
 			multiple
-			:limit="3"
+			:limit="5"
 			:on-exceed="handleExceed"
 			:file-list="fileList">
 		  <el-button size="small" type="primary">点击上传</el-button>
@@ -106,8 +109,14 @@
             :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
             v-if="!cellType"
         >
-            <del v-if="!!cell.style.css.textDel">{{ formatValue(cell) }}</del>
-            <template v-else>{{ formatValue(cell) }}</template>
+            <del v-if="!!cell.style.css.textDel">
+                <el-button v-if="cellProps.ct == 'Link'" type="text" @click="handleCellLink" >{{ formatValue(cell) }}</el-button>
+                <template v-else >{{ formatValue(cell) }}</template>
+            </del>
+            <template v-else>
+                <el-button v-if="cellProps.ct == 'Link'" type="text" @click="handleCellLink" >{{ formatValue(cell) }}</el-button>
+                <template v-else >{{ formatValue(cell) }}</template>
+            </template>
         </div>
 		<div 
             class="meg-cellval" 
@@ -115,8 +124,14 @@
             :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
             v-if="cellType == 'Cell'"
         >
-            <del v-if="!!cell.style.css.textDel">{{ value }}</del>
-            <template v-else>{{ value }}</template>
+            <del v-if="!!cell.style.css.textDel">
+                <el-button v-if="cellProps.ct == 'Link'" type="text" @click="handleCellLink" >{{ value }}</el-button>
+                <template v-else >{{ value }}</template>
+            </del>
+            <template v-else>
+                <el-button v-if="cellProps.ct == 'Link'" type="text" @click="handleCellLink" >{{ value }}</el-button>
+                <template v-else >{{ value }}</template>
+            </template>
         </div>
     </div>
 </template>
@@ -125,6 +140,7 @@
 import { getCellValue } from '../mixins/cell/cellUtil';
 import TreeSelect from '../../treeSelect/index.vue';
 import TreeSelectMultiple from '../../treeSelect/treeSelectMultiple.vue';
+import { getToken } from "@/utils/auth";
 
 export default {
     inject: ['$sheet'],
@@ -143,6 +159,10 @@ export default {
             options: undefined, // select 组件必须参数
             ifCell: true, // 是否单元格 true 单元格，false 组件
             cellProps: {},
+            uploadFileUrl: process.env.VUE_APP_BASE_API + "/workflow/fileInfo/upload", // 上传的图片服务器地址
+            headers: {
+                Authorization: "Bearer " + getToken(),
+            },
 		}
 	},
     watch: {
@@ -291,6 +311,10 @@ export default {
                 this.$sheet.$emit('clikcCellBtn', this.cell.option);
             }
         },
+        // 点击了单元格超链接
+        handleCellLink() {
+            this.$sheet.$emit('clikcCellLink', this.cellProps.cl || '');
+        }
     },
 };
 </script>

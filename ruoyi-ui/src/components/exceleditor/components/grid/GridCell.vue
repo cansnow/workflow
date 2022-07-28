@@ -97,8 +97,14 @@
             :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
             v-if="!cellType"
         >
-            <del v-if="!!cell.style.css.textDel">{{ formatValue(cell) }}</del>
-            <template v-else>{{ formatValue(cell) }}</template>
+            <del v-if="!!cell.style.css.textDel">
+                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
+                <template v-else >{{ formatValue(cell) }}</template>
+            </del>
+            <template v-else>
+                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
+                <template v-else >{{ formatValue(cell) }}</template>
+            </template>
         </div>
 		<div 
             class="meg-cellval" 
@@ -106,8 +112,14 @@
             :style="!!cell.style.css.textDecoration && cell.style.css.textDecoration == 'underline' ? { textDecoration: 'underline' } : {}" 
             v-if="cellType == 'Cell'"
         >
-            <del v-if="!!cell.style.css.textDel">{{ value }}</del>
-            <template v-else>{{ value }}</template>
+            <del v-if="!!cell.style.css.textDel">
+                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
+                <template v-else >{{ value }}</template>
+            </del>
+            <template v-else>
+                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
+                <template v-else >{{ value }}</template>
+            </template>
         </div>
     </div>
 </template>
@@ -207,15 +219,22 @@ export default {
                 if (!!temp.p) {
                     const p = temp.p;
                     Object.assign(p, { f: text, e: 'none' });
+                    if (temp.c == 'Cell') {
+                        Object.assign(p, { ct: 'Cell', cl: '' });
+                    }
                     Object.assign(temp, { p });
                 } else {
-                    Object.assign(temp, { p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } } });
+                    const p = { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } };
+                    if (temp.c == 'Cell') {
+                        Object.assign(p, { ct: 'Cell', cl: '' });
+                    }
+                    Object.assign(temp, { p });
                 }
                 Object.assign(temp, { v: text });
             } else {
                 const value = {
                     c: 'Cell',
-                    p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
+                    p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true }, ct: 'Cell', cl: '' },
                     v: text,
                 }
                 Object.assign(temp, value);

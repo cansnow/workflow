@@ -47,11 +47,11 @@
 			<template v-if="form.componentType == 'Cell'">
 				<el-form-item label="默认值">
 					<el-input
-							type="text"
-							v-model="form.default"
-							@change="defaultChange"
-							placeholder="请输入"
-						/>
+						type="text"
+						v-model="form.default"
+						@change="defaultChange"
+						placeholder="请输入"
+					/>
 				</el-form-item>
 				<el-form-item label="扩展">
 					<el-select v-model="form.extendType" @change="change" placeholder="请选择" style="width: 100%">
@@ -60,6 +60,21 @@
 						<el-option label="向右" value="right" />
 					</el-select>
 				</el-form-item>
+				<el-form-item label="超链接">
+					<el-select v-model="form.cellType" @change="change" placeholder="请选择" style="width: 100%">
+						<el-option label="否" value="Cell" />
+						<el-option label="是" value="Link" />
+					</el-select>
+				</el-form-item>
+				<!-- 是超链接 -->
+				<el-form-item label="超链接地址" v-if="form.cellType == 'Link'">
+					<el-input
+						type="text"
+						v-model="form.cellLink"
+						@change="change"
+						placeholder="请输入"
+					/>
+				</el-form-item>
 			</template>
       <!-- 为单元格 没有上传图片 -->
       <template v-if="form.componentType != 'Cell'">
@@ -67,8 +82,11 @@
         <el-form-item label="请选择图片" v-if="form.componentType == 'image'">
           <el-upload
             class="avatar-uploader"
-            action="https://jsonplaceholder.typicode.com/posts/"
+            :action="uploadFileUrl"
+						:headers="headers"
             :show-file-list="false"
+						name="uploadFile"
+            :data="{ type: 1 }"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload">
             <img v-if="form.imageUrl" :src="form.imageUrl" class="avatar">
@@ -169,6 +187,7 @@
 import Radio from './src/radio.vue';
 import TreeSelect from '@/components/exceleditor/components/treeSelect/index.vue';
 import { getTableFieldByName, getDBData } from '@/api/editManage';
+import { getToken } from "@/utils/auth";
 export default {
   inject: ['$rightPanel'],
 	components: { TreeSelect },
@@ -178,6 +197,8 @@ export default {
 				componentType: 'Cell',
 				cellValue: '',
 				cellFormula: false,
+				cellType: 'Cell',
+				cellLink: '',
 				formula: '',
 				power: {
 					ifShow: true,
@@ -215,7 +236,11 @@ export default {
         value:'id',             // ID字段名
         label: 'resourcename',         // 显示名称
         children: 'children'    // 子级字段名
-      }
+      },
+			uploadFileUrl: process.env.VUE_APP_BASE_API + "/workflow/fileInfo/upload", // 上传的图片服务器地址
+			headers: {
+					Authorization: "Bearer " + getToken(),
+			},
     };
   },
   computed: {
@@ -440,6 +465,8 @@ export default {
 				componentType: 'Cell',
 				cellValue: '',
 				cellFormula: false,
+				cellType: 'Cell',
+				cellLink: '',
 				formula: '',
 				power: {
 					ifShow: true,
@@ -474,19 +501,20 @@ export default {
 		},
     // 上传成功
     handleAvatarSuccess(res, file) {
+			console.warn('handleAvatarSuccess', res, file);
 			this.form.imageUrl = URL.createObjectURL(file.raw);
 			this.change();
 		},
     // 开始上传
 		beforeAvatarUpload(file) {
 			const isJPG = file.type === 'image/jpeg';
-			const isLt2M = file.size / 1024 / 1024 < 2;
+			const isLt2M = file.size / 1024 / 1024 < 1;
 
 			if (!isJPG) {
-				console.error('上传头像图片只能是 JPG 格式!');
+				console.error('上传图片只能是 JPG 格式!');
 			}
 			if (!isLt2M) {
-				console.error('上传头像图片大小不能超过 2MB!');
+				console.error('上传图片大小不能超过 1MB!');
 			}
 			return isJPG && isLt2M;
 		},
@@ -607,9 +635,15 @@ export default {
 						editCondition: data.p.r.r[1],
 					});
 					if (temp.componentType == 'Cell') {
+						// 单元格扩展
 						Object.assign(temp, { 
 							extendType: typeof data.p.e != 'undefined' ? data.p.e : 'none',
 							formFiled: typeof data.p.f != 'undefined' ? data.p.f : '',
+						});
+						// 单元格超链接
+						Object.assign(temp, { 
+							cellType: typeof data.p.ct != 'undefined' ? data.p.ct : 'Cell',
+							cellLink: typeof data.p.cl != 'undefined' ? data.p.cl : '',
 						});
 					}
 				}

@@ -1,6 +1,19 @@
 import request from '@/utils/request';
 
 /**
+ * 获取文件列表
+ * @param {*} query 
+ * @returns 
+ */
+ export function fileList(query) {
+  return request({
+    url: '/workflow/fileInfo/list',
+    method: 'get',
+    params: query
+  })
+}
+
+/**
  * 获取数据集
  * @returns 数据集
  */

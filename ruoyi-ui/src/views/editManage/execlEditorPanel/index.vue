@@ -607,9 +607,12 @@ export default {
 								w: true,
 						}, // rule 权限
 				};
-				// 单元格扩展
+				// 单元格
 				if (data.componentType == 'Cell') {
+					// 扩展
 					Object.assign(props, { e: data.extendType, f: data.formFiled });
+					// 超链接 ct 单元格类型 cl 单元格超链接
+					Object.assign(props, { ct: data.cellType, cl: data.cellLink });
 				}
 
 				if (data.componentType == 'button') {
@@ -692,10 +695,41 @@ export default {
 
 		this.$refs.vspread.$on('handlePreview', function() {
 			_this.handlePreview();
-		})
+		});
+
 		this.$refs.vspread.$on('handleRelease', function() {
 			_this.handleRelease();
-		})
+		});
+
+		this.$refs.vspread.$on('handleSave', async function() {
+			const data = []
+			_this.$refs.vspread.data.forEach((_, index) => {
+				data.push(_this.getCurSaveData(index));
+			});
+			if (!!_this.tempId) {
+				Object.assign(_this.updateInfo, { data: JSON.stringify(data) });
+				// 修改
+				await updateTemplate(_this.updateInfo);
+			} else {
+				_this.updateInfo = {
+					"description": "",
+					"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+					"sheet": _this.title,
+					"status": "0",
+					"title": _this.title,
+					"data": JSON.stringify(data),
+				};
+				const res = await addTemplate(_this.updateInfo);
+				if (res.code == 200) {
+					_this.tempId = res.data.id;
+					Object.assign(_this.updateInfo, {
+						link: _this.updateInfo.link + '/' + res.data.id,
+						id: res.data.id,
+					});						
+				}
+			}
+		});
+
 	},
 	created:  function() {
 		this.tempId = this.$route.params.id;

@@ -183,7 +183,7 @@ export default {
             const text = event.dataTransfer.getData("Text");
             const value = {
                 c: 'Cell',
-                p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } },
+                p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true }, ct: 'Cell', cl: '' },
                 v: text,
             }
             this.$sheet.setSelectArea(pos, pos);

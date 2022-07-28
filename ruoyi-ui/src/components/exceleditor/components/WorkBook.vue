@@ -3,8 +3,8 @@
         <div style="display: flex; align-items: center;">
             <Menus v-if="menu" class="meg-workbook-menu" ref="menus" style="max-width: 100%; flex: 1; flex-wrap: wrap; height: auto; min-height: 40px;"/>
             <div class="meg-workbook-btn">
+                <el-button type="default" size="small" @click="handleSave">保存</el-button>
                 <el-button type="primary" size="small" @click="handlePreview">预览</el-button>
-                <!-- <el-button type="default" @click="viewData">查看代码</el-button> -->
                 <el-button  type="default" size="small" @click="handleRelease">发布</el-button>
             </div>
         </div>
@@ -99,6 +99,9 @@ export default {
     methods: {
         handlePreview() {
             this.$emit('handlePreview');
+        },
+        handleSave() {
+            this.$emit('handleSave');
         },
         handleRelease() {
             this.$emit('handleRelease');
