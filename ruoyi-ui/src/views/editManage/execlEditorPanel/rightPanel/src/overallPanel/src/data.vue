@@ -20,7 +20,20 @@
       </el-form-item>
     </el-form>
     <!-- 表格 -->
-    <el-table :data="filedList" v-if="filedList.length > 0">
+    <el-table
+      v-if="filedList.length > 0"
+      :data="filedList"
+    >
+      <el-table-column 
+        prop="key"
+        label="主键" 
+        width="55"
+        align="center"
+      >
+        <template slot-scope="scope">
+          <el-checkbox v-model="scope.row.key" />
+        </template>
+      </el-table-column>
       <el-table-column
         prop="filed"
         label="字段"
@@ -102,7 +115,8 @@ export default {
         value:'tableName',             // ID字段名
         label: 'resourcename',         // 显示名称
         children: 'children'    // 子级字段名
-      }
+      },
+      index: -1, // 是否新增，-1新增
     };
   },
   computed: {
@@ -115,15 +129,19 @@ export default {
       this.dialogVisible = false;
     },
     handleIsOk() {
-      this.filedList = [];
+      // this.filedList = [];
       const temp = this.$transfer.getCheckList();
       _.map(temp, item => {
-        this.filedList.push({
-          filed: item,
-          type: 'cell',
-          value: '',
-          ifClick: false,
-        });
+        const index = this.filedList.findIndex(f => f.filed == item);
+        if (index == -1) {
+          this.filedList.push({
+            filed: item,
+            type: 'cell',
+            value: '',
+            ifClick: false,
+            key: false,
+          });
+        }
       });
       this.handleClose();
     },
@@ -139,6 +157,14 @@ export default {
         return;
       }
       this.dialogVisible = true;
+      this.$nextTick(() => {
+        if (this.filedList.length > 0) {
+          const data = _.map(this.filedList, item => item.filed);
+          this.$transfer.setCheckList(data);
+        } else {
+          this.$transfer.setCheckList([]);
+        }
+      });
     },
     /** 选中表 */
     handleChangeTitle(e) {
@@ -150,12 +176,20 @@ export default {
       return {
         title: this.title,
         filedList: this.filedList,
+        index: this.index,
+        disabled: false,
       };
     },
     /** 重置数据 */
     resetData() {
       this.title = '';
       this.filedList = [];
+      this.index = -1;
+    },
+    setFieldData(data) {
+      this.index = data.index;
+      this.title = data.title;
+      this.filedList = data.filedList;
     },
     /** 变更值类型 */
     handleChangeType() {

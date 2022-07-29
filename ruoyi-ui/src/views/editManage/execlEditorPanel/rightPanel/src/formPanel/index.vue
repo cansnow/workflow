@@ -89,7 +89,7 @@
             :data="{ type: 1 }"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload">
-            <img v-if="form.imageUrl" :src="form.imageUrl" class="avatar">
+            <img v-if="form.imageUrl" :src="form.imageUrl | getImgUrl" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -243,6 +243,12 @@ export default {
 			},
     };
   },
+	filters: {
+			getImgUrl(value) {
+					const url = location && location.origin ? location.origin + '/uploads' + value : '/uploads' + value;
+					return url;
+			}
+	},
   computed: {
 		// 表单配置项
 		formConfig: function() {
@@ -502,7 +508,7 @@ export default {
     // 上传成功
     handleAvatarSuccess(res, file) {
 			console.warn('handleAvatarSuccess', res, file);
-			this.form.imageUrl = URL.createObjectURL(file.raw);
+			this.form.imageUrl = res.fileInfo.filePath;//URL.createObjectURL(file.raw);
 			this.change();
 		},
     // 开始上传

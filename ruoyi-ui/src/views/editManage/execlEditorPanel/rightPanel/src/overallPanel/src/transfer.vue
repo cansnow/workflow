@@ -72,17 +72,6 @@ export default {
                 disabled: false,
               });
             });
-            // if (res.code == 200) {
-            //   _this.data = [];
-            //   _this.checkList = [];
-            //   _.map(res.rows, item => {
-            //     _this.data.push({
-            //       label: item.columnComment || item.columnName,
-            //       value: item.columnName,
-            //       disabled: false,
-            //     });
-            //   });
-            // }
           });
       },
     },
@@ -105,17 +94,6 @@ export default {
               disabled: false,
             });
           });
-          if (res.code == 200) {
-            // _this.data = [];
-            // _this.checkList = [];
-            // _.map(res.rows, item => {
-            //   _this.data.push({
-            //     label: item.columnComment || item.columnName,
-            //     value: item.columnName,
-            //     disabled: false,
-            //   });
-            // });
-          }
         });
     },
     /** 查询 */
@@ -134,6 +112,10 @@ export default {
     /** 获取全部已选 */
     getCheckList() {
       return this.checkList;
+    },
+    // 设置勾选项
+    setCheckList(data) {
+      this.checkList = data;
     },
   },
 }

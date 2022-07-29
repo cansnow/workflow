@@ -73,10 +73,13 @@
         <div v-for="(dItem, index) in dataList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
           <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.title }}</span>
           <div>
-            <el-button type="text" @click="handleSort">
+            <el-button type="text" :disabled="dItem.disabled" @click="() => handleEditData(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled" @click="handleSort">
               <i class="mdi mdi-sort"></i>
             </el-button>
-            <el-button type="text" @click="() => handleDelData(index)">
+            <el-button type="text" :disabled="dItem.disabled" @click="() => handleDelData(index)">
               <i class="mdi mdi-close"></i>
             </el-button>
           </div>
@@ -241,6 +244,9 @@ export default {
         }
       } else {
         this.$refs.Data.resetData();
+        this.dataList = _.map(this.dataList, item => {
+          return Object.assign({}, item, { disabled: false });
+        });
       }
       this.dialogVisible = false;
       this.$emit('ovserallData', this.getData());
@@ -250,14 +256,18 @@ export default {
       if (this.dialogType == 0) {
         const form = this.$refs.form.getFormData();
         if (form.index == -1) {
-          this.formList.push(this.$refs.form.getFormData());
+          this.formList.push(form);
         } else {
           Object.assign(form, { disabled: false });
           this.formList.splice(form.index, 1, form);
         }
       } else {
         const data = this.$refs.Data.getFieldData();
-        this.dataList.push(data);
+        if (data.index == -1) {
+          this.dataList.push(data);
+        } else {
+          this.dataList.splice(data.index, 1, data);
+        }
       }
       this.handleClose();
     },
@@ -273,6 +283,17 @@ export default {
     handleDel(index) {
       this.formList.splice(index, 1);
       this.$emit('ovserallData', this.getData());
+    },
+    // 编辑回写规则
+    handleEditData(index) {
+      this.open(1);
+      this.$nextTick(() => {
+        const temp = this.dataList[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.Data.setFieldData(temp);
+        this.dataList.splice(index, 1, temp);
+        this.title = '编辑回写规则';
+      });
     },
     /** 删除回写规则 */
     handleDelData(index) {
