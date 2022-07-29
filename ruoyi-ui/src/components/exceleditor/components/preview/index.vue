@@ -355,7 +355,29 @@ export default {
 
   },
   methods: {
-    async formatCellData(data, formList) {
+    // 判断是否在有效区域内
+    inRangeInside(range, pos) {
+      if (!!range.start) {
+        const start = this.formatData(range.start);
+        if (pos.columnIndex < start.columnIndex) {
+          return false;
+        }
+        if (pos.rowIndex < start.rowIndex) {
+          return false;
+        }
+      }
+      if (!!range.end) {
+        const end = this.formatData(range.end);
+        if (pos.columnIndex > end.columnIndex) {
+          return false;
+        }
+        if (pos.rowIndex > end.rowIndex) {
+          return false;
+        }
+      }
+      return true;
+    },
+    async formatCellData(data, formList, Range) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -429,6 +451,8 @@ export default {
         }
         /** 单元格信息 */
         pos = item.pos.start.rowIndex;
+        // 是否在有效区域内
+        const inRangeInside = this.inRangeInside(Range, item.pos.start);
         let temp = {};
         // 将 s fs f v c p
         cellPro.forEach(pItem => {
@@ -452,15 +476,19 @@ export default {
           (typeof temp.p.apiLabel != 'undefined' || typeof temp.p.apiValue != 'undefined') &&
           (!!temp.p.apiLabel || !!temp.p.apiValue)
         ) {
-          selectOptionInfo.push({
-            pos: item.pos, // 位置信息
-            field: temp.p.api, // 变量
-            apiLabel: temp.p.apiLabel || temp.p.apiValue,
-            apiValue: temp.p.apiValue || temp.p.apiLabel,
-          });
+          // 判断范围
+          if (inRangeInside) {
+            selectOptionInfo.push({
+              pos: item.pos, // 位置信息
+              field: temp.p.api, // 变量
+              apiLabel: temp.p.apiLabel || temp.p.apiValue,
+              apiValue: temp.p.apiValue || temp.p.apiLabel,
+            });
+          }
         }
+        // 判断范围
         // 判断默认值是否包含变量
-        if (typeof temp.v != 'undefined') {
+        if (typeof temp.v != 'undefined' && inRangeInside) {
           const constant = new RegExp(/\$\{\w*\}/);
           if(constant.test(temp.v)) { // 有包含变量
             // 获取判断条件，获取变量
@@ -484,9 +512,9 @@ export default {
             }
           }
         }
-
+        // 判断范围
         // 获取p.f 变量，替换v, 记录扩展
-        if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined') {
+        if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined' && inRangeInside) {
           console.log('temp', temp);
           console.log('temp.p.f', temp.p.f);
           const fList = temp.p.f.split('.');
@@ -1098,12 +1126,16 @@ export default {
 
         this.pos = state.previewData.pos || 'center';
 
-        const temp = await this.formatCellData(state.previewData.cells, state.previewData.formList);
+        const temp = await this.formatCellData(
+          state.previewData.cells,
+          state.previewData.formList,
+          { end: state.previewData.end, start: state.previewData.start || 'A1' }
+        );
         
         // start: data.start, 
         let columnIndex = null;
         let rowIndex = null;
-        if (state.previewData.end) {
+        if (state.previewData.end && false) {
           columnIndex = state.previewData.end.replace(/[^a-zA-Z]/g,'');
           rowIndex = state.previewData.end.replace(/[^0-9]/g,'');
           columnIndex = _.$ABC2Number(columnIndex) + 1;
@@ -1125,14 +1157,14 @@ export default {
           freezeRow: state.previewData.freezeRow, // 冻结行列
         });
         // 对cells做处理，超出结束行列的cell要清空掉
-        _.map(temp.cells, (item, key) => {
-          if (parseInt(key) > parseInt(rowIndex)) {
-            delete temp.cells[key];
-          }
-          if (item.length > parseInt(columnIndex)) {
-            item.splice(parseInt(columnIndex), item.length);
-          }
-        });
+        // _.map(temp.cells, (item, key) => {
+        //   if (parseInt(key) > parseInt(rowIndex)) {
+        //     delete temp.cells[key];
+        //   }
+        //   if (item.length > parseInt(columnIndex)) {
+        //     item.splice(parseInt(columnIndex), item.length);
+        //   }
+        // });
         Object.assign(tempData, temp);
         this.data = tempData;
         this.title = tempData.title || 'sheet';
