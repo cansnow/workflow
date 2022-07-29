@@ -37,7 +37,7 @@
 		  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
 		</el-upload>
 		
-		<el-image v-if="cellType == 'image'" :src="value"></el-image>
+		<el-image v-if="cellType == 'image'" :src="value | getImgUrl"></el-image>
 		<el-button
             :type="cellProps.t == 'text' ? 'text' : 'primary'"
             :style="setBtnStyle(cell.style.css)"
@@ -146,6 +146,12 @@ export default {
     inject: ['$sheet'],
     props: {
         cell: Object,
+    },
+    filters: {
+        getImgUrl(value) {
+            const url = location && location.origin ? location.origin + '/uploads' + value : '/uploads' + value;
+            return url;
+        }
     },
     components: { TreeSelect, TreeSelectMultiple },
 	data(){
