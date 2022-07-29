@@ -548,6 +548,8 @@ export default {
 					if (temp.v == '') {
 						if (data.buttonType == 'text') {
 							temp.v = data.buttonLink || '超链接';
+						} else if (data.buttonType == 'delete') {
+							temp.v = '删除';
 						} else {
 							temp.v = data.buttonType == 'submit' ? '提交' : '重置';
 						}

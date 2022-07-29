@@ -347,6 +347,7 @@ export default {
 							{ label: "提交", value: "submit" },
 							{ label: "重置", value: "reset" },
 							{ label: "超链接", value: "text" },
+							{ label: "删除", value: "delete" },
 						],
 						change: this.change,
 					},

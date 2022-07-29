@@ -13,6 +13,10 @@
           </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="是否删除">
+        <el-radio v-model="ifDel" label="1">是</el-radio>
+        <el-radio v-model="ifDel" label="0">否</el-radio>
+      </el-form-item>
       <el-form-item label="字段">
         <el-button type="text" size="medium" @click="handleAddField">
           <i class="mdi mdi-plus"></i>
@@ -107,6 +111,7 @@ export default {
   data() {
     return {
       title: '',
+      ifDel: '0',
       filedList: [],
       options: [],
       selectIndex: -1,
@@ -175,6 +180,7 @@ export default {
     getFieldData() {
       return {
         title: this.title,
+        ifDel: this.ifDel,
         filedList: this.filedList,
         index: this.index,
         disabled: false,
@@ -185,9 +191,11 @@ export default {
       this.title = '';
       this.filedList = [];
       this.index = -1;
+      this.ifDel = '0';
     },
     setFieldData(data) {
       this.index = data.index;
+      this.ifDel = data.ifDel || '0';
       this.title = data.title;
       this.filedList = data.filedList;
     },

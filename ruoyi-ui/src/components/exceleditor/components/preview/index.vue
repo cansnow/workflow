@@ -78,227 +78,357 @@ export default {
       }
       console.log('clickCellBtn', res);
       console.log('_this.previewData.dataList', _this.previewData.dataList);
-      // 提交数据
-      if (res.p.t == 'submit') {
-        // 根据回写规则提交数据
-        // 表单校验
-        // _this.$curSheet.cells
-        let ifOK = true;
-        _.each(_this.$curSheet.cells, (cell, key) => {
-          _.each(cell, (col, index) => {
-            if (
-              !!col &&
-              typeof col.c != 'undefined' &&
-              col.c != 'Cell' &&
-              col.c != 'image' &&
-              col.c != 'button'
-            ) {
-              if (col.p.vd.r && col.p.r.w && col.p.r.s) {
-                if (!col.v) {
-                  console.log('pos', key, index);
-                  ifOK = false;
-                  return;
-                }
-              }
-            }
-          })
-        });
-        if (!ifOK) {
-          _this.$modal.msgError('有必填项未填写，请填写！！！');
-          return;
-        }
-        if (_this.previewData.dataList && _this.previewData.dataList.length > 0 && ifOK) {
-          const dataList = _this.previewData.dataList;
-          const responseData = [];
-          _.map(dataList, (item, index) => {
-            const temp = { table: item.title };
-            if (item.filedList && item.filedList.length > 0) {
-              const fields = _.map(item.filedList, fObj => {
-                let fieldValue = '';
-                if (fObj.type == 'cell') {
-                  // 字段位置
-                  let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
-                  let rowIndex = fObj.value.replace(/[^0-9]/g,'');
-                  columnIndex = _.$ABC2Number(columnIndex);
-                  rowIndex = rowIndex - 1;
-                  const pos = { rowIndex, columnIndex };
-                  const cell = _this.$curSheet.getPosCell(pos);
-                  // 1. 判断是否扩展
-                  // 2. 获取扩展方向
-                  // 3. 判断是否被顶出去
-                  // 4. 获取扩展后的集合
-                  // 5. 封装成数据
-
-                  if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
-                    if (cell.p.e == 'bottom') {
-                      // 向下扩展
-                      const extend = _this.extendInfo.column[columnIndex];
-                      const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                      if (index != -1) {
-                        const record = extend.record[index];
-                        // 循环获取数据
-                        const values = [];
-                        for (let i = 0; i < record.count + 1; i++) {
-                          // 向下取行
-                          const pos = { rowIndex: rowIndex + i, columnIndex };
-                          const cell = _this.$curSheet.getPosCell(pos);
-                          values.push(cell.v);
-                        }
-                        fieldValue = values; // 获取扩展集合数据
-                      }
-                    } else {
-                      // 向右扩展
-                      const extend = _this.extendInfo.row[rowIndex];
-                      const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                      if (index != -1) {
-                        const record = extend.record[index];
-                        // 循环获取数据
-                        const values = [];
-                        for (let i = 0; i < record.count + 1; i++) {
-                          // 向下取行
-                          const pos = { rowIndex, columnIndex: columnIndex + i };
-                          const cell = _this.$curSheet.getPosCell(pos);
-                          values.push(cell.v);
-                        }
-                        fieldValue = values; // 获取扩展集合数据
-                      }
-                    }
-                  } else {
-                    fieldValue = cell.v; // 字段值
+      // 提交删除数据
+      if (res.p.t == 'submit' || res.p.t == 'delete') {
+        // 提交
+        if (res.p.t == 'submit') {
+          // 根据回写规则提交数据
+          // 表单校验
+          // _this.$curSheet.cells
+          let ifOK = true;
+          _.each(_this.$curSheet.cells, (cell, key) => {
+            _.each(cell, (col, index) => {
+              if (
+                !!col &&
+                typeof col.c != 'undefined' &&
+                col.c != 'Cell' &&
+                col.c != 'image' &&
+                col.c != 'button'
+              ) {
+                if (col.p.vd.r && col.p.r.w && col.p.r.s) {
+                  if (!col.v) {
+                    console.log('pos', key, index);
+                    ifOK = false;
+                    return;
                   }
                 }
-                // 固定值
-                if (fObj.type == 'value') {
-                  fieldValue = fObj.value;
-                }
-                // 参数 parameter
-                if (fObj.type == 'parameter') {
-                  let valueKey = '';
-                  _.map(_this.constants, (value, key) => {
-                    if (key.indexOf('key_') != -1) {
-                      // 判断是否包含替换变量
-                      if (fObj.value.indexOf(value) != -1) {
-                        // 获取值的key
-                        valueKey = key.replace('key_', 'value_');
+              }
+            })
+          });
+          if (!ifOK) {
+            _this.$modal.msgError('有必填项未填写，请填写！！！');
+            return;
+          }
+          if (_this.previewData.dataList && _this.previewData.dataList.length > 0 && ifOK) {
+            const dataList = _this.previewData.dataList;
+            const responseData = [];
+            _.map(dataList, (item, index) => {
+              if (!item.ifDel || item.ifDel != '1') {
+                const temp = { table: item.title };
+                if (item.filedList && item.filedList.length > 0) {
+                  const fields = _.map(item.filedList, fObj => {
+                    let fieldValue = '';
+                    if (fObj.type == 'cell') {
+                      // 字段位置
+                      let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                      let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                      columnIndex = _.$ABC2Number(columnIndex);
+                      rowIndex = rowIndex - 1;
+                      const pos = { rowIndex, columnIndex };
+                      const cell = _this.$curSheet.getPosCell(pos);
+                      // 1. 判断是否扩展
+                      // 2. 获取扩展方向
+                      // 3. 判断是否被顶出去
+                      // 4. 获取扩展后的集合
+                      // 5. 封装成数据
+  
+                      if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                        if (cell.p.e == 'bottom') {
+                          // 向下扩展
+                          const extend = _this.extendInfo.column[columnIndex];
+                          const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                          if (index != -1) {
+                            const record = extend.record[index];
+                            // 循环获取数据
+                            const values = [];
+                            for (let i = 0; i < record.count + 1; i++) {
+                              // 向下取行
+                              const pos = { rowIndex: rowIndex + i, columnIndex };
+                              const cell = _this.$curSheet.getPosCell(pos);
+                              values.push(cell.v);
+                            }
+                            fieldValue = values; // 获取扩展集合数据
+                          }
+                        } else {
+                          // 向右扩展
+                          const extend = _this.extendInfo.row[rowIndex];
+                          const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                          if (index != -1) {
+                            const record = extend.record[index];
+                            // 循环获取数据
+                            const values = [];
+                            for (let i = 0; i < record.count + 1; i++) {
+                              // 向下取行
+                              const pos = { rowIndex, columnIndex: columnIndex + i };
+                              const cell = _this.$curSheet.getPosCell(pos);
+                              values.push(cell.v);
+                            }
+                            fieldValue = values; // 获取扩展集合数据
+                          }
+                        }
+                      } else {
+                        fieldValue = cell.v; // 字段值
                       }
                     }
-                  });
-                  fieldValue = _this.constants[valueKey] || '';
-                }
-  
-                return {
-                  fieldName: fObj.filed, // 字段名
-                  fieldValue, // 字段值
-                  ifExtend: fieldValue instanceof Array, // 是否扩展
-                };
-              });
-              // 判断是否有主键，有主键为修改，无主键为新增
-              const ifKey = item.filedList.findIndex(filed => filed.key);
-              if (ifKey != -1) {
-                const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
-                Object.assign(temp, { ifKey: true, keys });
-              }
-              const ifExtend = fields.findIndex(field => field.ifExtend);
-              if (ifExtend != -1) {
-                // 有扩展
-                _.map(fields[ifExtend].fieldValue, (fv, fi) => {
-                  const fieldsTemp = _.map(fields, fTemp => {
-                    if (fTemp.ifExtend) {
-                      return {
-                        fieldName: fTemp.fieldName,
-                        fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
-                      };
-                    } else {
-                      return {
-                        fieldName: fTemp.fieldName,
-                        fieldValue: fTemp.fieldValue,
-                      };
+                    // 固定值
+                    if (fObj.type == 'value') {
+                      fieldValue = fObj.value;
                     }
+                    // 参数 parameter
+                    if (fObj.type == 'parameter') {
+                      let valueKey = '';
+                      _.map(_this.constants, (value, key) => {
+                        if (key.indexOf('key_') != -1) {
+                          // 判断是否包含替换变量
+                          if (fObj.value.indexOf(value) != -1) {
+                            // 获取值的key
+                            valueKey = key.replace('key_', 'value_');
+                          }
+                        }
+                      });
+                      fieldValue = _this.constants[valueKey] || '';
+                    }
+      
+                    return {
+                      fieldName: fObj.filed, // 字段名
+                      fieldValue, // 字段值
+                      ifExtend: fieldValue instanceof Array, // 是否扩展
+                    };
                   });
-                  Object.assign(temp, { fields: fieldsTemp });
-                  console.log('temp', temp);
-                  responseData.push(JSON.parse(JSON.stringify(temp)));
-                });
-              } else {
-                Object.assign(temp, { fields });
-                console.log('temp', temp);
-                responseData.push(temp);
+                  // 判断是否有主键，有主键为修改，无主键为新增
+                  const ifKey = item.filedList.findIndex(filed => filed.key);
+                  if (ifKey != -1) {
+                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                    Object.assign(temp, { ifKey: true, keys });
+                  }
+                  const ifExtend = fields.findIndex(field => field.ifExtend);
+                  if (ifExtend != -1) {
+                    // 有扩展
+                    _.map(fields[ifExtend].fieldValue, (fv, fi) => {
+                      const fieldsTemp = _.map(fields, fTemp => {
+                        if (fTemp.ifExtend) {
+                          return {
+                            fieldName: fTemp.fieldName,
+                            fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
+                          };
+                        } else {
+                          return {
+                            fieldName: fTemp.fieldName,
+                            fieldValue: fTemp.fieldValue,
+                          };
+                        }
+                      });
+                      Object.assign(temp, { fields: fieldsTemp });
+                      console.log('temp', temp);
+                      responseData.push(JSON.parse(JSON.stringify(temp)));
+                    });
+                  } else {
+                    Object.assign(temp, { fields });
+                    console.log('temp', temp);
+                    responseData.push(temp);
+                  }
+                }
               }
-            }            
-          });
-          const resData = {};
-          const updateData = [];
-          _.map(responseData, item => {
-            if (!!item.ifKey) {
-              const index = item.fields.findIndex(f => f.fieldName == item.keys.length > 0 ? item.keys[0] : item.fields[0].fieldName );
-              updateData.push({
-                idName: item.fields[index != -1 ? index : 0].fieldName,
-                idValue: item.fields[index != -1 ? index : 0].fieldValue,
-                table: item.table,
-                fields: item.fields,
-              })
-              
-            } else {
-              if (typeof resData[item.table] == 'undefined') {
-                const temp = [];
-                temp.push(item.fields);
-                resData[item.table] = temp;
-              } else {
-                resData[item.table].push(item.fields);
-              }
-            }
-          });
-          const data = _.map(resData, (item, key) => {
-            return {
-              table: key,
-              fields: item,
-            }
-          });
-          if (data.length > 0) {
-            await saveFormData(data).then((res) => {
-              console.log('saveFormData', res);
-              _this.$modal.msgSuccess('提交成功！！！');
             });
+            const resData = {};
+            const updateData = [];
+            _.map(responseData, item => {
+              if (!!item.ifKey) {
+                const index = item.fields.findIndex(f => f.fieldName == item.keys.length > 0 ? item.keys[0] : item.fields[0].fieldName );
+                updateData.push({
+                  idName: item.fields[index != -1 ? index : 0].fieldName,
+                  idValue: item.fields[index != -1 ? index : 0].fieldValue,
+                  table: item.table,
+                  fields: item.fields,
+                })
+                
+              } else {
+                if (typeof resData[item.table] == 'undefined') {
+                  const temp = [];
+                  temp.push(item.fields);
+                  resData[item.table] = temp;
+                } else {
+                  resData[item.table].push(item.fields);
+                }
+              }
+            });
+            const data = _.map(resData, (item, key) => {
+              return {
+                table: key,
+                fields: item,
+              }
+            });
+            if (data.length > 0) {
+              await saveFormData(data).then((res) => {
+                console.log('saveFormData', res);
+                _this.$modal.msgSuccess('提交成功！！！');
+              });
+            }
+            if (updateData.length > 0) {
+              await updateFormData(updateData).then((res) => {
+                console.log('updateFormData', res);
+                _this.$modal.msgSuccess('提交成功！！！');
+              });
+            }
           }
-          if (updateData.length > 0) {
-            await updateFormData(updateData).then((res) => {
+          // 单元格回写规则
+          if (_this.cellFormData.length > 0 && false) {
+            const data = [];
+            const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
+              const fileds = _.chain(item).map(field => {
+                const cell = _this.$curSheet.getPosCell(field.pos);
+                return Object.assign({}, field, { value: cell.v });
+              }).groupBy('id').map((value, id) => {
+                const fileds = _.map(value, val => {
+                  return {
+                    fieldName: val.field,
+                    fieldValue: val.value,
+                  }
+                })
+                return {
+                  idName: 'id',
+                  idValue: id,
+                  table: table,
+                  fields: fileds,
+                }
+              }).value();
+              data.push(...fileds);
+              return fileds;
+            }).value();
+            console.log('temp', temp);
+            console.log('data', data);
+            updateFormData(data).then((res) => {
               console.log('updateFormData', res);
               _this.$modal.msgSuccess('提交成功！！！');
             });
           }
         }
-
-        // 单元格回写规则
-        if (_this.cellFormData.length > 0 && false) {
-          const data = [];
-          const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
-            const fileds = _.chain(item).map(field => {
-              const cell = _this.$curSheet.getPosCell(field.pos);
-              return Object.assign({}, field, { value: cell.v });
-            }).groupBy('id').map((value, id) => {
-              const fileds = _.map(value, val => {
-                return {
-                  fieldName: val.field,
-                  fieldValue: val.value,
-                }
-              })
-              return {
-                idName: 'id',
-                idValue: id,
-                table: table,
-                fields: fileds,
+        // 删除
+        if (res.p.t == 'delete' && false) {
+          if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
+            const dataList = _this.previewData.dataList;
+            const delData = [];
+            _.map(dataList, item => {
+              if (!!item.ifDel && item.ifDel == '1') {
+                const temp = { table: item.title };
+                // if (item.filedList && item.filedList.length > 0) {
+                //   const fields = _.map(item.filedList, fObj => {
+                //     let fieldValue = '';
+                //     if (fObj.type == 'cell') {
+                //       // 字段位置
+                //       let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                //       let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                //       columnIndex = _.$ABC2Number(columnIndex);
+                //       rowIndex = rowIndex - 1;
+                //       const pos = { rowIndex, columnIndex };
+                //       const cell = _this.$curSheet.getPosCell(pos);
+                //       // 1. 判断是否扩展
+                //       // 2. 获取扩展方向
+                //       // 3. 判断是否被顶出去
+                //       // 4. 获取扩展后的集合
+                //       // 5. 封装成数据
+  
+                //       if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                //         if (cell.p.e == 'bottom') {
+                //           // 向下扩展
+                //           const extend = _this.extendInfo.column[columnIndex];
+                //           const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                //           if (index != -1) {
+                //             const record = extend.record[index];
+                //             // 循环获取数据
+                //             const values = [];
+                //             for (let i = 0; i < record.count + 1; i++) {
+                //               // 向下取行
+                //               const pos = { rowIndex: rowIndex + i, columnIndex };
+                //               const cell = _this.$curSheet.getPosCell(pos);
+                //               values.push(cell.v);
+                //             }
+                //             fieldValue = values; // 获取扩展集合数据
+                //           }
+                //         } else {
+                //           // 向右扩展
+                //           const extend = _this.extendInfo.row[rowIndex];
+                //           const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                //           if (index != -1) {
+                //             const record = extend.record[index];
+                //             // 循环获取数据
+                //             const values = [];
+                //             for (let i = 0; i < record.count + 1; i++) {
+                //               // 向下取行
+                //               const pos = { rowIndex, columnIndex: columnIndex + i };
+                //               const cell = _this.$curSheet.getPosCell(pos);
+                //               values.push(cell.v);
+                //             }
+                //             fieldValue = values; // 获取扩展集合数据
+                //           }
+                //         }
+                //       } else {
+                //         fieldValue = cell.v; // 字段值
+                //       }
+                //     }
+                //     // 固定值
+                //     if (fObj.type == 'value') {
+                //       fieldValue = fObj.value;
+                //     }
+                //     // 参数 parameter
+                //     if (fObj.type == 'parameter') {
+                //       let valueKey = '';
+                //       _.map(_this.constants, (value, key) => {
+                //         if (key.indexOf('key_') != -1) {
+                //           // 判断是否包含替换变量
+                //           if (fObj.value.indexOf(value) != -1) {
+                //             // 获取值的key
+                //             valueKey = key.replace('key_', 'value_');
+                //           }
+                //         }
+                //       });
+                //       fieldValue = _this.constants[valueKey] || '';
+                //     }
+      
+                //     return {
+                //       fieldName: fObj.filed, // 字段名
+                //       fieldValue, // 字段值
+                //       ifExtend: fieldValue instanceof Array, // 是否扩展
+                //     };
+                //   });
+                //   // 判断是否有主键，有主键为修改，无主键为新增
+                //   const ifKey = item.filedList.findIndex(filed => filed.key);
+                //   if (ifKey != -1) {
+                //     const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                //     Object.assign(temp, { ifKey: true, keys });
+                //   }
+                //   const ifExtend = fields.findIndex(field => field.ifExtend);
+                //   if (ifExtend != -1) {
+                //     // 有扩展
+                //     _.map(fields[ifExtend].fieldValue, (fv, fi) => {
+                //       const fieldsTemp = _.map(fields, fTemp => {
+                //         if (fTemp.ifExtend) {
+                //           return {
+                //             fieldName: fTemp.fieldName,
+                //             fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
+                //           };
+                //         } else {
+                //           return {
+                //             fieldName: fTemp.fieldName,
+                //             fieldValue: fTemp.fieldValue,
+                //           };
+                //         }
+                //       });
+                //       Object.assign(temp, { fields: fieldsTemp });
+                //       console.log('temp', temp);
+                //       responseData.push(JSON.parse(JSON.stringify(temp)));
+                //     });
+                //   } else {
+                //     Object.assign(temp, { fields });
+                //     console.log('temp', temp);
+                //     responseData.push(temp);
+                //   }
+                // }
               }
-            }).value();
-            data.push(...fileds);
-            return fileds;
-          }).value();
-          console.log('temp', temp);
-          console.log('data', data);
-          updateFormData(data).then((res) => {
-            console.log('updateFormData', res);
-            _this.$modal.msgSuccess('提交成功！！！');
-          });
+            });
+          }
         }
+        
       } else {
         // 重置
         _this.update(_this.$piniastore.$state);
