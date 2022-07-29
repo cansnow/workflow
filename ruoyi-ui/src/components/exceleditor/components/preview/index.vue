@@ -72,7 +72,7 @@ export default {
     }
     this.init();
     
-    this.$curSheet.$on('clikcCellBtn', function(res) {
+    this.$curSheet.$on('clikcCellBtn', async function(res) {
       if (_this.ifPreview) {
         return;
       }
@@ -113,8 +113,7 @@ export default {
           _.map(dataList, (item, index) => {
             const temp = { table: item.title };
             if (item.filedList && item.filedList.length > 0) {
-              const fields = [];
-              _.map(item.filedList, fObj => {
+              const fields = _.map(item.filedList, fObj => {
                 let fieldValue = '';
                 if (fObj.type == 'cell') {
                   // 字段位置
@@ -124,7 +123,49 @@ export default {
                   rowIndex = rowIndex - 1;
                   const pos = { rowIndex, columnIndex };
                   const cell = _this.$curSheet.getPosCell(pos);
-                  fieldValue = cell.v; // 字段值
+                  // 1. 判断是否扩展
+                  // 2. 获取扩展方向
+                  // 3. 判断是否被顶出去
+                  // 4. 获取扩展后的集合
+                  // 5. 封装成数据
+
+                  if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                    if (cell.p.e == 'bottom') {
+                      // 向下扩展
+                      const extend = _this.extendInfo.column[columnIndex];
+                      const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                      if (index != -1) {
+                        const record = extend.record[index];
+                        // 循环获取数据
+                        const values = [];
+                        for (let i = 0; i < record.count + 1; i++) {
+                          // 向下取行
+                          const pos = { rowIndex: rowIndex + i, columnIndex };
+                          const cell = _this.$curSheet.getPosCell(pos);
+                          values.push(cell.v);
+                        }
+                        fieldValue = values; // 获取扩展集合数据
+                      }
+                    } else {
+                      // 向右扩展
+                      const extend = _this.extendInfo.row[rowIndex];
+                      const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                      if (index != -1) {
+                        const record = extend.record[index];
+                        // 循环获取数据
+                        const values = [];
+                        for (let i = 0; i < record.count + 1; i++) {
+                          // 向下取行
+                          const pos = { rowIndex, columnIndex: columnIndex + i };
+                          const cell = _this.$curSheet.getPosCell(pos);
+                          values.push(cell.v);
+                        }
+                        fieldValue = values; // 获取扩展集合数据
+                      }
+                    }
+                  } else {
+                    fieldValue = cell.v; // 字段值
+                  }
                 }
                 // 固定值
                 if (fObj.type == 'value') {
@@ -145,24 +186,66 @@ export default {
                   fieldValue = _this.constants[valueKey] || '';
                 }
   
-                fields.push({
+                return {
                   fieldName: fObj.filed, // 字段名
                   fieldValue, // 字段值
-                });
+                  ifExtend: fieldValue instanceof Array, // 是否扩展
+                };
               });
-              Object.assign(temp, { fields });
-            }
-            console.log('temp', temp);
-            responseData.push(temp);
+              // 判断是否有主键，有主键为修改，无主键为新增
+              const ifKey = item.filedList.findIndex(filed => filed.key);
+              if (ifKey != -1) {
+                const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                Object.assign(temp, { ifKey: true, keys });
+              }
+              const ifExtend = fields.findIndex(field => field.ifExtend);
+              if (ifExtend != -1) {
+                // 有扩展
+                _.map(fields[ifExtend].fieldValue, (fv, fi) => {
+                  const fieldsTemp = _.map(fields, fTemp => {
+                    if (fTemp.ifExtend) {
+                      return {
+                        fieldName: fTemp.fieldName,
+                        fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
+                      };
+                    } else {
+                      return {
+                        fieldName: fTemp.fieldName,
+                        fieldValue: fTemp.fieldValue,
+                      };
+                    }
+                  });
+                  Object.assign(temp, { fields: fieldsTemp });
+                  console.log('temp', temp);
+                  responseData.push(JSON.parse(JSON.stringify(temp)));
+                });
+              } else {
+                Object.assign(temp, { fields });
+                console.log('temp', temp);
+                responseData.push(temp);
+              }
+            }            
           });
           const resData = {};
+          const updateData = [];
           _.map(responseData, item => {
-            if (typeof resData[item.table] == 'undefined') {
-              const temp = [];
-              temp.push(item.fields);
-              resData[item.table] = temp;
+            if (!!item.ifKey) {
+              const index = item.fields.findIndex(f => f.fieldName == item.keys.length > 0 ? item.keys[0] : item.fields[0].fieldName );
+              updateData.push({
+                idName: item.fields[index != -1 ? index : 0].fieldName,
+                idValue: item.fields[index != -1 ? index : 0].fieldValue,
+                table: item.table,
+                fields: item.fields,
+              })
+              
             } else {
-              resData[item.table].push(item.fields);
+              if (typeof resData[item.table] == 'undefined') {
+                const temp = [];
+                temp.push(item.fields);
+                resData[item.table] = temp;
+              } else {
+                resData[item.table].push(item.fields);
+              }
             }
           });
           const data = _.map(resData, (item, key) => {
@@ -171,14 +254,22 @@ export default {
               fields: item,
             }
           });
-          saveFormData(data).then((res) => {
-            console.log('saveFormData', res);
-            _this.$modal.msgSuccess('提交成功！！！');
-          });
+          if (data.length > 0) {
+            await saveFormData(data).then((res) => {
+              console.log('saveFormData', res);
+              _this.$modal.msgSuccess('提交成功！！！');
+            });
+          }
+          if (updateData.length > 0) {
+            await updateFormData(updateData).then((res) => {
+              console.log('updateFormData', res);
+              _this.$modal.msgSuccess('提交成功！！！');
+            });
+          }
         }
 
         // 单元格回写规则
-        if (_this.cellFormData.length > 0) {
+        if (_this.cellFormData.length > 0 && false) {
           const data = [];
           const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
             const fileds = _.chain(item).map(field => {
@@ -214,11 +305,11 @@ export default {
         _this.cellFormData = [];
       }
     });
-
+    // 单元格超链接点击事件
     this.$curSheet.$on('clikcCellLink', function(link) {
       const cells = link.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
       let linkTemp = link;
-      if (cells.length > 0) {
+      if (!!cells && cells instanceof Array && cells.length > 0) {
         _.map(cells, item => {
           const str = item.replaceAll(/\$|\{|\}/g, '');
           if (str.indexOf(':') == -1) {
