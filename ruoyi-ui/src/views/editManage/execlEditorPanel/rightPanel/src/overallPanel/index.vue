@@ -4,7 +4,7 @@
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="布局方向">
         <el-select v-model="pos" placeholder="请选择" @change="handlePosChenge">
-          <el-option label="向右" value="right"></el-option>
+          <el-option label="向左" value="right"></el-option>
           <el-option label="居中" value="center"></el-option>
         </el-select>
       </el-form-item>
