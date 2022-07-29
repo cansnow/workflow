@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.workflow.mapper.TemplateMapper">
+
+    <resultMap type="com.ruoyi.workflow.domain.Template" id="TemplateResult">
+        <result property="id"    column="id"    />
+        <result property="title"    column="title"    />
+        <result property="sheet"    column="sheet"    />
+        <result property="data"    column="data"    />
+        <result property="image"    column="image"    />
+        <result property="link"    column="link"    />
+        <result property="description"    column="description"    />
+        <result property="uid"    column="uid"    />
+        <result property="author"    column="author"    />
+        <result property="status"    column="status"    />
+        <result property="addtime"    column="addtime"    />
+        <result property="updatetime"    column="updatetime"    />
+        <result property="isdel"    column="isdel"    />
+    </resultMap>
+
+    <sql id="selectTemplateVo">
+        select id, title, sheet, data, image, link, description, uid, author, status, addtime, updatetime, isdel from template
+    </sql>
+
+    <select id="selectTemplateList" parameterType="Template" resultMap="TemplateResult">
+        <include refid="selectTemplateVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="sheet != null  and sheet != ''"> and sheet = #{sheet}</if>
+            <if test="data != null  and data != ''"> and data = #{data}</if>
+            <if test="image != null  and image != ''"> and image = #{image}</if>
+            <if test="link != null  and link != ''"> and link = #{link}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="uid != null "> and uid = #{uid}</if>
+            <if test="author != null  and author != ''"> and author = #{author}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="addtime != null "> and addtime = #{addtime}</if>
+            <if test="updatetime != null "> and updatetime = #{updatetime}</if>
+            <if test="isdel != null "> and isdel = #{isdel}</if>
+        </where>
+    </select>
+
+    <select id="selectTemplateById" parameterType="Integer" resultMap="TemplateResult">
+        <include refid="selectTemplateVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTemplate" parameterType="Template" useGeneratedKeys="true" keyProperty="id">
+        insert into template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null">title,</if>
+            <if test="sheet != null">sheet,</if>
+            <if test="data != null">data,</if>
+            <if test="image != null">image,</if>
+            <if test="link != null">link,</if>
+            <if test="description != null">description,</if>
+            <if test="uid != null">uid,</if>
+            <if test="author != null and author != ''">author,</if>
+            <if test="status != null">status,</if>
+            <if test="addtime != null">addtime,</if>
+            <if test="updatetime != null">updatetime,</if>
+            <if test="isdel != null">isdel,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null">#{title},</if>
+            <if test="sheet != null">#{sheet},</if>
+            <if test="data != null">#{data},</if>
+            <if test="image != null">#{image},</if>
+            <if test="link != null">#{link},</if>
+            <if test="description != null">#{description},</if>
+            <if test="uid != null">#{uid},</if>
+            <if test="author != null and author != ''">#{author},</if>
+            <if test="status != null">#{status},</if>
+            <if test="addtime != null">#{addtime},</if>
+            <if test="updatetime != null">#{updatetime},</if>
+            <if test="isdel != null">#{isdel},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTemplate" parameterType="Template">
+        update template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null">title = #{title},</if>
+            <if test="sheet != null">sheet = #{sheet},</if>
+            <if test="data != null">data = #{data},</if>
+            <if test="image != null">image = #{image},</if>
+            <if test="link != null">link = #{link},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="uid != null">uid = #{uid},</if>
+            <if test="author != null and author != ''">author = #{author},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="addtime != null">addtime = #{addtime},</if>
+            <if test="updatetime != null">updatetime = #{updatetime},</if>
+            <if test="isdel != null">isdel = #{isdel},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTemplateById" parameterType="Integer">
+        delete from template where id = #{id}
+    </delete>
+
+    <delete id="deleteTemplateByIds" parameterType="String">
+        delete from template where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <insert id="insrtFormData" parameterType="Template" useGeneratedKeys="true" keyProperty="id">
+        insert into ${table}
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <foreach collection="singleFields" item="item"  separator="," >
+                ${item.fieldName}
+            </foreach>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <foreach collection="singleFields" item="item"  separator="," >
+               #{item.fieldValue}
+            </foreach>
+        </trim>
+    </insert>
+    <update id="updateFormData" parameterType="com.ruoyi.workflow.domain.FormDataVO">
+        update  ${table}
+        <trim prefix="SET" suffixOverrides=",">
+                <foreach collection="fields" item="item"  separator="," >
+                    ${item.fieldName}=#{item.fieldValue}
+                </foreach>
+        </trim>
+        where ${idName} = #{idValue}
+    </update>
+    <update id="updateFormDatas" parameterType="com.ruoyi.workflow.domain.FormDataVO">
+        <foreach collection="updates" item="each"  separator=";" >
+        update  ${each.table}
+        <trim prefix="SET" suffixOverrides=",">
+            <foreach collection="each.fields" item="item"  separator="," >
+                ${item.fieldName}=#{item.fieldValue}
+            </foreach>
+        </trim>
+         <if test="each.conditions != null and each.conditions.size()>0">
+             <where>
+                 <foreach collection="each.conditions" item="condition"  separator=" and " >
+                     ${condition.fieldName}=#{condition.fieldValue}
+                 </foreach>
+             </where>
+         </if>
+        </foreach>
+    </update>
+    <delete id="deleteFormData" parameterType="Integer">
+        delete from ${table} where ${idName} = #{idValue}
+    </delete>
+</mapper>

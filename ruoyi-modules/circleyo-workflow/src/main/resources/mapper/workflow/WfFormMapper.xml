@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.circleyo.workflow.mapper.WfFormMapper">
-    
-    <resultMap type="com.circleyo.workflow.domain.WfForm" id="WfFormResult">
+<mapper namespace="com.ruoyi.workflow.mapper.WfFormMapper">
+
+    <resultMap type="com.ruoyi.workflow.domain.WfForm" id="WfFormResult">
         <result property="id"    column="id"    />
         <result property="name"    column="name"    />
         <result property="tableName"    column="table_name"    />
@@ -25,9 +25,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select id, name, table_name, form_content, created_by, created_date, last_updated_by, last_updated_date, sheet_name, backgroud, page_router, remark, status, deleted_flag from wf_form
     </sql>
 
-    <select id="selectWfFormList" parameterType="com.circleyo.workflow.domain.WfForm" resultMap="WfFormResult">
+    <select id="selectWfFormList" parameterType="com.ruoyi.workflow.domain.WfForm" resultMap="WfFormResult">
         <include refid="selectWfFormVo"/>
-        <where>  
+        <where>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="tableName != null  and tableName != ''"> and table_name like concat('%', #{tableName}, '%')</if>
             <if test="formContent != null  and formContent != ''"> and form_content = #{formContent}</if>
@@ -42,13 +42,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="deletedFlag != null  and deletedFlag != ''"> and deleted_flag = #{deletedFlag}</if>
         </where>
     </select>
-    
+
     <select id="selectWfFormById" parameterType="Long" resultMap="WfFormResult">
         <include refid="selectWfFormVo"/>
         where id = #{id}
     </select>
-        
-    <insert id="insertWfForm" parameterType="com.circleyo.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
+
+    <insert id="insertWfForm" parameterType="com.ruoyi.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
         insert into wf_form
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="name != null">name,</if>
@@ -82,7 +82,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
     </insert>
 
-    <update id="updateWfForm" parameterType="com.circleyo.workflow.domain.WfForm">
+    <update id="updateWfForm" parameterType="com.ruoyi.workflow.domain.WfForm">
         update wf_form
         <trim prefix="SET" suffixOverrides=",">
             <if test="name != null">name = #{name},</if>
@@ -107,12 +107,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteWfFormByIds" parameterType="String">
-        delete from wf_form where id in 
+        delete from wf_form where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
- <resultMap type="com.circleyo.workflow.domain.TableColumn" id="TableColumnResult">
+ <resultMap type="com.ruoyi.workflow.domain.TableColumn" id="TableColumnResult">
         <id     property="columnId"       column="column_id"      />
         <result property="tableId"        column="table_id"       />
         <result property="columnName"     column="column_name"    />
@@ -138,11 +138,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
     <select id="selectDbTableColumnsByName" parameterType="String" resultMap="TableColumnResult">
 		select column_name, (case when (is_nullable = 'no' <![CDATA[ && ]]> column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type
-		from information_schema.columns where table_schema = (select database()) and table_name = (#{tableName})
+		from information_schema.columns where table_schema = (select database()) and table_name = (#{table})
 		order by ordinal_position
 	</select>
 
-    <insert id="dynamicInsert" parameterType="com.circleyo.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
+    <insert id="dynamicInsert" parameterType="com.ruoyi.workflow.domain.WfForm" useGeneratedKeys="true" keyProperty="id">
         insert into ${tableName}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <foreach collection="itemList" item="item"  separator="," >
@@ -150,17 +150,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </foreach>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <foreach collection="itemList" item="item"  separator="," >
-                ${item.value}
+            <foreach collection="itemList" item="item"  separator=",">
+                #{item.fieldValue}
             </foreach>
         </trim>
     </insert>
 
-    <delete id="deleteItemData" parameterType="com.circleyo.workflow.domain.WfForm">
+    <delete id="deleteItemData" parameterType="com.ruoyi.workflow.domain.WfForm">
         delete from  ${tableName} where id =#{dataId}
     </delete>
 
-    <update id="updateItemData" parameterType="com.circleyo.workflow.domain.WfForm">
+    <update id="updateItemData" parameterType="com.ruoyi.workflow.domain.WfForm">
         update  ${tableName}
         <trim prefix="SET" suffixOverrides=",">
             <trim prefix="(" suffix=")">
@@ -171,4 +171,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </trim>
         where id = #{id}
     </update>
+
+    <resultMap type="GenTable" id="GenTableResult">
+        <result property="tableName"      column="table_name"        />
+        <result property="tableComment"   column="table_comment"     />
+    </resultMap>
+    <select id="selectDbTableList" parameterType="GenTable" resultMap="GenTableResult">
+        select table_name, table_comment, create_time, update_time from information_schema.tables
+        where table_schema = (select database())
+        AND table_name NOT LIKE 'qrtz_%' AND table_name NOT LIKE 'gen_%' AND table_name NOT LIKE 'sys_%'
+        <if test="tableName != null and tableName != ''">
+            AND lower(table_name) = lower(#{tableName})
+        </if>
+        order by create_time desc
+    </select>
+    <select id="selectTableDataList" resultType="map">
+        select * from ${table}
+    </select>
 </mapper>
