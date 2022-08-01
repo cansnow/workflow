@@ -202,7 +202,7 @@ export default {
             };
             if (typeof css['border-left'] != 'undefined') {
                 const temp = this.$sheet.getPosCell(Object.assign({}, pos, { columnIndex : pos.columnIndex - 1}));
-                console.log('temp', temp);
+                // console.log('temp', temp);
                 if (!!temp && typeof temp.s != 'undefined') {
                     const style = this.$sheet.getStyle(temp.s);
                     if (!!style.option.border && style.option.border.indexOf('r') != -1) {
@@ -213,7 +213,7 @@ export default {
             }
             if (typeof css['border-top'] != 'undefined') {
                 const temp = this.$sheet.getPosCell(Object.assign({}, pos, { rowIndex : pos.rowIndex - 1}));
-                console.log('temp', temp);
+                // console.log('temp', temp);
                 if (!!temp && typeof temp.s != 'undefined') {
                     const style = this.$sheet.getStyle(temp.s);
                     if (!!style.option.border && style.option.border.indexOf('b') != -1) {

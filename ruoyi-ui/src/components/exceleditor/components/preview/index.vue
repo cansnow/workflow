@@ -697,7 +697,8 @@ export default {
           }
         }
         // 判断范围
-        // 获取p.f 变量，替换v, 记录扩展
+        // 记录扩展
+        // 获取p.f 变量，替换v
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined' && inRangeInside) {
           console.log('temp', temp);
           console.log('temp.p.f', temp.p.f);
@@ -714,6 +715,7 @@ export default {
               field: fList[2], // 变量
               extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
               merges: typeof(item.merges) != 'undefined', // 是否合并
+              mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
             };
             // 单元格超链接属性
             if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
@@ -998,6 +1000,12 @@ export default {
           const item = extendList[extendIndex];
           const rowIndex = item.pos.start.rowIndex;
           const columnIndex = item.pos.start.columnIndex;
+          // 如果有合并
+          // 合并行树
+          const rowCountMerges = item.merges ? item.mergesInfo.end.rowIndex - item.pos.start.rowIndex : 0;
+          // 合并列树
+          const colCountMerges = item.merges ? item.mergesInfo.end.columnIndex - item.pos.start.columnIndex : 0;
+          console.warn('colCountMerges', colCountMerges);
           let valueList = [];
           if (typeof this.dataSetList[item.fieldIndex] != 'undefined') {
             // TODO 记录已有数据
@@ -1095,7 +1103,7 @@ export default {
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
             if (tempList.length > 0) {
-              let posBom = cellRowIndex + 1; //cellRowIndex + 1;
+              let posBom = cellRowIndex + rowCountMerges + 1; //cellRowIndex + 1;
               // 记录位置
               if (typeof extendInfo.column[columnIndex] == 'undefined') {
                 // extendInfo.column[columnIndex] = len - 1;
@@ -1103,7 +1111,7 @@ export default {
                   count: len - 1,
                   record: [
                     {
-                      startRow: rowIndex,
+                      startRow: rowIndex + rowCountMerges,
                       count: len - 1,
                     }
                   ],
@@ -1113,7 +1121,7 @@ export default {
                 // extendInfo.column[columnIndex] += len - 1; // 加上现在的扩展长度
                 extendInfo.column[columnIndex].count += len - 1;
                 extendInfo.column[columnIndex].record.push({
-                  startRow: rowIndex,
+                  startRow: rowIndex + rowCountMerges,
                   count: len - 1,
                 });
               }
@@ -1199,7 +1207,7 @@ export default {
           }
           if (item.extendType == 'right') {
             if (tempList.length > 0) {
-              let pos = columnIndex + 1; // columnIndex + 1;
+              let pos = columnIndex + colCountMerges + 1; // columnIndex + 1;
               // 记录位置
               if (typeof extendInfo.row[rowIndex] == 'undefined') {
                 // extendInfo.row[rowIndex] = len - 1;
@@ -1207,7 +1215,7 @@ export default {
                   count: len - 1,
                   record: [
                     {
-                      startCol: columnIndex,
+                      startCol: columnIndex + colCountMerges,
                       count: len - 1,
                     }
                   ],
@@ -1218,12 +1226,18 @@ export default {
                 // extendInfo.row[rowIndex] += len - 1; // 加上现在的扩展长度
                 extendInfo.row[rowIndex].count += len - 1;
                 extendInfo.row[rowIndex].record.push({
-                  startCol: columnIndex,
+                  startCol: columnIndex + colCountMerges,
                   count: len - 1,
                 });
                 
               }
               if (!!cells[cellRowIndex]) {
+                if (cells[cellRowIndex].length < pos) {
+                  const nullLen = pos - cells[cellRowIndex].length;
+                  for (let i = 0; i < nullLen; i++) {
+                    cells[cellRowIndex].push(null);
+                  }
+                }
                 cells[cellRowIndex].splice(pos, 0, ...tempList);
               } else {
                 const cellList = [];
