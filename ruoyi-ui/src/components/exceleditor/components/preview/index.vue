@@ -276,6 +276,7 @@ export default {
               await updateFormData(updateData).then((res) => {
                 console.log('updateFormData', res);
                 _this.$modal.msgSuccess('提交成功！！！');
+                _this.dataSetList = {};
               });
             }
           }
@@ -467,6 +468,7 @@ export default {
                 console.log('deleteFormData', res);
                 _this.$modal.msgSuccess('删除成功！');
                 // 重置
+                _this.dataSetList = {};
                 _this.update(_this.$piniastore.$state);
                 _this.cellFormData = [];
               });
