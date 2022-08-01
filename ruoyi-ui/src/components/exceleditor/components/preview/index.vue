@@ -14,7 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData, updateFormData, fileList } from '@/api/editManage';
+import { saveFormData, getDBData, updateFormData, fileList, deleteFormData } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -26,7 +26,7 @@ export default {
       previewData: {},
       ifPreview: true,
       constants: {},
-      dataSetList: [],
+      dataSetList: {},
       pos: 'center',
       cellFormData: [],// 单元格回写规则
       extendInfo: {}, // 扩展信息记录
@@ -71,7 +71,7 @@ export default {
       });
     }
     this.init();
-    
+    // 按钮点击事件
     this.$curSheet.$on('clikcCellBtn', async function(res) {
       if (_this.ifPreview) {
         return;
@@ -234,13 +234,21 @@ export default {
             const updateData = [];
             _.map(responseData, item => {
               if (!!item.ifKey) {
-                const index = item.fields.findIndex(f => f.fieldName == item.keys.length > 0 ? item.keys[0] : item.fields[0].fieldName );
+                const conditions = [];
+                if (item.keys.length > 0) {
+                  _.map(item.keys, key => {
+                    const index = item.fields.findIndex(f => f.fieldName == key);
+                    conditions.push({
+                      fieldName: key,
+                      fieldValue: index != -1 ? item.fields[index].fieldValue : '',
+                    });
+                  });
+                }
                 updateData.push({
-                  idName: item.fields[index != -1 ? index : 0].fieldName,
-                  idValue: item.fields[index != -1 ? index : 0].fieldValue,
+                  conditions,
                   table: item.table,
                   fields: item.fields,
-                })
+                });
                 
               } else {
                 if (typeof resData[item.table] == 'undefined') {
@@ -304,131 +312,167 @@ export default {
           }
         }
         // 删除
-        if (res.p.t == 'delete' && false) {
+        if (res.p.t == 'delete') {
           if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
             const dataList = _this.previewData.dataList;
-            const delData = [];
+            const responseData = [];
             _.map(dataList, item => {
               if (!!item.ifDel && item.ifDel == '1') {
                 const temp = { table: item.title };
-                // if (item.filedList && item.filedList.length > 0) {
-                //   const fields = _.map(item.filedList, fObj => {
-                //     let fieldValue = '';
-                //     if (fObj.type == 'cell') {
-                //       // 字段位置
-                //       let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
-                //       let rowIndex = fObj.value.replace(/[^0-9]/g,'');
-                //       columnIndex = _.$ABC2Number(columnIndex);
-                //       rowIndex = rowIndex - 1;
-                //       const pos = { rowIndex, columnIndex };
-                //       const cell = _this.$curSheet.getPosCell(pos);
-                //       // 1. 判断是否扩展
-                //       // 2. 获取扩展方向
-                //       // 3. 判断是否被顶出去
-                //       // 4. 获取扩展后的集合
-                //       // 5. 封装成数据
-  
-                //       if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
-                //         if (cell.p.e == 'bottom') {
-                //           // 向下扩展
-                //           const extend = _this.extendInfo.column[columnIndex];
-                //           const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                //           if (index != -1) {
-                //             const record = extend.record[index];
-                //             // 循环获取数据
-                //             const values = [];
-                //             for (let i = 0; i < record.count + 1; i++) {
-                //               // 向下取行
-                //               const pos = { rowIndex: rowIndex + i, columnIndex };
-                //               const cell = _this.$curSheet.getPosCell(pos);
-                //               values.push(cell.v);
-                //             }
-                //             fieldValue = values; // 获取扩展集合数据
-                //           }
-                //         } else {
-                //           // 向右扩展
-                //           const extend = _this.extendInfo.row[rowIndex];
-                //           const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                //           if (index != -1) {
-                //             const record = extend.record[index];
-                //             // 循环获取数据
-                //             const values = [];
-                //             for (let i = 0; i < record.count + 1; i++) {
-                //               // 向下取行
-                //               const pos = { rowIndex, columnIndex: columnIndex + i };
-                //               const cell = _this.$curSheet.getPosCell(pos);
-                //               values.push(cell.v);
-                //             }
-                //             fieldValue = values; // 获取扩展集合数据
-                //           }
-                //         }
-                //       } else {
-                //         fieldValue = cell.v; // 字段值
-                //       }
-                //     }
-                //     // 固定值
-                //     if (fObj.type == 'value') {
-                //       fieldValue = fObj.value;
-                //     }
-                //     // 参数 parameter
-                //     if (fObj.type == 'parameter') {
-                //       let valueKey = '';
-                //       _.map(_this.constants, (value, key) => {
-                //         if (key.indexOf('key_') != -1) {
-                //           // 判断是否包含替换变量
-                //           if (fObj.value.indexOf(value) != -1) {
-                //             // 获取值的key
-                //             valueKey = key.replace('key_', 'value_');
-                //           }
-                //         }
-                //       });
-                //       fieldValue = _this.constants[valueKey] || '';
-                //     }
+                if (item.filedList && item.filedList.length > 0) {
+                  const fields = _.map(item.filedList, fObj => {
+                    let fieldValue = '';
+                    if (fObj.type == 'cell') {
+                      // 字段位置
+                      let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                      let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                      columnIndex = _.$ABC2Number(columnIndex);
+                      rowIndex = rowIndex - 1;
+                      const pos = { rowIndex, columnIndex };
+                      const cell = _this.$curSheet.getPosCell(pos);
+                      // 1. 判断是否扩展
+                      // 2. 获取扩展方向
+                      // 3. 判断是否被顶出去
+                      // 4. 获取扩展后的集合
+                      // 5. 封装成数据
+                      if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                        if (cell.p.e == 'bottom') {
+                          // 向下扩展
+                          const extend = _this.extendInfo.column[columnIndex];
+                          const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                          if (index != -1) {
+                            const record = extend.record[index];
+                            // 循环获取数据
+                            const values = [];
+                            for (let i = 0; i < record.count + 1; i++) {
+                              // 向下取行
+                              const pos = { rowIndex: rowIndex + i, columnIndex };
+                              const cell = _this.$curSheet.getPosCell(pos);
+                              values.push(cell.v);
+                            }
+                            fieldValue = values; // 获取扩展集合数据
+                          }
+                        } else {
+                          // 向右扩展
+                          const extend = _this.extendInfo.row[rowIndex];
+                          const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                          if (index != -1) {
+                            const record = extend.record[index];
+                            // 循环获取数据
+                            const values = [];
+                            for (let i = 0; i < record.count + 1; i++) {
+                              // 向下取列
+                              const pos = { rowIndex, columnIndex: columnIndex + i };
+                              const cell = _this.$curSheet.getPosCell(pos);
+                              values.push(cell.v);
+                            }
+                            fieldValue = values; // 获取扩展集合数据
+                          }
+                        }
+                      } else {
+                        fieldValue = cell.v; // 字段值
+                      }
+                    }
+                    // 固定值
+                    if (fObj.type == 'value') {
+                      fieldValue = fObj.value;
+                    }
+                    // 参数 parameter
+                    if (fObj.type == 'parameter') {
+                      let valueKey = '';
+                      _.map(_this.constants, (value, key) => {
+                        if (key.indexOf('key_') != -1) {
+                          // 判断是否包含替换变量
+                          if (fObj.value.indexOf(value) != -1) {
+                            // 获取值的key
+                            valueKey = key.replace('key_', 'value_');
+                          }
+                        }
+                      });
+                      fieldValue = _this.constants[valueKey] || '';
+                    }
       
-                //     return {
-                //       fieldName: fObj.filed, // 字段名
-                //       fieldValue, // 字段值
-                //       ifExtend: fieldValue instanceof Array, // 是否扩展
-                //     };
-                //   });
-                //   // 判断是否有主键，有主键为修改，无主键为新增
-                //   const ifKey = item.filedList.findIndex(filed => filed.key);
-                //   if (ifKey != -1) {
-                //     const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
-                //     Object.assign(temp, { ifKey: true, keys });
-                //   }
-                //   const ifExtend = fields.findIndex(field => field.ifExtend);
-                //   if (ifExtend != -1) {
-                //     // 有扩展
-                //     _.map(fields[ifExtend].fieldValue, (fv, fi) => {
-                //       const fieldsTemp = _.map(fields, fTemp => {
-                //         if (fTemp.ifExtend) {
-                //           return {
-                //             fieldName: fTemp.fieldName,
-                //             fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
-                //           };
-                //         } else {
-                //           return {
-                //             fieldName: fTemp.fieldName,
-                //             fieldValue: fTemp.fieldValue,
-                //           };
-                //         }
-                //       });
-                //       Object.assign(temp, { fields: fieldsTemp });
-                //       console.log('temp', temp);
-                //       responseData.push(JSON.parse(JSON.stringify(temp)));
-                //     });
-                //   } else {
-                //     Object.assign(temp, { fields });
-                //     console.log('temp', temp);
-                //     responseData.push(temp);
-                //   }
-                // }
+                    return {
+                      fieldName: fObj.filed, // 字段名
+                      fieldValue, // 字段值
+                      ifExtend: fieldValue instanceof Array, // 是否扩展
+                    };
+                  });
+                  // 判断是否有主键，有主键为修改，无主键为新增
+                  const ifKey = item.filedList.findIndex(filed => filed.key);
+                  if (ifKey != -1) {
+                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                    Object.assign(temp, { ifKey: true, keys });
+                  }
+                  const ifExtend = fields.findIndex(field => field.ifExtend);
+                  if (ifExtend != -1) {
+                    // 有扩展
+                    _.map(fields[ifExtend].fieldValue, (fv, fi) => {
+                      const fieldsTemp = _.map(fields, fTemp => {
+                        if (fTemp.ifExtend) {
+                          return {
+                            fieldName: fTemp.fieldName,
+                            fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
+                          };
+                        } else {
+                          return {
+                            fieldName: fTemp.fieldName,
+                            fieldValue: fTemp.fieldValue,
+                          };
+                        }
+                      });
+                      Object.assign(temp, { fields: fieldsTemp });
+                      console.log('temp', temp);
+                      responseData.push(JSON.parse(JSON.stringify(temp)));
+                    });
+                  } else {
+                    Object.assign(temp, { fields });
+                    console.log('temp', temp);
+                    responseData.push(temp);
+                  }
+                }
               }
             });
+            const delData = [];
+            _.map(responseData, item => {
+              if (!!item.ifKey) {
+                const conditions = [];
+                if (item.keys.length > 0) {
+                  _.map(item.keys, key => {
+                    const index = item.fields.findIndex(f => f.fieldName == key);
+                    let fieldValue = '';
+                    fieldValue = index != -1 ? item.fields[index].fieldValue : '';
+                    if (key == 'status') {
+                      if (fieldValue instanceof Array) {
+                        fieldValue = fieldValue.length > 0 && fieldValue[0] == 'true' ? true : false;
+                      } else {
+                        fieldValue = fieldValue == 'true' ? true : false;
+                      }
+                    }
+                    conditions.push({
+                      fieldName: key,
+                      fieldValue,
+                    });
+                  });
+                }
+                delData.push({
+                  conditions,
+                  table: item.table,
+                  // fields: item.fields,
+                });
+              }
+            });
+            if (delData.length > 0) {
+              await deleteFormData(delData).then((res) => {
+                console.log('deleteFormData', res);
+                _this.$modal.msgSuccess('删除成功！');
+                // 重置
+                _this.update(_this.$piniastore.$state);
+                _this.cellFormData = [];
+              });
+            }
           }
-        }
-        
+        }        
       } else {
         // 重置
         _this.update(_this.$piniastore.$state);
@@ -590,6 +634,16 @@ export default {
             temp[pItem] = item[pItem];
           }
         });
+
+        // temp.c == checkbox selectMultiple
+        if (typeof temp.c != 'undefined' && (temp.c == 'checkbox' || temp.c == 'selectMultiple')) {
+          if (typeof temp.v != 'undefined') {
+            Object.assign(temp, { v: !(temp.v instanceof Array) ? [temp.v + ''] : temp.v });
+          } else {
+            Object.assign(temp, { v: [] })
+          }
+        }
+
         // 设置选项值
         if (
           typeof temp.c != 'undefined' &&
@@ -857,9 +911,17 @@ export default {
         console.log('selectOptionInfo', selectOptionInfo);
         for(let selectIndex = 0; selectIndex < selectOptionInfo.length; selectIndex++) {
           const item = selectOptionInfo[selectIndex];
-          const res = await getDBData({ table: item.field });
-          const dataSetListTemp = res.data.dataSetList;
-          const options = _.map(dataSetListTemp[0].valueList, value => {
+          let valueList = [];
+          if (typeof this.dataSetList[item.field] != 'undefined') {
+            // TODO 记录已有数据
+            valueList = this.dataSetList[item.field];
+          } else {
+            const res = await getDBData({ table: item.field });
+            const dataSetListTemp = res.data.dataSetList;
+            valueList = dataSetListTemp[0].valueList; // 变量集合
+            this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
+          }
+          const options = _.map(valueList, value => {
             return {
               label: value[item.apiLabel],
               value: value[item.apiValue],
@@ -936,9 +998,17 @@ export default {
           const item = extendList[extendIndex];
           const rowIndex = item.pos.start.rowIndex;
           const columnIndex = item.pos.start.columnIndex;
-          const res = await getDBData({ table: item.fieldIndex });
-          const dataSetListTemp = res.data.dataSetList;
-          const valueList = dataSetListTemp[0].valueList; // 变量集合
+          let valueList = [];
+          if (typeof this.dataSetList[item.fieldIndex] != 'undefined') {
+            // TODO 记录已有数据
+            valueList = this.dataSetList[item.fieldIndex];
+          } else {
+            const res = await getDBData({ table: item.fieldIndex });
+            const dataSetListTemp = res.data.dataSetList;
+            valueList = dataSetListTemp[0].valueList; // 变量集合
+            this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
+          }
+          
           const len = valueList.length; // 长度
           // 获取填充数据
           const tempList = [];
@@ -971,6 +1041,13 @@ export default {
                 }
                 Object.assign(p, { cl: link });
                 Object.assign(template, { p });
+              }
+              if (typeof template.c != 'undefined' && (template.c == 'checkbox' || template.c == 'selectMultiple')) {
+                if (typeof template.v != 'undefined') {
+                  Object.assign(template, { v: !(template.v instanceof Array) ? [template.v + ''] : template.v });
+                } else {
+                  Object.assign(template, { v: [] })
+                }
               }
               tempList.push(template);
             } else {
@@ -1006,6 +1083,13 @@ export default {
 
           const temp = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
           Object.assign(temp, { v: tempListIndexValue + '' });
+          if (typeof temp.c != 'undefined' && (temp.c == 'checkbox' || temp.c == 'selectMultiple')) {
+            if (typeof temp.v != 'undefined') {
+              Object.assign(temp, { v: !(temp.v instanceof Array) ? [temp.v + ''] : temp.v });
+            } else {
+              Object.assign(temp, { v: [] })
+            }
+          }
           cells[cellRowIndex].splice(cellColumnIndex, 1, temp);
 
           // none 无 bottom 向下 right 向右
@@ -1272,8 +1356,9 @@ export default {
           // rowIndex = rowIndex - 1;
         } else {
           // 如果没设，则默认最小单元格，
-          const rowLen = temp.rows.length;
-          const colLen = temp.columns.length;
+          const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
+          const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
+          const colLen = temp.cells[key].length; // temp.columns.length;
           rowIndex = rowLen < 20 ? 200 : rowLen;
           columnIndex = colLen < 20 ? 20 : colLen;
         }

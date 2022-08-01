@@ -37,7 +37,7 @@ export function getDBData(query) {
  export function deleteFormData(data) {
   return request({
     url: '/workflow/template/deleteFormData',
-    method: 'delete',
+    method: 'post',
     data: data
   })
 }

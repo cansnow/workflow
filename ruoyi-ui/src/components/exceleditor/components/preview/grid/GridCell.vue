@@ -69,8 +69,8 @@
 		<el-radio-group v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'radio'" @change="handleChange">
 			<el-radio :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
-		<el-checkbox-group v-model="checkboxValue" :disabled="!props.option.p.r.w" v-if="cellType == 'checkbox'" @change="handleChange">
-			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
+		<el-checkbox-group v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'checkbox'" @change="handleChange">
+			<el-checkbox :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
 		</el-checkbox-group>
 		<el-select v-model="value" :disabled="!props.option.p.r.w" v-if="cellType == 'select'" @change="handleChange">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
@@ -238,6 +238,9 @@ export default {
                     this.ifCell = this.cellType == 'Cell';
                 }
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
+                if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple') {
+                    this.value = typeof(this.cell.option['v']) == 'undefined' ? [] : this.cell.option.v instanceof Array ? this.cell.option.v : [this.cell.option.v + ''];
+                }
                 this.cellProps = typeof this.cell.option['p'] == 'undefined' ? {} : this.cell.option.p;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
             }
@@ -306,7 +309,11 @@ export default {
             this.$sheet.doEditCell();
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');
-            this.$sheet.doEditCellValue(e + '');
+            if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple') {
+                this.$sheet.doEditCellValue(e);
+            } else {
+                this.$sheet.doEditCellValue(e + '');
+            }
         },
         // 点击了单元格按钮
         handleCellBtnClick() {

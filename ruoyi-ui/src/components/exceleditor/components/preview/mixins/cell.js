@@ -284,7 +284,7 @@ export default {
 
         setCellValue(pos, val) {
             this.c_addCell(pos.rowIndex, pos.columnIndex);
-            if (!_.isPlainObject(val) && _.$isFormula(val)) {
+            if (!_.isPlainObject(val) && !(val instanceof Array) && _.$isFormula(val)) {
                 this.setCellFormula(pos, val);
                 this.computedCellFormula(pos);
             } else {
