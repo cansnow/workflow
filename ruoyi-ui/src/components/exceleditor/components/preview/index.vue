@@ -704,37 +704,41 @@ export default {
         if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined' && inRangeInside) {
           console.log('temp', temp);
           console.log('temp.p.f', temp.p.f);
-          const fList = temp.p.f.split('.');
-          console.log('fList', fList);
-          const itemPost = item.pos;
-          if (fList[0] == 'dataSetList') {
-            // 记录超链接属性，用于扩展
-            const extend = {
-              c: temp.c,
-              pos: itemPost, // 位置信息
-              fieldInfo: temp.p.f, // 变量信息
-              fieldIndex: fList[1], // 数据集下标
-              field: fList[2], // 变量
-              extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
-              merges: typeof(item.merges) != 'undefined', // 是否合并
-              mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
-            };
-            // 单元格超链接属性
-            if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
-              Object.assign(extend, {
-                ct: temp.p.ct,
-                cl: temp.p.cl || '',
-              });
-              if (!!temp.p.cl) {
-                const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
-                if (!!fields && fields.length > 0) {
-                  cellLinks[itemPost.start.rowIndex  + '' + itemPost.start.columnIndex] = {
-                    fields,
-                  };
+          if (temp.p.f.indexOf('.') != -1 && temp.p.f.indexOf('dataSetList') != -1) {
+            const fList = temp.p.f.split('.');
+            console.log('fList', fList);
+            const itemPost = item.pos;
+            if (fList[0] == 'dataSetList') {
+              // 记录超链接属性，用于扩展
+              const extend = {
+                c: temp.c,
+                pos: itemPost, // 位置信息
+                fieldInfo: temp.p.f, // 变量信息
+                fieldIndex: fList[1], // 数据集下标
+                field: fList[2], // 变量
+                extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+                merges: typeof(item.merges) != 'undefined', // 是否合并
+                mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
+                height: item.height,
+                width: item.width,
+              };
+              // 单元格超链接属性
+              if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
+                Object.assign(extend, {
+                  ct: temp.p.ct,
+                  cl: temp.p.cl || '',
+                });
+                if (!!temp.p.cl) {
+                  const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+                  if (!!fields && fields.length > 0) {
+                    cellLinks[itemPost.start.rowIndex  + '' + itemPost.start.columnIndex] = {
+                      fields,
+                    };
+                  }
                 }
               }
+              extendList.push(extend);
             }
-            extendList.push(extend);
           }
         }
         // 设置禁用
@@ -1002,12 +1006,13 @@ export default {
           const item = extendList[extendIndex];
           const rowIndex = item.pos.start.rowIndex;
           const columnIndex = item.pos.start.columnIndex;
+          const rowHeight = item.height; // 行高
+          const colWidth = item.width; // 列宽
           // 如果有合并
           // 合并行树
           const rowCountMerges = item.merges ? item.mergesInfo.end.rowIndex - item.pos.start.rowIndex : 0;
           // 合并列树
           const colCountMerges = item.merges ? item.mergesInfo.end.columnIndex - item.pos.start.columnIndex : 0;
-          console.warn('colCountMerges', colCountMerges);
           let valueList = [];
           if (typeof this.dataSetList[item.fieldIndex] != 'undefined') {
             // TODO 记录已有数据
@@ -1128,12 +1133,14 @@ export default {
                 });
               }
               const tempReplace = []; // 记录替换的数据，后面加回去
+              const rowsReplace = [];
               _.map(tempList, (item, index) => {
                 // 长度不对
                 const cellsLen = Object.keys(cells).sort((a, b) => b - a)[0];
                 const ifCell = !!cells[posBom + index];
                 const temp = ifCell && !!cells[posBom + index][columnIndex] ? JSON.parse(JSON.stringify(cells[posBom + index][columnIndex])) : null;
                 tempReplace.push(temp); // 记录数据
+                // 加入扩展数据
                 if (ifCell) {
                   if (columnIndex >= cells[posBom + index].length) {
                     const nullLen = columnIndex - cells[posBom + index].length;
@@ -1159,6 +1166,14 @@ export default {
                   } else {
                     cells[parseInt(cellsLen) + 2] = [];
                   }
+                }
+                // 修改扩展行高
+                if (typeof(rows[posBom + index]) == 'undefined') {
+                  rows.push({ hpx: rowHeight });
+                  rowsReplace.push(null);         
+                } else {
+                  rowsReplace.push(rows[posBom + index] != null ? JSON.parse(JSON.stringify(rows[posBom + index])) : null);
+                  rows.splice(posBom + index, 1, {hpx: rowHeight});
                 }
                 // 判断最后的下一行是否有值
                 if (index == tempList.length - 1) {
@@ -1186,6 +1201,22 @@ export default {
                     tempReplace.push(cells[key][columnIndex]); // 记录替换
                     cells[key].splice(columnIndex, 1, tempReplace[replaceIndex]);
                   }
+                  // 修改向下行高
+                  if (typeof(rows[key]) == 'undefined') {
+                    rows.push(rowsReplace[replaceIndex]);
+                    rowsReplace.push(null);         
+                  } else {
+                    rowsReplace.push(rows[key] != null ? JSON.parse(JSON.stringify(rows[key])) : null);
+                    if (rows[key] != null && rowsReplace[replaceIndex] != null) {
+                      if (rows[key].hpx < rowsReplace[replaceIndex].hpx) {
+                        rows.splice(key, 1, rowsReplace[replaceIndex]);
+                      }
+                    } else {
+                      if (rows[key] == null || rowsReplace[replaceIndex] != null) {
+                        rows.splice(key, 1, rowsReplace[replaceIndex]);
+                      }
+                    }
+                  }
                   replaceIndex += 1;
                   // 判断下一个节点是否有值，没有值的时候就要补充进去，防止错位
                   if (!cells[parseInt(key) + 1]) {
@@ -1199,6 +1230,25 @@ export default {
                         tempReplace.push(null); // 记录替换
                         cellList.push(tempReplace[replaceIndex + i]);
                         cells[parseInt(key) + i + 1] = cellList;
+
+                        // 修改向下行高
+                        if (typeof(rows[parseInt(key) + i + 1]) == 'undefined') {
+                          rows.push(rowsReplace[replaceIndex + i]);
+                          rowsReplace.push(null);
+                        } else {
+                          rowsReplace.push(rows[parseInt(key) + i + 1] != null ? JSON.parse(JSON.stringify(rows[parseInt(key) + i + 1])) : null);
+                          // rows.splice(parseInt(key) + i + 1, 1, rowsReplace[replaceIndex + i]);
+
+                          if (rows[parseInt(key) + i + 1] != null && rowsReplace[replaceIndex + i] != null) {
+                            if (rows[parseInt(key) + i + 1].hpx < rowsReplace[replaceIndex + i].hpx) {
+                              rows.splice(parseInt(key) + i + 1, 1, rowsReplace[replaceIndex + i]);
+                            }
+                          } else {
+                            if (rows[parseInt(key) + i + 1] == null || rowsReplace[replaceIndex + i] != null) {
+                              rows.splice(parseInt(key) + i + 1, 1, rowsReplace[replaceIndex + i]);
+                            }
+                          }
+                        }
                       }
                       replaceIndex += repairLen;
                     }
@@ -1230,8 +1280,7 @@ export default {
                 extendInfo.row[rowIndex].record.push({
                   startCol: columnIndex + colCountMerges,
                   count: len - 1,
-                });
-                
+                });                
               }
               if (!!cells[cellRowIndex]) {
                 if (cells[cellRowIndex].length < pos) {
@@ -1249,6 +1298,19 @@ export default {
                 }
                 cellList.push(...tempList);
                 cells[cellRowIndex] = cellList;
+              }
+              if (!!columns[pos]) {
+                // TODO 有问题，多个向右扩展会导致数据的错乱
+                // const colReplace = JSON.parse(JSON.stringfiy(columns[pos].slice(pos)));
+                const tempCol = _.map(tempList, () => {
+                  return { wpx: colWidth == columns[pos-1].wpx ? colWidth : columns[pos-1].wpx };
+                });
+                columns.splice(pos, 0, ...tempCol);
+              } else {
+                const tempCol = _.map(tempList, () => {
+                  return { wpx: colWidth };
+                });
+                columns.push(...tempCol);
               }
             }
           }
