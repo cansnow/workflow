@@ -348,6 +348,7 @@ export default {
 							{ label: "重置", value: "reset" },
 							{ label: "超链接", value: "text" },
 							{ label: "删除", value: "delete" },
+							{ label: "搜索", value: "search" },
 						],
 						change: this.change,
 					},

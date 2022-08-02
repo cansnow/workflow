@@ -86,6 +86,31 @@
         </div>
       </template>
     </div>
+    <!-- 查询规则 -->
+    <div class="overall_title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">查询规则</span>
+      <el-button type="text" @click="open(2)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
+    <div style="margin-left: 2px;">
+      <template v-if="searchList.length > 0">
+        <div v-for="(dItem, index) in searchList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.title }}</span>
+          <div>
+            <el-button type="text" :disabled="dItem.disabled" @click="() => handleEditSearch(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled" @click="handleSearchSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled" @click="() => handleDelSearch(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div>
     <div class="overall_title">冻结行列</div>
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="冻结列">
@@ -102,7 +127,7 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk">
       <Form v-show="dialogType == 0" ref="form" />
-      <Data v-show="dialogType == 1" ref="Data" />
+      <Data v-show="dialogType == 1 || dialogType == 2" :del="dialogType" ref="Data" />
 		</Dialog>
   </div>
 </template>
@@ -123,6 +148,7 @@ export default {
       pos: 'center', // 渲染布局方向
       formList: [], // 权限规则
       dataList: [], // 回写规则
+      searchList: [], // 查询规则
       dialogVisible: false,
       title: '',
       index: -1,
@@ -223,6 +249,7 @@ export default {
       return {
         formList: this.formList,
         dataList: this.dataList,
+        searchList: this.searchList,
         start: this.start,
         end: this.end,
         pos: this.pos,
@@ -231,6 +258,23 @@ export default {
     /** 颠倒数组 */
     handleSort() {
       this.dataList.reverse();
+    },
+    handleEditSearch(index) {
+      this.open(2);
+      this.$nextTick(() => {
+        const temp = this.searchList[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.Data.setFieldData(temp);
+        this.searchList.splice(index, 1, temp);
+        this.title = '编辑查询规则';
+      });
+    },
+    handleSearchSort() {
+      this.searchList.reverse();
+    },
+    handleDelSearch(index) {
+      this.searchList.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
     },
     /** 取消 */
     handleClose() {
@@ -244,9 +288,15 @@ export default {
         }
       } else {
         this.$refs.Data.resetData();
-        this.dataList = _.map(this.dataList, item => {
-          return Object.assign({}, item, { disabled: false });
-        });
+        if (this.dialogType == 1) {
+          this.dataList = _.map(this.dataList, item => {
+            return Object.assign({}, item, { disabled: false });
+          });
+        } else {
+          this.searchList = _.map(this.searchList, item => {
+            return Object.assign({}, item, { disabled: false });
+          });
+        }
       }
       this.dialogVisible = false;
       this.$emit('ovserallData', this.getData());
@@ -262,11 +312,20 @@ export default {
           this.formList.splice(form.index, 1, form);
         }
       } else {
-        const data = this.$refs.Data.getFieldData();
-        if (data.index == -1) {
-          this.dataList.push(data);
+        if (this.dialogType == 1) {
+          const data = this.$refs.Data.getFieldData();
+          if (data.index == -1) {
+            this.dataList.push(data);
+          } else {
+            this.dataList.splice(data.index, 1, data);
+          }
         } else {
-          this.dataList.splice(data.index, 1, data);
+          const data = this.$refs.Data.getFieldData();
+          if (data.index == -1) {
+            this.searchList.push(data);
+          } else {
+            this.searchList.splice(data.index, 1, data);
+          }
         }
       }
       this.handleClose();
@@ -276,7 +335,18 @@ export default {
       if (!this.dialogVisible) {
         this.dialogType = type;
         this.dialogVisible = true;
-        this.title = (type == 0 ? '新建' : '回写') + '规则';
+        // this.title = (type == 0 ? '新建' : '回写') + '规则';
+        switch(type) {
+          case 0:
+            this.title = '新建规则';
+            break;
+          case 1: 
+            this.title = '回写规则';
+            break;
+          case 2:
+            this.title = '搜索规则';
+            break;
+        }
       }
     },
     /** 删除权限规则 */

@@ -187,6 +187,7 @@ export default {
 			const temp = {
 				formList: [], // 权限规则
 				dataList: [], // 回写规则
+				searchList: [], // 搜索规则
 				start: '', // 开始行列
 				end: '', // 结束行列
 				dataOptions: [], // 数据面板选项
@@ -200,6 +201,7 @@ export default {
 				Object.assign(temp, {
 					formList: tempData.formList, // 权限规则
 					dataList: tempData.dataList, // 回写规则
+					searchList: tempData.searchList, // 搜索规则
 					dataOptions: tempData.dataOptions, // 数据面板选项
 					start: tempData.start, // 开始行列
 					end: tempData.end, // 结束行列
@@ -280,6 +282,7 @@ export default {
 				Object.assign(temp, {
 					formList: this.sheetData[sIndex].formList, // 权限规则
 					dataList: this.sheetData[sIndex].dataList, // 回写规则
+					searchList: this.sheetData[sIndex].searchList, // 搜索规则
 					start: this.sheetData[sIndex].start,
 					dataOptions: this.sheetData[sIndex].dataOptions, // 数据面板选项
 					end: this.sheetData[sIndex].end,
@@ -550,6 +553,8 @@ export default {
 							temp.v = data.buttonLink || '超链接';
 						} else if (data.buttonType == 'delete') {
 							temp.v = '删除';
+						} else if (data.buttonType == 'search') {
+							temp.v = '搜索';
 						} else {
 							temp.v = data.buttonType == 'submit' ? '提交' : '重置';
 						}
@@ -671,6 +676,7 @@ export default {
 				Object.assign(temp, {
 					formList: data.formList.length > 0 ?  data.formList : temp.formList,
 					dataList: data.dataList.length > 0 ?  data.dataList : temp.dataList,
+					searchList: data.searchList.length > 0 ? data.searchList : temp.searchList,
 					start: data.start == '' ? temp.start : data.start,
 					end: data.end == '' ? temp.end : data.end,
 					pos: data.pos || temp.pos || 'center',
@@ -779,6 +785,7 @@ export default {
 							freezeRow: item.freezeRow,
 							formList: item.formList || [],
 							dataList: item.dataList || [],
+							searchList: item.searchList || [],
 							dataOptions: item.dataOptions || [],
 							pos: item.pos || 'center',
 						});

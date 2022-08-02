@@ -13,7 +13,7 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="是否删除">
+      <el-form-item label="是否删除" v-show="del == 1">
         <el-radio v-model="ifDel" label="1">是</el-radio>
         <el-radio v-model="ifDel" label="0">否</el-radio>
       </el-form-item>
@@ -108,6 +108,12 @@ import Dialog from '../../dialog/index.vue';
 import Transfer from './transfer.vue';
 export default {
   components: { Dialog, Transfer },
+  props: {
+    del: {
+      type: Number,
+      default: 1,
+    }
+  },
   data() {
     return {
       title: '',
