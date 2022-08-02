@@ -30,6 +30,7 @@ export default {
       pos: 'center',
       cellFormData: [],// 单元格回写规则
       extendInfo: {}, // 扩展信息记录
+      query: {}, // 参数
     };
   },
   computed: {
@@ -79,7 +80,7 @@ export default {
       console.log('clickCellBtn', res);
       console.log('_this.previewData.dataList', _this.previewData.dataList);
       // 提交删除数据
-      if (res.p.t == 'submit' || res.p.t == 'delete') {
+      if (res.p.t == 'submit' || res.p.t == 'delete' || res.p.t == 'search') {
         // 提交
         if (res.p.t == 'submit') {
           // 根据回写规则提交数据
@@ -474,7 +475,59 @@ export default {
               });
             }
           }
-        }        
+        }
+        
+        // 搜索
+        if (res.p.t == 'search') {
+          if (_this.previewData.searchList && _this.previewData.searchList.length > 0) {
+            const searchList = _this.previewData.searchList;
+            _.map(searchList, item => {
+              const temp = { table: item.title };
+              if (item.filedList && item.filedList.length > 0) {
+                const fields = _.map(item.filedList, fObj => {
+                  let fieldValue = '';
+                  if (fObj.type == 'cell') {
+                    // 字段位置
+                    let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                    let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                    columnIndex = _.$ABC2Number(columnIndex);
+                    rowIndex = rowIndex - 1;
+                    const pos = { rowIndex, columnIndex };
+                    const cell = _this.$curSheet.getPosCell(pos);
+                    fieldValue = cell.v; // 字段值
+                  }
+                  // 固定值
+                  if (fObj.type == 'value') {
+                    fieldValue = fObj.value;
+                  }
+                  // 参数 parameter
+                  if (fObj.type == 'parameter') {
+                    let valueKey = '';
+                    _.map(_this.constants, (value, key) => {
+                      if (key.indexOf('key_') != -1) {
+                        // 判断是否包含替换变量
+                        if (fObj.value.indexOf(value) != -1) {
+                          // 获取值的key
+                          valueKey = key.replace('key_', 'value_');
+                        }
+                      }
+                    });
+                    fieldValue = _this.constants[valueKey] || '';
+                  }
+                  const temp = {};
+                  temp[fObj.filed] = fieldValue;
+
+                  Object.assign(_this.query, temp);
+    
+                  return {
+                    fieldName: fObj.filed, // 字段名
+                    fieldValue, // 字段值
+                  };
+                });
+              }
+            });
+          }
+        }
       } else {
         // 重置
         _this.update(_this.$piniastore.$state);
@@ -924,7 +977,7 @@ export default {
             // TODO 记录已有数据
             valueList = this.dataSetList[item.field];
           } else {
-            const res = await getDBData({ table: item.field });
+            const res = await getDBData({ table: item.field, ...this.query });
             const dataSetListTemp = res.data.dataSetList;
             valueList = dataSetListTemp[0].valueList; // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
@@ -1018,7 +1071,7 @@ export default {
             // TODO 记录已有数据
             valueList = this.dataSetList[item.fieldIndex];
           } else {
-            const res = await getDBData({ table: item.fieldIndex });
+            const res = await getDBData({ table: item.fieldIndex, ...this.query });
             const dataSetListTemp = res.data.dataSetList;
             valueList = dataSetListTemp[0].valueList; // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
@@ -1407,6 +1460,7 @@ export default {
         this.ifPreview = state.previewData.ifPreview;
         // 自定动态变量
         if (!!state.previewData.query && Object.keys(state.previewData.query).length > 0) {
+          Object.assign(this.query, state.previewData.query);
           let index = 4;
           const _this = this;
           _.map(state.previewData.query, (value, key) => {

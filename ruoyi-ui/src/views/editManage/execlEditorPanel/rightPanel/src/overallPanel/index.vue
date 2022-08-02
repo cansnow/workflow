@@ -181,7 +181,7 @@ export default {
             this.$refs.form.setFormData(form);
           }
           // 回写规则
-          if (this.dialogType == 1) {
+          if (this.dialogType == 1 || this.dialogType == 2) {
             this.$refs.Data.setCellValue(newValue);
           }
         }
@@ -218,7 +218,7 @@ export default {
       this.$emit('ovserallData', this.getData());
     },
     dialogVisible(newValue) {
-      if (newValue && this.dialogType == 1) {
+      if (newValue && (this.dialogType == 1 || this.dialogType == 2)) {
         this.$nextTick(() => {
           this.$refs.Data.setOptions(this.options);
         });
@@ -238,6 +238,7 @@ export default {
         return item;
       });
       this.dataList = data.dataList;
+      this.searchList = data.searchList;
       this.start = data.start;
       this.end = data.end;
       this.freezeColumn = data.freezeColumn;

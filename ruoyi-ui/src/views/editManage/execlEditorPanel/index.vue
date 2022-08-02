@@ -671,6 +671,7 @@ export default {
 		// 监听全局
 		this.$OverallPanel.$on('ovserallData', function(data) {
 			const index = _this.sheetData.findIndex(item => item.title == _this.title);
+			debugger;
 			if (index != -1) {
 				const temp = _this.sheetData[index];
 				Object.assign(temp, {
