@@ -117,6 +117,7 @@ export function getTableFieldByName(query) {
     url: '/workflow/wfForm/fieldList',
     method: 'post',
     params: query,
+    interval: true,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },

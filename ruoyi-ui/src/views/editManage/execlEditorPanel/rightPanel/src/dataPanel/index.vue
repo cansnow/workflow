@@ -11,6 +11,14 @@
         :node-key="props.value"
         @node-drag-start="handleDragStart"
       >
+      <!-- @contextmenu.prevent="test" -->
+        <span
+          class="custom-tree-node"
+          style="width: 100%"
+          @contextmenu.prevent="(event) => showMenu(event, data)"
+          slot-scope="{ node, data }">
+          <span>{{ node.label }}</span>
+        </span>
       </el-tree>
     </div>
     <Dialog
@@ -39,15 +47,20 @@
         </span>
       </el-tree>
 		</Dialog>
+
+    <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
+    </Context-Menu>
   </div>
 </template>
 
 <script>
 import { getDBTable, getTableFieldByName } from '@/api/editManage';
 import Dialog from '../dialog/index.vue';
+import contextMenu from './mixins/contextMenu';
 export default {
   inject: ['$rightPanel'],
   components: { Dialog },
+  mixins: [contextMenu],
   data() {
     return {
       data: [
@@ -89,6 +102,37 @@ export default {
     }
   },
   methods: {
+    // 显示右键菜单
+    showMenu(event, data) {
+      if (data.resourcetype == 4) {
+        this.showDataMenu(event.pageY, event.pageX, data);
+      }
+    },
+    async refreshItem() {
+      console.log('refreshItem');
+      const res = await getTableFieldByName({ table: this.tempData.tableName });
+      const children = _.map(res.data.columns, item => {
+        return {
+          tableName: item.columnName,
+          relativeData: item.columnName,
+          resourcename: item.aliasName || item.columnName,
+          resourcetype: 0,
+        };
+      });
+      const temp = JSON.parse(JSON.stringify(this.tempData));
+      Object.assign(temp, { children });
+      const index = this.showData.findIndex(fItem => fItem.id == this.tempData.id);
+      if (index != -1) {
+        this.showData.splice(index, 1, temp);
+      }
+    },
+    deleteItem() {
+      console.log('deleteItem');
+      const index = this.showData.findIndex(fItem => fItem.id == this.tempData.id);
+      if (index != -1) {
+        this.showData.splice(index, 1);
+      }
+    },
     setSelectData(data) {
       this.showData = data;
     },
@@ -124,8 +168,26 @@ export default {
         }
       });
     },
-    handleIsOk() {
-      this.getData(this.checkData, 0);
+    async handleIsOk() {
+      // this.getData(this.checkData, 0);
+      for (let i = 0; i < this.checkData.length; i++) {
+        const item = JSON.parse(JSON.stringify(this.checkData[i]));
+        const index = this.showData.findIndex(fItem => fItem.id == item.id);
+        if (index != -1) {
+          this.showData.splice(index, 1);
+        }
+        const res = await getTableFieldByName({ table: item.tableName });
+        const children = _.map(res.data.columns, item => {
+          return {
+            tableName: item.columnName,
+            relativeData: item.columnName,
+            resourcename: item.aliasName || item.columnName,
+            resourcetype: 0,
+          };
+        });
+        Object.assign(item, { children });
+        this.showData.push(item);
+      }
       this.handleClose();
     },
     open() {

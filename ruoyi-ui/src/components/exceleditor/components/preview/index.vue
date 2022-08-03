@@ -482,9 +482,8 @@ export default {
           if (_this.previewData.searchList && _this.previewData.searchList.length > 0) {
             const searchList = _this.previewData.searchList;
             _.map(searchList, item => {
-              const temp = { table: item.title };
               if (item.filedList && item.filedList.length > 0) {
-                const fields = _.map(item.filedList, fObj => {
+                _.map(item.filedList, fObj => {
                   let fieldValue = '';
                   if (fObj.type == 'cell') {
                     // 字段位置
@@ -526,10 +525,14 @@ export default {
                 });
               }
             });
+            _this.dataSetList = {};
+            _this.update(_this.$piniastore.$state);
+            _this.cellFormData = [];
           }
         }
       } else {
         // 重置
+        _this.dataSetList = {};
         _this.update(_this.$piniastore.$state);
         _this.cellFormData = [];
       }
@@ -606,7 +609,7 @@ export default {
       }
       return true;
     },
-    async formatCellData(data, formList, Range) {
+    async formatCellData(data, formList, Range, searchList) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -905,6 +908,30 @@ export default {
         }
       });
 
+      // 搜索赋值
+      if (!!searchList && searchList.length > 0) {
+        _.map(searchList, item => {
+          if (item.filedList && item.filedList.length > 0) {
+            _.map(item.filedList, fObj => {
+              if (fObj.type == 'cell') {
+                // 字段位置
+                let columnIndex = fObj.value.replace(/[^a-zA-Z]/g,'');
+                let rowIndex = fObj.value.replace(/[^0-9]/g,'');
+                columnIndex = _.$ABC2Number(columnIndex);
+                rowIndex = rowIndex - 1;
+                if(typeof this.query[fObj.filed] != 'undefined') {
+                  if (typeof cells[rowIndex] != 'undefined') {
+                    const temp = !!cells[rowIndex][columnIndex] ? JSON.parse(JSON.stringify(cells[rowIndex][columnIndex])) : {};
+                    Object.assign(temp, { v: this.query[fObj.filed] });
+                    cells[rowIndex].splice(columnIndex, 1, temp);
+                  }
+                }
+              }
+            });
+          }
+        });
+      }
+      
       // 权限规则
       if (formList && formList.length > 0) {
         // temp.cells
@@ -1475,7 +1502,8 @@ export default {
         const temp = await this.formatCellData(
           state.previewData.cells,
           state.previewData.formList,
-          { end: state.previewData.end, start: state.previewData.start || 'A1' }
+          { end: state.previewData.end, start: state.previewData.start || 'A1' },
+          state.previewData.searchList
         );
         
         // start: data.start, 
