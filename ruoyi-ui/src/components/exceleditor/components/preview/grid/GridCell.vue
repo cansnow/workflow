@@ -26,6 +26,8 @@
             :disabled="!props.option.p.r.w"
 			:on-remove="handleRemove"
 			:before-remove="beforeRemove"
+            :before-upload="beforeAvatarUpload"
+            :on-success="handleAvatarSuccess"
             :headers="headers"
             name="uploadFile"
             :data="{ type: 1, name: 'jhjj'}"
@@ -34,7 +36,7 @@
 			:on-exceed="handleExceed"
 			:file-list="fileList">
 		  <el-button size="small" type="primary">点击上传</el-button>
-		  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+		  <div slot="tip" class="el-upload__tip">只能上传{{ cellProps.t | getUploadTypeText }}文件，且不超过1MB</div>
 		</el-upload>
 		
 		<el-image v-if="cellType == 'image'" :src="value | getImgUrl"></el-image>
@@ -151,7 +153,18 @@ export default {
         getImgUrl(value) {
             const url = location && location.origin ? location.origin + '/uploads' + value : '/uploads' + value;
             return url;
-        }
+        },
+        getUploadTypeText(t) {
+            switch(t) {
+                case 'word':
+                    return '文档';
+                case 'zip':
+                    return '压缩';
+                case 'image':
+                    return '图片';
+                default: return '自定义';
+            }
+        },
     },
     components: { TreeSelect, TreeSelectMultiple },
 	data(){
@@ -225,9 +238,90 @@ export default {
             return css;
         },
         handlePreview(){},
-        handleRemove(){},
-        beforeRemove(){},
-        handleExceed(){},
+        // 上传成功后
+        handleAvatarSuccess(res, file) {
+            console.warn('handleAvatarSuccess', res, file);
+            // [{name: 'food.jpg', url: 'https://xxx.cdn.com/xxx.jpg'}]
+
+            this.fileList.push({name: file.name, url: `${(location && location.origin ? location.origin : '') + res.fileInfo.filePath}`, fileId: res.fileInfo.fileId });
+            
+            this.handleChange(this.fileList);
+		},
+        handleRemove(file, fileList) {
+            console.log(file, fileList);
+        },
+        getUploadType(file) {
+            const word = [
+                'text/plain',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/pdf',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            ];
+            const img = ['image/jpeg', 'image/png', 'image/bmp', 'image/gif', 'image/tiff'];
+            const zip = ['application/x-zip-compressed', '7z', 'rar'];
+            let index = -1;
+            switch(this.cellProps.t) {
+                case 'word':
+                    index = word.findIndex(item => item == file.type);
+                    return index != -1;
+                case 'image':
+                    index = img.findIndex(item => item == file.type);
+                    return index != -1;
+                case 'zip':
+                    if (file.type.indexOf('.') != -1) {
+                        const strList = file.type.split('.');
+                        index = zip.findIndex(item => item == strList[1]);
+                        if (index != -1) {
+                            return true;
+                        }
+                    }
+                    if (!!file.type) {
+                        index = zip.findIndex(item => item == file.type);
+                        return index != -1;
+                    }
+                    return false;
+                default: return true;
+            }
+
+        },
+        beforeRemove(file, fileList) {
+            const type = this.getUploadType(file.raw);
+            if (type) {
+                // if (!!file.response && typeof file.response.fileInfo != 'undefined') {
+                //     const index = this.value.findIndex(item => item == file.response.fileInfo.fileId);
+                //     if (index != -1) {
+                //         this.value.splice(index, 1);
+                //     }
+                // }
+                return this.$confirm(`确定移除 ${ file.name }？`);
+            }
+        },
+        
+        // 开始上传
+        beforeAvatarUpload(file) {
+            const isIMG = this.getUploadType(file); //file.type === 'image/jpeg' || file.type === 'image/png';
+            const isLt1M = file.size / 1024 / 1024 < 1;
+
+            if (!isIMG) {
+                const temp = {
+                    word: '文档',
+                    image: '图片',
+                    zip: '压缩包',
+                };
+                this.$message.error(`上传文件只能是${temp[this.cellProps.t]}格式!`);
+            }
+            if (!isLt1M) {
+            this.$message.error('上传文件大小不能超过 1MB!');
+            }
+            return isIMG && isLt1M;
+        },
+        handleExceed(files, fileList){
+            this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+        },
         updateCellType() {
             if (this.cell.option) {
                 if (typeof(this.cell.option['c']) == 'undefined') {
@@ -240,6 +334,11 @@ export default {
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
                 if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple') {
                     this.value = typeof(this.cell.option['v']) == 'undefined' ? [] : this.cell.option.v instanceof Array ? this.cell.option.v : [this.cell.option.v + ''];
+                }
+                if (this.cellType == 'upload') {
+                    if (this.value instanceof Array) {
+                        this.fileList = this.value;
+                    }
                 }
                 this.cellProps = typeof this.cell.option['p'] == 'undefined' ? {} : this.cell.option.p;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
@@ -309,7 +408,7 @@ export default {
             this.$sheet.doEditCell();
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');
-            if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple') {
+            if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple' || this.cellType == 'upload') {
                 this.$sheet.doEditCellValue(e);
             } else {
                 this.$sheet.doEditCellValue(e + '');

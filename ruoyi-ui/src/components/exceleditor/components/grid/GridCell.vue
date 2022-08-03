@@ -21,16 +21,21 @@
 		<el-upload
 			v-if="cellType == 'upload'"
 			class="upload-demo"
-			action="https://jsonplaceholder.typicode.com/posts/"
+			:action="uploadFileUrl"
 			:on-preview="handlePreview"
 			:on-remove="handleRemove"
 			:before-remove="beforeRemove"
+            :before-upload="beforeAvatarUpload"
+            :on-success="handleAvatarSuccess"
+            :headers="headers"
+            name="uploadFile"
+            :data="{ type: 1, name: 'jhjj'}"
 			multiple
-			:limit="3"
+			:limit="5"
 			:on-exceed="handleExceed"
 			:file-list="fileList">
 		  <el-button size="small" type="primary">点击上传</el-button>
-		  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+		  <div slot="tip" class="el-upload__tip">只能上传{{ cellProps.t | getUploadTypeText }}文件，且不超过1MB</div>
 		</el-upload>
 		
 		<el-image v-if="cellType == 'image'" :src="value | getImgUrl"></el-image>
@@ -128,6 +133,7 @@
 import { getCellValue } from '../sheet/mixins/cell/cellUtil';
 import TreeSelect from '../treeSelect/index.vue';
 import TreeSelectMultiple from '../treeSelect/treeSelectMultiple.vue';
+import { getToken } from "@/utils/auth";
 
 export default {
     inject: ['$sheet'],
@@ -138,7 +144,18 @@ export default {
         getImgUrl(value) {
             const url = location && location.origin ? location.origin + '/uploads' + value : '/uploads' + value;
             return url;
-        }
+        },
+        getUploadTypeText(t) {
+            switch(t) {
+                case 'word':
+                    return '文档';
+                case 'zip':
+                    return '压缩';
+                case 'image':
+                    return '图片';
+                default: return '自定义';
+            }
+        },
     },
     components: { TreeSelect, TreeSelectMultiple },
 	data(){
@@ -152,6 +169,10 @@ export default {
             options: undefined, // select 组件必须参数
             ifCell: true, // 是否单元格 true 单元格，false 组件
             cellProps: {},
+            uploadFileUrl: process.env.VUE_APP_BASE_API + "/workflow/fileInfo/upload", // 上传的图片服务器地址
+            headers: {
+                Authorization: "Bearer " + getToken(),
+            },
 		}
 	},
     watch: {
@@ -177,9 +198,77 @@ export default {
             return temp;
         },
         handlePreview(){},
-        handleRemove(){},
-        beforeRemove(){},
-        handleExceed(){},
+        handleAvatarSuccess(res, file) {
+			console.warn('handleAvatarSuccess', res, file);
+		},
+        handleRemove(file, fileList) {
+            console.log(file, fileList);
+        },
+        beforeRemove(file, fileList) {
+            const type = this.getUploadType(file.raw)
+            if (type) {
+                return this.$confirm(`确定移除 ${ file.name }？`);
+            }
+        },
+        getUploadType(file) {
+            const word = [
+                'text/plain',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/pdf',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            ];
+            const img = ['image/jpeg', 'image/png', 'image/bmp', 'image/gif', 'image/tiff'];
+            const zip = ['application/x-zip-compressed', '7z', 'rar'];
+            let index = -1;
+            switch(this.cellProps.t) {
+                case 'word':
+                    index = word.findIndex(item => item == file.type);
+                    return index != -1;
+                case 'image':
+                    index = img.findIndex(item => item == file.type);
+                    return index != -1;
+                case 'zip':
+                    if (file.type.indexOf('.') != -1) {
+                        const strList = file.type.split('.');
+                        index = zip.findIndex(item => item == strList[1]);
+                        if (index != -1) {
+                            return true;
+                        }
+                    }
+                    if (!!file.type) {
+                        index = zip.findIndex(item => item == file.type);
+                        return index != -1;
+                    }
+                    return false;
+                default: return true;
+            }
+
+        },
+        // 开始上传
+        beforeAvatarUpload(file) {
+            const isIMG = this.getUploadType(file); //file.type === 'image/jpeg' || file.type === 'image/png';
+            const isLt1M = file.size / 1024 / 1024 < 1;
+
+            if (!isIMG) {
+                const temp = {
+                    word: '文档',
+                    image: '图片',
+                    zip: '压缩包',
+                };
+                this.$message.error(`上传文件只能是${temp[this.cellProps.t]}格式!`);
+            }
+            if (!isLt1M) {
+            this.$message.error('上传文件大小不能超过 1MB!');
+            }
+            return isIMG && isLt1M;
+        },
+        handleExceed(files, fileList){
+            this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+        },
         updateCellType() {
             if (this.cell.option) {
                 if (typeof(this.cell.option['c']) == 'undefined') {

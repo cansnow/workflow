@@ -287,7 +287,7 @@ export default {
             // 判断是否变量相加减
             const constant = new RegExp(/\$\{\w*\}/);
             console.log('val', constant.test(val));
-            if (!_.isPlainObject(val) && _.$isFormula(val) && !constant.test(val)) {
+            if (!_.isPlainObject(val) && !(val instanceof Array) && _.$isFormula(val) && !constant.test(val)) {
                 this.setCellFormula(pos, val);
                 this.computedCellFormula(pos);
             } else {
@@ -417,7 +417,7 @@ export default {
                     });
                     Object.assign(cell, val);
                     const constant = new RegExp(/\$\{\w*\}/);
-                    if (typeof(val.v) != 'undefined' && _.$isFormula(val.v) && !constant.test(val.v)) {
+                    if (typeof(val.v) != 'undefined' && !(val.v instanceof Array) && _.$isFormula(val.v) && !constant.test(val.v)) {
                         this.setCellFormula(pos, val.v);
                         this.computedCellFormula(pos);
                     } else {

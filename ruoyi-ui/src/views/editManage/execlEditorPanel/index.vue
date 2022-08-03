@@ -583,7 +583,7 @@ export default {
 								], // [0] 可见规则， [1] 可编辑规则
 						}, // rule 权限
 				};
-				if (temp.componentType == 'upload') {
+				if (data.componentType == 'upload') {
 					Object.assign(props, { t: data.uploadType });
 				}
 				if (data.componentType == 'select') {
@@ -633,7 +633,7 @@ export default {
 			// 单元格数据，有公式
 			if (data.componentType == 'Cell') {
 				Object.assign(temp, { v: data.default });
-			}			
+			}
 			this.setCell(temp);
 		},
 		handleSelectEnd() {
