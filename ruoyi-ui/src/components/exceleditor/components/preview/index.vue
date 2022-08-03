@@ -1,5 +1,5 @@
 <template>
-  <div class="preview" :style="pos == 'center' ? { width: '60vw' } : ''">
+  <div class="preview" :style="pos == 'center' ? { width: `${screenW + 25}px` } : ''">
     <div class="preview_title">{{ title }}</div>
     <Sheet
       style="height: calc(100vh - 40px)"
@@ -31,11 +31,15 @@ export default {
       cellFormData: [],// 单元格回写规则
       extendInfo: {}, // 扩展信息记录
       query: {}, // 参数
+      screenW: 0, // 宽度
     };
   },
   computed: {
     $curSheet() {
       return this.$refs['sheet_' + this.index];
+    },
+    maxWidth() {
+      return this.$curSheet.maxWidth;
     },
     ...mapGetters(["name"]),
   },
@@ -77,8 +81,6 @@ export default {
       if (_this.ifPreview) {
         return;
       }
-      console.log('clickCellBtn', res);
-      console.log('_this.previewData.dataList', _this.previewData.dataList);
       // 提交删除数据
       if (res.p.t == 'submit' || res.p.t == 'delete' || res.p.t == 'search') {
         // 提交
@@ -1540,9 +1542,25 @@ export default {
         //     item.splice(parseInt(columnIndex), item.length);
         //   }
         // });
+        let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
+        colLen = colLen < 20 ? 20 : colLen;
+        this.screenW = 0;
+        for (let i = 0; i < colLen; i++) {
+          if (!!temp.columns[i]) {
+            this.screenW += temp.columns[i].wpx;
+          } else {
+            this.screenW += 64;
+          }
+        }
         Object.assign(tempData, temp);
         this.data = tempData;
         this.title = tempData.title || 'sheet';
+
+        this.$nextTick(() => {
+          if (this.screenW < this.maxWidth) {
+            this.screenW = this.maxWidth;
+          }
+        });
     },
   },
 }
