@@ -336,10 +336,10 @@ export default {
 							label: '平均值',
 							value: 'average'
 						},
-						// {
-						// 	label: '计数',
-						// 	value: 'cnt'
-						// },
+						{
+							label: '计数',
+							value: 'count'
+						},
 						{
 							label: '最大值',
 							value: 'max'

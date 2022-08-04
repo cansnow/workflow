@@ -3931,6 +3931,14 @@
         return v / items[0].length;
     }
 
+    // 计数 count
+    function count() {
+        var list = [], len = arguments.length;
+        while (len--) list[len] = arguments[len];
+        var values = flatten(list)
+        return values.length;
+    }
+
     // MIN returns the smallest number from a `list`.
     function min() {
         var list = [], len = arguments.length;
@@ -5302,6 +5310,8 @@
         yearfrac: yearfrac,
         AVERAGE: average,
         average: average,
+        count: count,
+        COUNT: count,
         MIN: min,
         min: min,
         MAX: max,
@@ -5699,6 +5709,8 @@
     exports.yearfrac = yearfrac;
     exports.AVERAGE = average;
     exports.average = average;
+    exports.COUNT = count;
+    exports.count = count;
     exports.MIN = min;
     exports.min = min;
     exports.MAX = max;
