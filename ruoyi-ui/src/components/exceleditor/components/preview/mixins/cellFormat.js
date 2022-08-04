@@ -66,6 +66,12 @@ export default {
         case 'custom': // 自定义
         case 'routine': // 常规
           break;
+        case 'plus': // 正号
+          temp = this.plus(val, d);
+          break;
+        case 'minus': // 负号
+          temp = this.minus(val, d);
+          break;
       }
       this.c_setCellV(pos, temp);
     },
@@ -129,6 +135,10 @@ export default {
       let temp = this.setNumber(val, d);
       const index = temp.indexOf('.');
       let s = temp.slice(0, index);
+      let prefix = s.indexOf('-') != -1 ? s.slice(0, s.indexOf('-') + 1) : '';
+      if (!!prefix) {
+        s = s.replace(prefix, '');
+      }
       let e = temp.slice(index, temp.length);
       let len = s.length;
       if (len > 3) {
@@ -147,12 +157,24 @@ export default {
         str.reverse();
         temp = str.join(',') + e;
       }
+      if (!!prefix) {
+        temp = prefix + temp;
+      }
       return temp;
     },
     // 百分比
     setPercentage(val, d) {
       const temp = this.setNumber(val, d);
       return temp + '%';
+    },
+    // 正号
+    plus(val, d) {
+      const temp = this.setNumber(val, d);
+      return '+' + temp;
+    },
+    minus(val, d) {
+      const temp = this.setNumber(val, d);
+      return '-' + temp;
     },
     // 短日期 2022/02/02
     setShortDate(val) {

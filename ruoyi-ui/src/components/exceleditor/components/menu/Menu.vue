@@ -296,13 +296,21 @@ export default {
 							value: 'separators'
 						},
 						{
-							label: '特殊',
-							value: 'special'
+							label: '正号',
+							value: 'plus',
 						},
 						{
-							label: '自定义',
-							value: 'custom'
+							label: '负号',
+							value: 'minus',
 						},
+						// {
+						// 	label: '特殊',
+						// 	value: 'special'
+						// },
+						// {
+						// 	label: '自定义',
+						// 	value: 'custom'
+						// },
 					],
 				},
 				increase:{
