@@ -82,6 +82,12 @@ export default {
 					name: 'openFormatpainter',
 					selected: false
 				},
+				resetStyle: {
+					icon: 'mdi mdi-eraser-variant',
+					title: '清除格式',
+					name: 'resetStyle',
+					selected: false
+				},
 				fontFamily:{
 					title: '字体',
 					name: 'fontFamily',
@@ -605,6 +611,9 @@ export default {
 		openFormatpainter() {
 			this.$sheet.doOpenFormatpainter();
 			this.toolbars['openFormatpainter'].selected = this.$sheet.curAction == 'formatpainter';
+		},
+		resetStyle() {
+			this.$sheet.resetStyle();
 		},
 		fontFamily(){
 			this.$sheet.setFontFamily(this.toolbars['fontFamily'].value);

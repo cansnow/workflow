@@ -80,5 +80,12 @@ export default {
             let cell = this.getPosCell(this.selctionExpand.start);
             this.setCellAttribute(this.selctionExpand.start, cell, 'f', '=' + type + '()');
         },
+        // 清空样式
+        resetStyle() {
+            let cell = this.getPosCell(this.selctionExpand.start);
+            if (typeof cell.s != 'undefined') {
+                this.setCellAttribute(this.selctionExpand.start, cell, 's', undefined);
+            }
+        },
     },
 };
