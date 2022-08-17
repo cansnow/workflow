@@ -8,9 +8,9 @@
 					:matched="matched"
 				/>
 				<div class="flex_row space-between">
-					<el-button type="text" icon="arrow-left"></el-button>
-					<!-- <el-input v-model="title" @change="handleChangeTitle" class="inputbb" placeholder="请输入内容"></el-input> -->
-					<span>{{ title }}</span>
+					<!-- <el-button type="text" icon="arrow-left"></el-button> -->
+					<el-input v-if="ifEditTitle" v-model="title" @change="handleChangeTitle" @blur="ifEditTitle = false" class="inputbb" placeholder="请输入内容"></el-input>
+					<div v-else @dblclick="handleDblclickTitle">{{ title }}</div>
 				</div>
 				<!-- <el-button-group>
 					<el-button type="primary">设计</el-button>
@@ -137,6 +137,7 @@ export default {
 			matched: [], // 路由
 			tempId: '', // id
 			ifEdit: false,
+			ifEditTitle: false,
 		};
 	},
 	computed: {
@@ -152,6 +153,18 @@ export default {
 		},
 		$curSheet: function() {
 			return this.$refs.vspread.getCurSheet()[0];
+		},
+	},
+	watch: {
+		ifEditTitle: {
+			handler(newV) {
+				if (!newV) {
+					this.sheetTitles = [];
+					this.$refs.vspread.data.forEach((item) => {
+						this.sheetTitles.push(item.title);
+					});
+				}
+			}
 		},
 	},
 	methods: {
@@ -178,6 +191,7 @@ export default {
 				}
 				data[this.sheetIndex].title = e;
 				this.$piniastore.setData(data);
+				this.ifEditTitle = false;
 		},
 		// 点击sheet tabs
 		handleChangeSheet(data) {
@@ -317,7 +331,9 @@ export default {
 			this.dialogVisible = true;
 			if (!!this.tempId) {
 				this.$nextTick(() => {
-					Object.assign(this.updateInfo, { sheet: this.updateInfo.sheet || this.title, title: this.updateInfo.title || this.title });
+					const index = this.sheetTitles.findIndex(title => title == this.updateInfo.sheet);
+					const sheet = index == -1 ? this.title : this.updateInfo.sheet;
+					Object.assign(this.updateInfo, { sheet, title: this.updateInfo.title || this.title });
 					this.$refs.relForm.setData(this.updateInfo);
 				})
 			} else {
@@ -650,6 +666,11 @@ export default {
 		handleClickHead() {
 			this.$refs.rightPanel.setHead(this.$refs.vspread.getCurSheet()[0].direction);
 		},
+		// 双击title
+		handleDblclickTitle() {
+			console.log('handleDblclickTitle');
+			this.ifEditTitle = true;
+		},
 	},
 	mounted() {
 		// 定时保存 
@@ -726,6 +747,7 @@ export default {
 				await updateTemplate(_this.updateInfo).finally(() => {
 					loading.close();
 				});
+				_this.$modal.msgSuccess('保存成功！');
 			} else {
 				_this.updateInfo = {
 					"description": "",
@@ -827,11 +849,9 @@ export default {
 	},
 	beforeDestroy() {
 		console.log('beforeDestroy');
-		// debugger;
 	},
 	destroyed() {
 		console.log('destroyed');
-		// debugger;
 	},
 };
 </script>

@@ -1364,7 +1364,6 @@ export default {
           }
 
           // TODO 获取新增数据
-          debugger;
           if(!!this.addData[item.fieldIndex] && this.addData[item.fieldIndex].length > 0) {
             valueList.push(...this.addData[item.fieldIndex]);
           }

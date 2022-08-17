@@ -222,7 +222,6 @@ export default {
                 if (!!temp && typeof temp.s != 'undefined') {
                     const style = this.$sheet.getStyle(temp.s);
                     if (!!style.option.border && style.option.border.indexOf('r') != -1) {
-                        // debugger;
                         delete css['border-left'];
                     }
                 }
@@ -233,7 +232,6 @@ export default {
                 if (!!temp && typeof temp.s != 'undefined') {
                     const style = this.$sheet.getStyle(temp.s);
                     if (!!style.option.border && style.option.border.indexOf('b') != -1) {
-                        // debugger;
                         delete css['border-top'];
                     }
                 }
