@@ -1,5 +1,5 @@
 <template>
-  <div class="preview" :style="pos == 'center' ? { width: `${screenW + 25}px` } : ''">
+  <div class="preview" :style="pos == 'center' ? { width: `${(screenW || 1400) + 25}px` } : ''">
     <div class="preview_title">{{ title }}</div>
     <Sheet
       style="height: calc(100vh - 40px)"
@@ -14,7 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData, updateFormData, fileList, deleteFormData } from '@/api/editManage';
+import { saveFormData, getDBData, updateFormDataNew as updateFormData, fileList, deleteFormData, getTableFieldByName } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -32,6 +32,7 @@ export default {
       extendInfo: {}, // 扩展信息记录
       query: {}, // 参数
       screenW: 0, // 宽度
+      tableField: {},
     };
   },
   computed: {
@@ -134,39 +135,46 @@ export default {
                       // 3. 判断是否被顶出去
                       // 4. 获取扩展后的集合
                       // 5. 封装成数据
-  
                       if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
                         if (cell.p.e == 'bottom') {
                           // 向下扩展
                           const extend = _this.extendInfo.column[columnIndex];
-                          const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                          if (index != -1) {
-                            const record = extend.record[index];
-                            // 循环获取数据
-                            const values = [];
-                            for (let i = 0; i < record.count + 1; i++) {
-                              // 向下取行
-                              const pos = { rowIndex: rowIndex + i, columnIndex };
-                              const cell = _this.$curSheet.getPosCell(pos);
-                              values.push(cell.v);
+                          if (!!extend) {
+                            const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                            if (index != -1) {
+                              const record = extend.record[index];
+                              // 循环获取数据
+                              const values = [];
+                              for (let i = 0; i < record.count + 1; i++) {
+                                // 向下取行
+                                const pos = { rowIndex: rowIndex + i, columnIndex };
+                                const cell = _this.$curSheet.getPosCell(pos);
+                                values.push(cell.v);
+                              }
+                              fieldValue = values; // 获取扩展集合数据
                             }
-                            fieldValue = values; // 获取扩展集合数据
-                          }
+                          } else {
+                            fieldValue = cell.v; // 字段值
+                          }                          
                         } else {
                           // 向右扩展
                           const extend = _this.extendInfo.row[rowIndex];
-                          const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                          if (index != -1) {
-                            const record = extend.record[index];
-                            // 循环获取数据
-                            const values = [];
-                            for (let i = 0; i < record.count + 1; i++) {
-                              // 向下取行
-                              const pos = { rowIndex, columnIndex: columnIndex + i };
-                              const cell = _this.$curSheet.getPosCell(pos);
-                              values.push(cell.v);
+                          if (!!extend) {
+                            const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                            if (index != -1) {
+                              const record = extend.record[index];
+                              // 循环获取数据
+                              const values = [];
+                              for (let i = 0; i < record.count + 1; i++) {
+                                // 向下取行
+                                const pos = { rowIndex, columnIndex: columnIndex + i };
+                                const cell = _this.$curSheet.getPosCell(pos);
+                                values.push(cell.v);
+                              }
+                              fieldValue = values; // 获取扩展集合数据
                             }
-                            fieldValue = values; // 获取扩展集合数据
+                          } else {
+                            fieldValue = cell.v; // 字段值
                           }
                         }
                       } else {
@@ -201,7 +209,7 @@ export default {
                   // 判断是否有主键，有主键为修改，无主键为新增
                   const ifKey = item.filedList.findIndex(filed => filed.key);
                   if (ifKey != -1) {
-                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed).value();
                     Object.assign(temp, { ifKey: true, keys });
                   }
                   const ifExtend = fields.findIndex(field => field.ifExtend);
@@ -241,10 +249,22 @@ export default {
                 if (item.keys.length > 0) {
                   _.map(item.keys, key => {
                     const index = item.fields.findIndex(f => f.fieldName == key);
+                    let fieldValue = '';
+                    fieldValue = index != -1 ? item.fields[index].fieldValue : '';
+                    if (key == 'status') {
+                      if (fieldValue instanceof Array) {
+                        fieldValue = fieldValue.length > 0 && fieldValue[0] == 'true' ? true : false;
+                      } else {
+                        fieldValue = fieldValue == 'true' ? true : false;
+                      }
+                    }
                     conditions.push({
                       fieldName: key,
-                      fieldValue: index != -1 ? item.fields[index].fieldValue : '',
+                      fieldValue,
                     });
+                    if (index != -1) {
+                      item.fields.splice(index, 1);
+                    }
                   });
                 }
                 updateData.push({
@@ -252,8 +272,15 @@ export default {
                   table: item.table,
                   fields: item.fields,
                 });
-                
               } else {
+                // TODO 判断是否客户表，新增需要设置id，uuid
+                if (item.table == 'person' || item.table == '') {
+                  const id = _this.guid();
+                  item.fields.push({
+                    fieldName: 'id',
+                    fieldValue: id,
+                  })
+                }
                 if (typeof resData[item.table] == 'undefined') {
                   const temp = [];
                   temp.push(item.fields);
@@ -343,34 +370,43 @@ export default {
                         if (cell.p.e == 'bottom') {
                           // 向下扩展
                           const extend = _this.extendInfo.column[columnIndex];
-                          const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                          if (index != -1) {
-                            const record = extend.record[index];
-                            // 循环获取数据
-                            const values = [];
-                            for (let i = 0; i < record.count + 1; i++) {
-                              // 向下取行
-                              const pos = { rowIndex: rowIndex + i, columnIndex };
-                              const cell = _this.$curSheet.getPosCell(pos);
-                              values.push(cell.v);
+                          if (!!extend) {
+                            const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                            if (index != -1) {
+                              const record = extend.record[index];
+                              // 循环获取数据
+                              const values = [];
+                              for (let i = 0; i < record.count + 1; i++) {
+                                // 向下取行
+                                const pos = { rowIndex: rowIndex + i, columnIndex };
+                                const cell = _this.$curSheet.getPosCell(pos);
+                                values.push(cell.v);
+                              }
+                              fieldValue = values; // 获取扩展集合数据
                             }
-                            fieldValue = values; // 获取扩展集合数据
+                          } else {
+                            fieldValue = cell.v; // 字段值
                           }
+                          
                         } else {
                           // 向右扩展
                           const extend = _this.extendInfo.row[rowIndex];
-                          const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                          if (index != -1) {
-                            const record = extend.record[index];
-                            // 循环获取数据
-                            const values = [];
-                            for (let i = 0; i < record.count + 1; i++) {
-                              // 向下取列
-                              const pos = { rowIndex, columnIndex: columnIndex + i };
-                              const cell = _this.$curSheet.getPosCell(pos);
-                              values.push(cell.v);
+                          if (!!extend) {
+                            const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                            if (index != -1) {
+                              const record = extend.record[index];
+                              // 循环获取数据
+                              const values = [];
+                              for (let i = 0; i < record.count + 1; i++) {
+                                // 向下取列
+                                const pos = { rowIndex, columnIndex: columnIndex + i };
+                                const cell = _this.$curSheet.getPosCell(pos);
+                                values.push(cell.v);
+                              }
+                              fieldValue = values; // 获取扩展集合数据
                             }
-                            fieldValue = values; // 获取扩展集合数据
+                          } else {
+                            fieldValue = cell.v; // 字段值
                           }
                         }
                       } else {
@@ -405,7 +441,7 @@ export default {
                   // 判断是否有主键，有主键为修改，无主键为新增
                   const ifKey = item.filedList.findIndex(filed => filed.key);
                   if (ifKey != -1) {
-                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed);
+                    const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed).value();
                     Object.assign(temp, { ifKey: true, keys });
                   }
                   const ifExtend = fields.findIndex(field => field.ifExtend);
@@ -416,7 +452,7 @@ export default {
                         if (fTemp.ifExtend) {
                           return {
                             fieldName: fTemp.fieldName,
-                            fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length ] : fTemp.fieldValue[fi],
+                            fieldValue: fTemp.fieldValue.length == fi ? fTemp.fieldValue[fTemp.fieldValue.length] : fTemp.fieldValue[fi],
                           };
                         } else {
                           return {
@@ -589,6 +625,13 @@ export default {
 
   },
   methods: {
+    guid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    },
     // 判断是否在有效区域内
     inRangeInside(range, pos) {
       if (!!range.start) {
@@ -1006,7 +1049,23 @@ export default {
             // TODO 记录已有数据
             valueList = this.dataSetList[item.field];
           } else {
-            const res = await getDBData({ table: item.field, ...this.query });
+            
+            if (typeof this.tableField[item.field] == 'undefined') {
+              const res = await getTableFieldByName({ table: item.field });
+              const fields = _.map(res.data.columns, item => {
+                return item.columnName;
+              });
+              this.tableField[item.field] = fields;
+            }
+            const query = {};
+            _.map(this.query, (value, key) => {
+              const index = this.tableField[item.field].findIndex(field => field == key);
+              if (index != -1) {
+                query[key] = value;
+              }
+            });
+
+            const res = await getDBData({ table: item.field, ...query });
             const dataSetListTemp = res.data.dataSetList;
             valueList = dataSetListTemp[0].valueList; // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
@@ -1100,7 +1159,23 @@ export default {
             // TODO 记录已有数据
             valueList = this.dataSetList[item.fieldIndex];
           } else {
-            const res = await getDBData({ table: item.fieldIndex, ...this.query });
+
+            if (typeof this.tableField[item.field] == 'undefined') {
+              const res = await getTableFieldByName({ table: item.fieldIndex });
+              const fields = _.map(res.data.columns, item => {
+                return item.columnName;
+              });
+              this.tableField[item.fieldIndex] = fields;
+            }
+            const query = {};
+            _.map(this.query, (value, key) => {
+              const index = this.tableField[item.fieldIndex].findIndex(field => field == key);
+              if (index != -1) {
+                query[key] = value;
+              }
+            });
+
+            const res = await getDBData({ table: item.fieldIndex, ...query });
             const dataSetListTemp = res.data.dataSetList;
             valueList = dataSetListTemp[0].valueList; // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;

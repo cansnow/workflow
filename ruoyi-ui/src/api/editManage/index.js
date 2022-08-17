@@ -56,6 +56,19 @@ export function getDBData(query) {
 }
 
 /**
+ * 回写更新接口2
+ * @param {*} data 
+ * @returns 
+ */
+ export function updateFormDataNew(data) {
+  return request({
+    url: '/workflow/template/updateFormDataNew',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
  * 回写提交接口
  * @param {*} data 
  * @returns 
