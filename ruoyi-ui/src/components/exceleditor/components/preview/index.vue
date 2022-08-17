@@ -33,6 +33,8 @@ export default {
       query: {}, // 参数
       screenW: 0, // 宽度
       tableField: {},
+      ifEdit: false, 
+      addData: {}, // 新增数据
     };
   },
   computed: {
@@ -46,7 +48,7 @@ export default {
   },
   async mounted() {
     const _this = this;
-    await fileList();
+    // await fileList();
     // 获取数据集
     const res = await getDBData({ table: 'lang' });
     const constants = _.map(res.data.constants, (item, key) => {
@@ -135,50 +137,52 @@ export default {
                       // 3. 判断是否被顶出去
                       // 4. 获取扩展后的集合
                       // 5. 封装成数据
-                      if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
-                        if (cell.p.e == 'bottom') {
-                          // 向下扩展
-                          const extend = _this.extendInfo.column[columnIndex];
-                          if (!!extend) {
-                            const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                            if (index != -1) {
-                              const record = extend.record[index];
-                              // 循环获取数据
-                              const values = [];
-                              for (let i = 0; i < record.count + 1; i++) {
-                                // 向下取行
-                                const pos = { rowIndex: rowIndex + i, columnIndex };
-                                const cell = _this.$curSheet.getPosCell(pos);
-                                values.push(cell.v);
+                      if (!!cell) {
+                        if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                          if (cell.p.e == 'bottom') {
+                            // 向下扩展
+                            const extend = _this.extendInfo.column[columnIndex];
+                            if (!!extend) {
+                              const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                              if (index != -1) {
+                                const record = extend.record[index];
+                                // 循环获取数据
+                                const values = [];
+                                for (let i = 0; i < record.count + 1; i++) {
+                                  // 向下取行
+                                  const pos = { rowIndex: rowIndex + i, columnIndex };
+                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  values.push(cell.v);
+                                }
+                                fieldValue = values; // 获取扩展集合数据
                               }
-                              fieldValue = values; // 获取扩展集合数据
-                            }
+                            } else {
+                              fieldValue = cell.v; // 字段值
+                            }                          
                           } else {
-                            fieldValue = cell.v; // 字段值
-                          }                          
-                        } else {
-                          // 向右扩展
-                          const extend = _this.extendInfo.row[rowIndex];
-                          if (!!extend) {
-                            const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                            if (index != -1) {
-                              const record = extend.record[index];
-                              // 循环获取数据
-                              const values = [];
-                              for (let i = 0; i < record.count + 1; i++) {
-                                // 向下取行
-                                const pos = { rowIndex, columnIndex: columnIndex + i };
-                                const cell = _this.$curSheet.getPosCell(pos);
-                                values.push(cell.v);
+                            // 向右扩展
+                            const extend = _this.extendInfo.row[rowIndex];
+                            if (!!extend) {
+                              const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                              if (index != -1) {
+                                const record = extend.record[index];
+                                // 循环获取数据
+                                const values = [];
+                                for (let i = 0; i < record.count + 1; i++) {
+                                  // 向下取行
+                                  const pos = { rowIndex, columnIndex: columnIndex + i };
+                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  values.push(cell.v);
+                                }
+                                fieldValue = values; // 获取扩展集合数据
                               }
-                              fieldValue = values; // 获取扩展集合数据
+                            } else {
+                              fieldValue = cell.v; // 字段值
                             }
-                          } else {
-                            fieldValue = cell.v; // 字段值
                           }
+                        } else {
+                          fieldValue = cell.v; // 字段值
                         }
-                      } else {
-                        fieldValue = cell.v; // 字段值
                       }
                     }
                     // 固定值
@@ -244,6 +248,23 @@ export default {
             const resData = {};
             const updateData = [];
             _.map(responseData, item => {
+              // 判断true false
+              const fields = _.map(item.fields, field => {
+                if (field.fieldValue == 'true') {
+                  return {
+                    fieldName: field.fieldName,
+                    fieldValue: true,
+                  }
+                }
+                if (field.fieldValue == 'false') {
+                  return {
+                    fieldName: field.fieldName,
+                    fieldValue: false,
+                  }
+                }
+                return field;
+              });
+              // 有主键修改
               if (!!item.ifKey) {
                 const conditions = [];
                 if (item.keys.length > 0) {
@@ -258,23 +279,28 @@ export default {
                         fieldValue = fieldValue == 'true' ? true : false;
                       }
                     }
-                    conditions.push({
-                      fieldName: key,
-                      fieldValue,
-                    });
-                    if (index != -1) {
-                      item.fields.splice(index, 1);
+                    if (!!fieldValue) {
+                      conditions.push({
+                        fieldName: key,
+                        fieldValue,
+                      });
+                    }
+                    const id = fields.findIndex(f => f.fieldName == 'id');
+                    if (id != -1) {
+                      fields.splice(id, 1);
                     }
                   });
                 }
-                updateData.push({
-                  conditions,
-                  table: item.table,
-                  fields: item.fields,
-                });
+                if (conditions.length > 0) {
+                  updateData.push({
+                    conditions,
+                    table: item.table,
+                    fields,
+                  });
+                }
               } else {
                 // TODO 判断是否客户表，新增需要设置id，uuid
-                if (item.table == 'person' || item.table == '') {
+                if (item.table == 'person' || item.table == 'tea_sale') {
                   const id = _this.guid();
                   item.fields.push({
                     fieldName: 'id',
@@ -283,10 +309,10 @@ export default {
                 }
                 if (typeof resData[item.table] == 'undefined') {
                   const temp = [];
-                  temp.push(item.fields);
+                  temp.push(fields);
                   resData[item.table] = temp;
                 } else {
-                  resData[item.table].push(item.fields);
+                  resData[item.table].push(fields);
                 }
               }
             });
@@ -296,12 +322,79 @@ export default {
                 fields: item,
               }
             });
-            if (data.length > 0) {
+            // 新增数据
+            const addInfo = [];
+            // 修改 剔除新增数据
+            _.map(updateData, (u, i) => {
+              _.map(u.conditions, c => {
+                // 我们的表新增
+                if (c.fieldName == 'id' && c.fieldValue == -1) {
+                  addInfo.push({
+                    t: u.table,
+                    values: JSON.parse(JSON.stringify(u.fields)),
+                  });
+                  updateData.splice(i, 1);
+                }
+                // 客户的表新增
+                if (u.table == 'person' || u.table == 'tea_sale') {
+                  if (c.fieldName == 'id') {
+                    const index = _this.addData[u.table].findIndex(item => item.id == c.fieldValue);
+                    if (index != -1) {
+                      addInfo.push({
+                        t: u.table,
+                        id: c.fieldValue,
+                        values: JSON.parse(JSON.stringify(u.fields)),
+                      });
+                      updateData.splice(i, 1);
+                    }
+                  }
+                }
+              });
+            });
+
+            // 新增
+            if ((data.length > 0 && !_this.ifEdit) || addInfo.length > 0) {
+              if (addInfo.length > 0) {
+                _.map(addInfo, a => {
+                  // 补全字段
+                  const fields = a.values;
+                  _.map(_this.tableField[a.t], field => {
+                    const fi = fields.findIndex(f => f.fieldName == field);
+                    if (fi == -1) {
+                      if (field == 'id') {
+                        // 客户表需要id，我们的表不需要
+                        if (a.t == 'person' || a.t == 'tea_sale') {
+                          fields.push({
+                            fieldName: field,
+                            fieldValue: a.id,
+                          });
+                        }
+                      } else {
+                        fields.push({
+                          fieldName: field,
+                          fieldValue: '1',
+                        });
+                      }
+                    }
+                  });
+                  const di = data.findIndex(d => d.table == a.t);
+                  // 判断是否已存在该表
+                  if (di == -1) {
+                    data.push({
+                      table: a.t,
+                      fields: [fields],
+                    });
+                  } else {
+                    data[di].fields.push(fields);
+                  }
+                });
+              }
               await saveFormData(data).then((res) => {
                 console.log('saveFormData', res);
                 _this.$modal.msgSuccess('提交成功！！！');
               });
             }
+            // 修改
             if (updateData.length > 0) {
               await updateFormData(updateData).then((res) => {
                 console.log('updateFormData', res);
@@ -309,8 +402,13 @@ export default {
                 _this.dataSetList = {};
               });
             }
+
+            _this.addData = {};
+            _this.dataSetList = {};
+            _this.update(_this.$piniastore.$state);
+            _this.cellFormData = [];
           }
-          // 单元格回写规则
+          // TODO 单元格回写规则 暂时不用
           if (_this.cellFormData.length > 0 && false) {
             const data = [];
             const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
@@ -342,8 +440,8 @@ export default {
             });
           }
         }
-        // 删除
-        if (res.p.t == 'delete') {
+        // TODO 删除 暂时不用
+        if (false && res.p.t == 'delete') {
           if (_this.previewData.dataList && _this.previewData.dataList.length > 0) {
             const dataList = _this.previewData.dataList;
             const responseData = [];
@@ -366,51 +464,53 @@ export default {
                       // 3. 判断是否被顶出去
                       // 4. 获取扩展后的集合
                       // 5. 封装成数据
-                      if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
-                        if (cell.p.e == 'bottom') {
-                          // 向下扩展
-                          const extend = _this.extendInfo.column[columnIndex];
-                          if (!!extend) {
-                            const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
-                            if (index != -1) {
-                              const record = extend.record[index];
-                              // 循环获取数据
-                              const values = [];
-                              for (let i = 0; i < record.count + 1; i++) {
-                                // 向下取行
-                                const pos = { rowIndex: rowIndex + i, columnIndex };
-                                const cell = _this.$curSheet.getPosCell(pos);
-                                values.push(cell.v);
+                      if(!!cell) {
+                        if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
+                          if (cell.p.e == 'bottom') {
+                            // 向下扩展
+                            const extend = _this.extendInfo.column[columnIndex];
+                            if (!!extend) {
+                              const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
+                              if (index != -1) {
+                                const record = extend.record[index];
+                                // 循环获取数据
+                                const values = [];
+                                for (let i = 0; i < record.count + 1; i++) {
+                                  // 向下取行
+                                  const pos = { rowIndex: rowIndex + i, columnIndex };
+                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  values.push(cell.v);
+                                }
+                                fieldValue = values; // 获取扩展集合数据
                               }
-                              fieldValue = values; // 获取扩展集合数据
+                            } else {
+                              fieldValue = cell.v; // 字段值
                             }
+                            
                           } else {
-                            fieldValue = cell.v; // 字段值
+                            // 向右扩展
+                            const extend = _this.extendInfo.row[rowIndex];
+                            if (!!extend) {
+                              const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
+                              if (index != -1) {
+                                const record = extend.record[index];
+                                // 循环获取数据
+                                const values = [];
+                                for (let i = 0; i < record.count + 1; i++) {
+                                  // 向下取列
+                                  const pos = { rowIndex, columnIndex: columnIndex + i };
+                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  values.push(cell.v);
+                                }
+                                fieldValue = values; // 获取扩展集合数据
+                              }
+                            } else {
+                              fieldValue = cell.v; // 字段值
+                            }
                           }
-                          
                         } else {
-                          // 向右扩展
-                          const extend = _this.extendInfo.row[rowIndex];
-                          if (!!extend) {
-                            const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
-                            if (index != -1) {
-                              const record = extend.record[index];
-                              // 循环获取数据
-                              const values = [];
-                              for (let i = 0; i < record.count + 1; i++) {
-                                // 向下取列
-                                const pos = { rowIndex, columnIndex: columnIndex + i };
-                                const cell = _this.$curSheet.getPosCell(pos);
-                                values.push(cell.v);
-                              }
-                              fieldValue = values; // 获取扩展集合数据
-                            }
-                          } else {
-                            fieldValue = cell.v; // 字段值
-                          }
+                          fieldValue = cell.v; // 字段值
                         }
-                      } else {
-                        fieldValue = cell.v; // 字段值
                       }
                     }
                     // 固定值
@@ -570,6 +670,7 @@ export default {
         }
       } else {
         // 重置
+        _this.addData = {};
         _this.dataSetList = {};
         _this.update(_this.$piniastore.$state);
         _this.cellFormData = [];
@@ -622,7 +723,75 @@ export default {
       }
       window.open(linkTemp, '_blank');
     });
-
+    
+    // 删除数据
+    this.$curSheet.$on('doDeleteData', async function({ cell: data }) {
+      console.log('data', data);
+      const loading = _this.$loading({
+				lock: true,
+				text: 'Loading',
+				// spinner: 'el-icon-loading',
+				// background: 'rgba(0, 0, 0, 0.7)'
+			});
+      if (!!data && !!data.cdi && !!data.t && !!data.i) {
+        if (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) {
+          const index = _this.addData[data.t].findIndex(item => item.id == data.i);
+          if (index != -1) {
+            _this.addData[data.t].splice(index, 1);
+          }
+        } else {
+          const res = await deleteFormData([{
+            conditions: data.cdi,
+            table: data.t
+          }]).finally(() => {
+            loading.close();
+          });
+          console.log('deleteFormData', res);
+        }        
+        _this.$modal.msgSuccess('删除成功！');
+        // 重置
+        _this.dataSetList = {};
+        _this.update(_this.$piniastore.$state);
+        _this.cellFormData = [];
+      }
+      loading.close();
+    });
+    // 新增数据
+    this.$curSheet.$on('doAddData', function({ cell: data }) {
+      console.log('data', data);
+      const loading = _this.$loading({
+				lock: true,
+				text: 'Loading',
+				// spinner: 'el-icon-loading',
+				// background: 'rgba(0, 0, 0, 0.7)'
+			});
+      if (!!data && !!data.t && !!_this.tableField[data.t]) {
+        const temp = {};
+        //1. 获取字段，组合新数据
+        _.map(_this.tableField[data.t], field => {
+          temp[field] = '';
+        });
+        //2. 设置id，用于提交数据时剔除修改项，加入新增项
+        if (data.t == 'person' || data.t == 'tea_sale') {
+          const id = _this.guid();
+          Object.assign(temp, { id });
+        } else {
+          Object.assign(temp, { id: -1 });
+        }
+        //3. 添加到全局，重载数据渲染
+        if (!!_this.addData[data.t]) {
+          _this.addData[data.t].push(temp);
+        } else {
+          _this.addData[data.t] = [temp];
+        }
+        // 重置数据
+        _this.dataSetList = {};
+        _this.update(_this.$piniastore.$state);
+        _this.cellFormData = [];
+      }
+      loading.close();
+    });
+    
   },
   methods: {
     guid() {
@@ -654,7 +823,7 @@ export default {
       }
       return true;
     },
-    async formatCellData(data, formList, Range, searchList) {
+    async formatCellData(data, formList, Range, searchList, dataList) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -810,8 +979,21 @@ export default {
             console.log('fList', fList);
             const itemPost = item.pos;
             if (fList[0] == 'dataSetList') {
+              const conditions = [];
+              _.map(dataList, rule => {
+                if (rule.title == fList[1]) {
+                  const conditionsTemp = [];
+                  _.map(rule.filedList, filed => {
+                    if (filed.key) {
+                      conditionsTemp.push(filed.filed);
+                    }
+                  });
+                  conditions.push(conditionsTemp);
+                }
+              });
               // 记录超链接属性，用于扩展
               const extend = {
+                conditions,
                 c: temp.c,
                 pos: itemPost, // 位置信息
                 fieldInfo: temp.p.f, // 变量信息
@@ -1150,14 +1332,14 @@ export default {
           const rowHeight = item.height; // 行高
           const colWidth = item.width; // 列宽
           // 如果有合并
-          // 合并行树
+          // 合并行数
           const rowCountMerges = item.merges ? item.mergesInfo.end.rowIndex - item.pos.start.rowIndex : 0;
-          // 合并列树
+          // 合并列数
           const colCountMerges = item.merges ? item.mergesInfo.end.columnIndex - item.pos.start.columnIndex : 0;
           let valueList = [];
           if (typeof this.dataSetList[item.fieldIndex] != 'undefined') {
             // TODO 记录已有数据
-            valueList = this.dataSetList[item.fieldIndex];
+            valueList = JSON.parse(JSON.stringify(this.dataSetList[item.fieldIndex]));
           } else {
 
             if (typeof this.tableField[item.field] == 'undefined') {
@@ -1177,8 +1359,14 @@ export default {
 
             const res = await getDBData({ table: item.fieldIndex, ...query });
             const dataSetListTemp = res.data.dataSetList;
-            valueList = dataSetListTemp[0].valueList; // 变量集合
-            this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
+            valueList = JSON.parse(JSON.stringify(dataSetListTemp[0].valueList)); // 变量集合
+            this.dataSetList[dataSetListTemp[0].dataSetId] = JSON.parse(JSON.stringify(dataSetListTemp[0].valueList));
+          }
+
+          // TODO 获取新增数据
+          debugger;
+          if(!!this.addData[item.fieldIndex] && this.addData[item.fieldIndex].length > 0) {
+            valueList.push(...this.addData[item.fieldIndex]);
           }
           
           const len = valueList.length; // 长度
@@ -1186,11 +1374,23 @@ export default {
           const tempList = [];
           const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex].count;
           const cellRowIndex = typeof extendInfo.column[columnIndex] == 'undefined' ? rowIndex : rowIndex + extendInfo.column[columnIndex].count;
-          let tempListIndexValue = '';
+          const tempListIndexValue = {};
           _.map(valueList, (value, index) => {
+            // 记录主键值
+            const cdi = [];
+            if (item.conditions.length > 0) {
+              const cdiTemp = _.map(item.conditions[0], cond => {
+                return {
+                  fieldName: cond,
+                  fieldValue: value[cond]
+                }
+              });
+              cdi.push(...cdiTemp);
+            }
             if (index != 0) {
               const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
-              Object.assign(template, { v: value[item.field]});
+              Object.assign(template, { v: value[item.field], t: item.fieldIndex });
+              
               // 判断是否超链接单元格
               if (!!item.ct && typeof cellLinks[rowIndex + '' + columnIndex] != 'undefined') {
                 const cellLink = cellLinks[rowIndex + '' + columnIndex];
@@ -1218,12 +1418,19 @@ export default {
                 if (typeof template.v != 'undefined') {
                   Object.assign(template, { v: !(template.v instanceof Array) ? [template.v + ''] : template.v });
                 } else {
-                  Object.assign(template, { v: [] })
+                  Object.assign(template, { v: [] });
                 }
               }
+              if (cdi.length > 0) {
+                Object.assign(template, { cdi });
+              }
+              Object.assign(template, { i: value['id'] });
               tempList.push(template);
             } else {
-              tempListIndexValue = value[item.field];
+              Object.assign(tempListIndexValue, { v: value[item.field] + '', t: item.fieldIndex, i: value['id'] });
+              if (cdi.length > 0) {
+                Object.assign(tempListIndexValue, { cdi });
+              }
             }
             // 单元格回写规则记录 input select有效
             const itemTypes = {
@@ -1254,7 +1461,7 @@ export default {
           });
 
           const temp = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
-          Object.assign(temp, { v: tempListIndexValue + '' });
+          Object.assign(temp, tempListIndexValue);
           if (typeof temp.c != 'undefined' && (temp.c == 'checkbox' || temp.c == 'selectMultiple')) {
             if (typeof temp.v != 'undefined') {
               Object.assign(temp, { v: !(temp.v instanceof Array) ? [temp.v + ''] : temp.v });
@@ -1565,6 +1772,11 @@ export default {
         // 自定动态变量
         if (!!state.previewData.query && Object.keys(state.previewData.query).length > 0) {
           Object.assign(this.query, state.previewData.query);
+          if (Object.keys(state.previewData.query).length > 0) {
+            this.ifEdit = true;
+          } else {
+            this.ifEdit = false;
+          }
           let index = 4;
           const _this = this;
           _.map(state.previewData.query, (value, key) => {
@@ -1580,7 +1792,8 @@ export default {
           state.previewData.cells,
           state.previewData.formList,
           { end: state.previewData.end, start: state.previewData.start || 'A1' },
-          state.previewData.searchList
+          state.previewData.searchList,
+          state.previewData.dataList
         );
         
         // start: data.start, 

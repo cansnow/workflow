@@ -388,7 +388,7 @@ export default {
 				// 	console.log('result', result);
 				// });
 			}
-			this.handleClose();
+			// this.handleClose();
 			window.close();
 			// 关闭失败时跳转路径
 			const _this = this;
@@ -700,16 +700,22 @@ export default {
 				this.matched.push({ path: '/design', meta: { title: '设计器' }});
 			}
 		});
-
+		// 点击预览
 		this.$refs.vspread.$on('handlePreview', function() {
 			_this.handlePreview();
 		});
-
+		// 点击发布
 		this.$refs.vspread.$on('handleRelease', function() {
 			_this.handleRelease();
 		});
-
+		// 点击保存
 		this.$refs.vspread.$on('handleSave', async function() {
+			const loading = _this.$loading({
+				lock: true,
+				text: 'Loading',
+				// spinner: 'el-icon-loading',
+				// background: 'rgba(0, 0, 0, 0.7)'
+			});
 			const data = []
 			_this.$refs.vspread.data.forEach((_, index) => {
 				data.push(_this.getCurSaveData(index));
@@ -717,7 +723,9 @@ export default {
 			if (!!_this.tempId) {
 				Object.assign(_this.updateInfo, { data: JSON.stringify(data) });
 				// 修改
-				await updateTemplate(_this.updateInfo);
+				await updateTemplate(_this.updateInfo).finally(() => {
+					loading.close();
+				});
 			} else {
 				_this.updateInfo = {
 					"description": "",
@@ -727,7 +735,9 @@ export default {
 					"title": _this.title,
 					"data": JSON.stringify(data),
 				};
-				const res = await addTemplate(_this.updateInfo);
+				const res = await addTemplate(_this.updateInfo).finally(() => {
+					loading.close();
+				});
 				if (res.code == 200) {
 					_this.tempId = res.data.id;
 					Object.assign(_this.updateInfo, {

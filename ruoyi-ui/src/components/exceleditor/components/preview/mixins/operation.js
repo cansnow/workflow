@@ -69,5 +69,15 @@ export default {
             let cell = this.getPosCell(this.selctionExpand.start);
             this.setCellAttribute(this.selctionExpand.start, cell, 'f', '=' + type + '()');
         },
+        // 删除数据
+        doDeleteData() {
+            let cell = this.getPosCell(this.selctionExpand.start);
+            this.$emit('doDeleteData', {cell});
+        },
+        // 新增数据
+        doAddData() {
+            let cell = this.getPosCell(this.selctionExpand.start);
+            this.$emit('doAddData', {cell});
+        }
     },
 };

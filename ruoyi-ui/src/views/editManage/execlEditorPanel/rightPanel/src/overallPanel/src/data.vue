@@ -13,7 +13,7 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="是否删除" v-show="del == 1">
+      <el-form-item label="是否删除" v-show="del == 1 && false">
         <el-radio v-model="ifDel" label="1">是</el-radio>
         <el-radio v-model="ifDel" label="0">否</el-radio>
       </el-form-item>

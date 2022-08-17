@@ -103,11 +103,11 @@
             v-if="!cellType"
         >
             <del v-if="!!cell.style.css.textDel">
-                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
+                <el-button :style="setBtnStyle(cell.style.css)" v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
                 <template v-else >{{ formatValue(cell) }}</template>
             </del>
             <template v-else>
-                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
+                <el-button :style="setBtnStyle(cell.style.css)" v-if="cellProps.ct == 'Link'" type="text" >{{ formatValue(cell) }}</el-button>
                 <template v-else >{{ formatValue(cell) }}</template>
             </template>
         </div>
@@ -118,11 +118,11 @@
             v-if="cellType == 'Cell'"
         >
             <del v-if="!!cell.style.css.textDel">
-                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
+                <el-button :style="setBtnStyle(cell.style.css)" v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
                 <template v-else >{{ value }}</template>
             </del>
             <template v-else>
-                <el-button v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
+                <el-button :style="setBtnStyle(cell.style.css)" v-if="cellProps.ct == 'Link'" type="text" >{{ value }}</el-button>
                 <template v-else >{{ value }}</template>
             </template>
         </div>
@@ -194,6 +194,9 @@ export default {
             const temp = {};
             if (!!styleTemp.backgroundColor) {
                 Object.assign(temp, { borderColor: style.backgroundColor, backgroundColor: style.backgroundColor });
+            }
+            if (!!styleTemp.color) {
+                Object.assign(temp, { color: style.color });
             }
             return temp;
         },

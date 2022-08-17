@@ -73,8 +73,8 @@
 
         <div class="grdusedrange" :style="{ top: `${sheetHeight}px`, left: `${sheetWidth}px` }"></div>
 
-        <!-- <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
-        </Context-Menu> -->
+        <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
+        </Context-Menu>
 
     </div>
 </template>

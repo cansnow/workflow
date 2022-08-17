@@ -347,7 +347,7 @@ export default {
 							{ label: "提交", value: "submit" },
 							{ label: "重置", value: "reset" },
 							{ label: "超链接", value: "text" },
-							{ label: "删除", value: "delete" },
+							// { label: "删除", value: "delete" },
 							{ label: "搜索", value: "search" },
 						],
 						change: this.change,
@@ -483,7 +483,7 @@ export default {
 					editCondition: '',
 				}, // 权限
 				check: {
-          noNull: true,
+          noNull: false,
           only: false,
 				}, // 校验
 				imageUrl: '', // 图片
