@@ -749,7 +749,7 @@ export default {
 	min-height: 16px;
 	text-align: center;
 	border: 1px solid transparent;
-	font-size: 0px;
+	// font-size: 0px;
 	padding: 2px;
 	vertical-align: top;
 	&:hover {

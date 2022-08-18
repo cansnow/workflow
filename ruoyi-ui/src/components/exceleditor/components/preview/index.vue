@@ -1,8 +1,8 @@
 <template>
-  <div class="preview" :style="pos == 'center' ? { width: `${(screenW || 1400) + 25}px` } : ''">
-    <div class="preview_title">{{ title }}</div>
+  <div class="preview" :style="pos == 'center' ? { width: `${((screenW > screenWidth ? screenWidth : (screenW + 25)) || 1400)}px` } : ''">
+    <!-- <div class="preview_title">{{ title }}</div> -->
     <Sheet
-      style="height: calc(100vh - 40px)"
+      style="height: 100%"
       :ref="'sheet_'+index"
       :options="data"
       :sheetIndex="index"
@@ -14,7 +14,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData, updateFormDataNew as updateFormData, fileList, deleteFormData, getTableFieldByName } from '@/api/editManage';
+import { saveFormData, getDBData, updateFormDataNew as updateFormData, getConstants, deleteFormData, getTableFieldByName } from '@/api/editManage';
 import { mapGetters } from "vuex";
 export default {
   components: { Sheet },
@@ -35,6 +35,7 @@ export default {
       tableField: {},
       ifEdit: false, 
       addData: {}, // 新增数据
+      screenWidth: 0,
     };
   },
   computed: {
@@ -50,8 +51,8 @@ export default {
     const _this = this;
     // await fileList();
     // 获取数据集
-    const res = await getDBData({ table: 'lang' });
-    const constants = _.map(res.data.constants, (item, key) => {
+    const res = await getConstants();
+    const constants = _.map(res.constants, (item, key) => {
       // orgName roleName userId userName
       const temp = {
         userId: '${USER_ID}',
@@ -389,6 +390,16 @@ export default {
                   }
                 });
               }
+              let ifNullData = false;
+              _.map(data, item => {
+                if (item.fields.length < 0) {
+                  ifNullData = true;
+                }
+              });
+              if (ifNullData) {
+                _this.$modal.msgError('新增数据为空！！！');
+                return;
+              }
               await saveFormData(data).then((res) => {
                 console.log('saveFormData', res);
                 _this.$modal.msgSuccess('提交成功！！！');
@@ -396,6 +407,24 @@ export default {
             }
             // 修改
             if (updateData.length > 0) {
+              let ifConditions = true;
+              let ifFields = true;
+              _.map(updateData, item => {
+                if (item.conditions.length < 0) {
+                  ifConditions = false;
+                }
+                if (item.fields.length < 0) {
+                  ifFields = false;
+                }
+              });
+              if (!ifConditions) {
+                _this.$modal.msgError('主键为空，修改错误！！！');
+                return;
+              }
+              if (!ifFields) {
+                _this.$modal.msgError('修改数据为空，请检查回写规则！！！');
+                return;
+              }
               await updateFormData(updateData).then((res) => {
                 console.log('updateFormData', res);
                 _this.$modal.msgSuccess('提交成功！！！');
@@ -792,6 +821,11 @@ export default {
       loading.close();
     });
     
+    window.onresize = () => {
+        return (() => {
+            this.screenWidth = document.body.clientWidth
+        })()
+    };
   },
   methods: {
     guid() {
@@ -1848,6 +1882,9 @@ export default {
             this.screenW = this.maxWidth;
           }
         });
+        if (!!state.previewData.title) {
+          document.title = state.previewData.title;
+        }
     },
   },
 }

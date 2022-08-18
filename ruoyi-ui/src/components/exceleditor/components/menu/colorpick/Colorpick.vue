@@ -1,33 +1,42 @@
 <template>
-  <div class="meg-colorpick">
-    <div class="meg-colorpick-head">主题颜色</div>
-    <table cellspacing="0" cellpadding="0">
-      <tr v-for="(row,index) in colors" :key="index">
-        <td v-for="(t,i) in row" :key="i">
-          <span class="meg-color-wrap" @click="handlerClick(t)">
-            <span class="meg-color-item" :style="{background: t}"></span>
-          </span>
-        </td>
-      </tr>
-    </table>
-    <div class="meg-colorpick-head">标准颜色</div>
-    <table cellspacing="0" cellpadding="0">
-      <tr>
-        <td v-for="(t,i) in sColors" :key="i">
-          <span class="meg-color-wrap" @click="handlerClick(t)">
-            <span class="meg-color-item" :style="{background: t}"></span>
-          </span>
-        </td>
-      </tr>
-    </table>
+  <div style="display: flex;">
+    <div class="meg-colorpick">
+      <div class="meg-colorpick-head">主题颜色</div>
+      <table cellspacing="0" cellpadding="0">
+        <tr v-for="(row,index) in colors" :key="index">
+          <td v-for="(t,i) in row" :key="i">
+            <span class="meg-color-wrap" @click="handlerClick(t)">
+              <span class="meg-color-item" :style="{background: t}"></span>
+            </span>
+          </td>
+        </tr>
+      </table>
+      <div class="meg-colorpick-head">标准颜色</div>
+      <table cellspacing="0" cellpadding="0">
+        <tr>
+          <td v-for="(t,i) in sColors" :key="i">
+            <span class="meg-color-wrap" @click="handlerClick(t)">
+              <span class="meg-color-item" :style="{background: t}"></span>
+            </span>
+          </td>
+        </tr>
+      </table>
 
-    <div class="meg-colorpick-clear" @click="handlerClick(undefined)">
-      清除颜色
+      <div class="meg-colorpick-clear" @click="handlerClick(undefined)">
+        清除颜色
+      </div>
+    </div>
+
+    <!-- 颜色 -->
+    <div style="padding: 6px; background-color: white; border: 1px solid #ddd; border-left: unset;" @click.stop="() => {}">
+      <ColorPicker ref='colorPicker' v-model="curColor" @change="handlerChangeColor" size="mini"></ColorPicker>
     </div>
   </div>
 
 </template>
 <script>
+
+  import ColorPicker from '../../color-picker/src/main.vue';
 
 
   const colors =
@@ -45,14 +54,37 @@
     data(){
       return {
         colors,
-        sColors
+        sColors,
+        curColor: '',
       }
+    },
+    watch: {
+      value: {
+        handler(newV) {
+          if (!!newV) {
+            this.curColor = newV;
+          }
+        }
+      },
+      curColor: {
+        handler(newV) {
+          if (newV != this.value) {
+            // document.dispatchEvent(new MouseEvent('click'));
+          }
+        }
+      },
     },
     methods:{
       handlerClick(color){
-        this.$emit('input',color)
-      }
-    }
+        this.curColor = color;
+        this.$emit('input',color);
+      },
+      handlerChangeColor(color) {
+        this.$emit('input',color);
+        document.dispatchEvent(new MouseEvent('click'));
+      },
+    },
+    components: { ColorPicker },
   }
 </script>
 <style lang="scss">

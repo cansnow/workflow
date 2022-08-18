@@ -5,9 +5,20 @@ import request from '@/utils/request';
  * @param {*} query 
  * @returns 
  */
- export function fileList(query) {
+export function fileList(query) {
   return request({
     url: '/workflow/fileInfo/list',
+    method: 'get',
+    params: query
+  })
+}
+
+/**
+ * 
+ */
+export function getConstants(query) {
+  return request({
+    url: '/workflow/wfForm/user/getConstants',
     method: 'get',
     params: query
   })
