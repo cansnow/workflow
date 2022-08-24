@@ -103,18 +103,23 @@
         prop="title"
         label="名称"
         :show-overflow-tooltip="true"
-        width="160"
+        width="220"
       ></el-table-column>
-      <el-table-column
+      <!-- <el-table-column
         prop="sheet"
         label="工作簿"
         :show-overflow-tooltip="true"
-      ></el-table-column>
+      ></el-table-column> -->
       <el-table-column
         prop="link"
         label="链接"
         :show-overflow-tooltip="true"
-      ></el-table-column>
+        width="220"
+      >
+        <template slot-scope="scope">
+          <el-button type="text" @click="() => handleClickLink(scope.row.link)" >{{ scope.row.link }}</el-button>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" width="80">
         <template slot-scope="scope">
           <dict-tag
@@ -210,6 +215,10 @@ export default {
     cache.session.setJSON('DesignMatched', matched);
   },
   methods: {
+    // 点击跳转链接
+    handleClickLink(link) {
+      window.open(link, '_blank');
+    },
     /** 查询菜单列表 */
     getList() {
       this.loading = true;

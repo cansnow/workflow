@@ -13,6 +13,13 @@
           </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="名称">
+        <el-input
+          v-model="dataName"
+          placeholder="请输入名称"
+          clearable
+        />
+      </el-form-item>
       <el-form-item label="是否删除" v-show="del == 1 && false">
         <el-radio v-model="ifDel" label="1">是</el-radio>
         <el-radio v-model="ifDel" label="0">否</el-radio>
@@ -98,7 +105,7 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk"
     >
-      <Transfer ref="transfer" :dataSrc="title" />
+      <Transfer ref="transfer" :dataSrc="title" :dialogType="dialogType" />
 		</Dialog>
   </div>
 </template>
@@ -112,7 +119,11 @@ export default {
     del: {
       type: Number,
       default: 1,
-    }
+    },
+    dialogType: {
+      type: Number,
+      default: 1,
+    },
   },
   data() {
     return {
@@ -122,6 +133,7 @@ export default {
       options: [],
       selectIndex: -1,
       dialogVisible: false,
+      dataName: '', // 规则名称
       treeProps: {
         value:'tableName',             // ID字段名
         label: 'resourcename',         // 显示名称
@@ -190,6 +202,7 @@ export default {
         filedList: this.filedList,
         index: this.index,
         disabled: false,
+        dataName: this.dataName,
       };
     },
     /** 重置数据 */
@@ -198,12 +211,14 @@ export default {
       this.filedList = [];
       this.index = -1;
       this.ifDel = '0';
+      this.dataName = '';
     },
     setFieldData(data) {
       this.index = data.index;
       this.ifDel = data.ifDel || '0';
       this.title = data.title;
       this.filedList = data.filedList;
+      this.dataName = data.dataName;
     },
     /** 变更值类型 */
     handleChangeType() {

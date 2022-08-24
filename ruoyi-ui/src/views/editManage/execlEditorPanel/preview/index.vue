@@ -23,9 +23,9 @@ export default {
       getTemplateInfoById(tempId).then((res) => {
         const data = JSON.parse(res.data.data);
         const sheet = res.data.sheet;
+        const temp = { ifPreview: true, query: _this.$route.query, name: res.data.title };
 				if (data instanceof Array && res.code == 200 && data.length > 0) {
 					const index = data.findIndex((item) => item.title == sheet);
-          const temp = { ifPreview: true, query: _this.$route.query };
           const cacheData = cache.session.getJSON('PreviewData');
           Object.assign(temp, index != -1 ? data[index] : data[0]);
           if (!!cacheData) {

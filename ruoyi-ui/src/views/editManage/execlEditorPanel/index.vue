@@ -9,8 +9,10 @@
 				/>
 				<div class="flex_row space-between">
 					<!-- <el-button type="text" icon="arrow-left"></el-button> -->
-					<el-input v-if="ifEditTitle" v-model="title" @change="handleChangeTitle" @blur="ifEditTitle = false" class="inputbb" placeholder="请输入内容"></el-input>
-					<div v-else @dblclick="handleDblclickTitle">{{ title }}</div>
+					<!-- <el-input v-if="ifEditTitle" v-model="title" @change="handleChangeTitle" @blur="ifEditTitle = false" class="inputbb" placeholder="请输入内容"></el-input>
+					<div v-else @dblclick="handleDblclickTitle">{{ title }}</div> -->
+					<el-input v-if="ifEditName" v-model="templateName" @change="handleChangeName" @blur="ifEditName = false" class="inputbb" placeholder="请输入内容"></el-input>
+					<div v-else @dblclick="handleDblclickName">{{ templateName }}</div>
 				</div>
 				<!-- <el-button-group>
 					<el-button type="primary">设计</el-button>
@@ -138,6 +140,8 @@ export default {
 			tempId: '', // id
 			ifEdit: false,
 			ifEditTitle: false,
+			ifEditName: false,
+			templateName: '未命名表单', // 未命名表单
 		};
 	},
 	computed: {
@@ -171,6 +175,10 @@ export default {
 		handleMenusHeigth(v) {
 			this.menusHeigth = v;
 		},
+		// 修改名称
+		handleChangeName(e) {
+			Object.assign(this.updateInfo, { title: e });
+		},
 		handleChangeTitle(e) {
 				const data = this.$refs.vspread.data;
 				// sheet title 不能同名，用于唯一标识
@@ -192,6 +200,14 @@ export default {
 				data[this.sheetIndex].title = e;
 				this.$piniastore.setData(data);
 				this.ifEditTitle = false;
+		},
+		// 双击sheet修改title
+		handleChangeSheetTilte(e) {
+			const index = this.sheetData.findIndex(item => item.title == this.title);
+			if (index != -1) {
+				this.title = e;
+				Object.assign(this.sheetData[index], { title: e });
+			}
 		},
 		// 点击sheet tabs
 		handleChangeSheet(data) {
@@ -348,7 +364,7 @@ export default {
 						"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
 						"sheet": this.title,
 						"status": "0",
-						"title": this.title,
+						"title": this.templateName,
 						"data": JSON.stringify(data),
 					};
 					const res = await addTemplate(this.updateInfo);
@@ -671,10 +687,14 @@ export default {
 			console.log('handleDblclickTitle');
 			this.ifEditTitle = true;
 		},
+		// 双击name
+		handleDblclickName() {
+			this.ifEditName = true;
+		},
 	},
 	mounted() {
 		// 定时保存 
-		this.autoSave();
+		// this.autoSave();
 		const _this = this;
 		this.$OverallPanel.$on('freezeColumn', function(index) {
 			_this.$curSheet.setFreezeColumn(index);
@@ -754,7 +774,7 @@ export default {
 					"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
 					"sheet": _this.title,
 					"status": "0",
-					"title": _this.title,
+					"title": _this.templateName,
 					"data": JSON.stringify(data),
 				};
 				const res = await addTemplate(_this.updateInfo).finally(() => {
@@ -770,6 +790,8 @@ export default {
 			}
 		});
 
+		// 双击修改sheet 修改title名
+		this.$refs.vspread.$on('handleChangeSheetTilte', this.handleChangeSheetTilte);
 	},
 	created:  function() {
 		this.tempId = this.$route.params.id;
@@ -782,6 +804,7 @@ export default {
 			getTemplateInfoById(tempId).then((res) => {
 				const data = JSON.parse(res.data.data);
 				_this.updateInfo = res.data;
+				_this.templateName = _this.updateInfo.title || '未命名表单';
 				Object.assign(_this.updateInfo, {
 					link: location && location.origin ? location.origin + '/Renderer/' + tempId : '/Renderer/' + tempId,
 				});

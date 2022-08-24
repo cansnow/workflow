@@ -16,9 +16,10 @@
             <div
                 v-for="(sheet, index) in data"
                 :key="'_'+index"
-                style="height: 100%;"
-                :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 52px - 60px)` }"
+                style="height: 100%; background-color: white; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"
+                :style="sheetIndex == '_'+index ? { zIndex: 99 } : { zIndex: -1 }"
             >
+                <!-- :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 52px - 60px)` }"  -->
                 <Sheet
                     @selectCell="handleSelectCell"
                     @selectEnd="selectEnd"
@@ -31,10 +32,38 @@
                 />
             </div>
         </div>
-        <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" :editable="true" @edit="handleTabsEdit">
-            <el-tab-pane :label="sheet.title" v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
-            </el-tab-pane>
-        </el-tabs>
+        <div style="background-color: #f5f7fa; width: 100vw; display: flex;">
+            <div style="max-width: 50vw;">
+                <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" closable @tab-remove="(targetName) => handleTabsEdit(targetName, 'del')">
+                    <!-- :addable="true" @edit="handleTabsEdit" -->
+                    <el-tab-pane v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
+                        <template slot="label">
+                            <el-input
+                                @keydown.native.stop="() => {}"
+                                @keydown.native.enter.stop="ifEditTitle = false"
+                                :ref="'label_' + index"
+                                v-show="ifEditTitle && sheetIndex == '_' + index"
+                                v-model="sheet.title"
+                                @change="(e) => handleChangeTitle(e, index)"
+                                @blur="ifEditTitle = false"
+                                placeholder="请输入内容"
+                                style="width: 80px;"
+                            ></el-input>
+                            <span
+                                v-show="!ifEditTitle || sheetIndex != '_' + index"
+                                @dblclick="() => handleDblclickTitle('label_' + index)"
+                            >
+                                <!-- <i class="el-icon-date"></i> -->
+                                {{sheet.title}}
+                            </span>
+                        </template>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+            <div style="padding-left: 10px; display: flex; align-items: center;">
+                <el-button @click="() => handleTabsEdit('', 'add')" type="text"><i class="el-icon-plus"></i></el-button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -44,6 +73,7 @@ import Sheet from './sheet/Sheet.vue';
 
 import keyMap from './mixins/keyMap';
 import templateData from './templateData';
+import { even } from '../libs/formula';
 
 export default {
     name: 'app',
@@ -65,6 +95,8 @@ export default {
             menusHeigth: 40,
             screenWidth: 0,
             data: [],
+            ifEditTitle: false,
+            tempTitle: [],
         }
     },
     mixins: [keyMap],
@@ -97,6 +129,36 @@ export default {
         },
     },
     methods: {
+        // 修改sheet name
+        handleChangeTitle(event, index) {
+            const tempIndex = this.tempTitle.findIndex(item => item == event);
+            if (tempIndex != -1) {
+                this.$message({
+                    message: 'sheet 不能同名!!!',
+                    type: 'warning'
+                });
+                Object.assign(this.data[index], { title: this.tempTitle[index] });
+            } else {
+                if (!!event) {
+                    this.$emit('handleChangeSheetTilte', event);
+                } else {
+                    this.$message({
+                        message: 'sheet 不能为空!!!',
+                        type: 'warning'
+                    });
+                    Object.assign(this.data[index], { title: this.tempTitle[index] });
+                }
+            }
+        },
+        handleDblclickTitle(refV) {
+            this.tempTitle = _.map(this.data, item => item.title);
+            this.ifEditTitle = true;
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.$refs[refV][0].focus();
+                }, 200);
+            });
+        },
         handlePreview() {
             this.$emit('handlePreview');
         },
@@ -220,8 +282,21 @@ export default {
         padding: 0px !important;
     }
 
-    .meg-workbook .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap {
+    /* .meg-workbook .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap {
         width: calc(100vw - 30px) !important;
+    } */
+
+    .meg-workbook .el-tabs--border-card {
+        box-shadow: unset !important;
+    }
+
+
+    .meg-workbook .el-tabs--border-card > .el-tabs__header.is-bottom {
+        margin: unset !important;
+    }
+
+    .meg-workbook .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap > .el-tabs__nav-scroll > .el-tabs__nav > .el-tabs__item.is-bottom.is-closable{
+        border-right-color: #dcdfe6;
     }
 
     .meg-workbook-btn {

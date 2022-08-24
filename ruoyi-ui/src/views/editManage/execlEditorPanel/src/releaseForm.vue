@@ -4,7 +4,7 @@
       <el-form-item label="名称">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
-      <el-form-item label="工作簿">
+      <el-form-item label="工作簿" v-if="false">
         <el-select v-model="form.sheet" placeholder="请选择" style="width: 100%">
           <el-option
             v-for="(item, index) in options"

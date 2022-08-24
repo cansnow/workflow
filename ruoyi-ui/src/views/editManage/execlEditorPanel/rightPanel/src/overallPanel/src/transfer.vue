@@ -48,6 +48,10 @@ export default {
       type: String,
       default: '数据源',
     },
+    dialogType: {
+      type: Number,
+      default: 1,
+    },
   },
   data() {
     return {
@@ -60,18 +64,29 @@ export default {
     dataSrc: {
       handler(value) {
         const _this = this;
+        _this.data = [];
+        _this.checkList = [];
         getTableFieldByName({ table: value })
           .then((res) => {
             console.log('res', res);
-            _this.data = [];
-            _this.checkList = [];
-            _.map(res.data.columns, item => {
-              _this.data.push({
-                label: item.aliasName || item.columnName,
-                value: item.columnName,
-                disabled: false,
+            if (_this.dialogType == 1) {
+              _.map(res.data.columns, item => {
+                _this.data.push({
+                  label: item.aliasName || item.columnName,
+                  value: item.columnName,
+                  disabled: false,
+                });
               });
-            });
+            } else {
+              _.map(res.data.sqlParams, item => {
+                _this.data.push({
+                  label: item.paramName,
+                  value: item.paramName,
+                  disabled: false,
+                });
+              });           
+            }
+            
           });
       },
     },
@@ -82,18 +97,28 @@ export default {
   methods: {
     init() {
       const _this = this;
+      _this.data = [];
+      _this.checkList = [];
       getTableFieldByName({ table: this.dataSrc })
         .then((res) => {
           console.log('res', res);
-          _this.data = [];
-          _this.checkList = [];
-          _.map(res.data.columns, item => {
-            _this.data.push({
-              label: item.aliasName || item.columnName,
-              value: item.columnName,
-              disabled: false,
-            });
-          });
+          if (_this.dialogType == 1) {
+              _.map(res.data.columns, item => {
+                _this.data.push({
+                  label: item.aliasName || item.columnName,
+                  value: item.columnName,
+                  disabled: false,
+                });
+              });
+            } else {
+              _.map(res.data.sqlParams, item => {
+                _this.data.push({
+                  label: item.paramName,
+                  value: item.paramName,
+                  disabled: false,
+                });
+              });           
+            }
         });
     },
     /** 查询 */

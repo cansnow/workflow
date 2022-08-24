@@ -51,10 +51,10 @@
             <el-tag type="info" size="mini" style="margin-right: 5px;" v-else>隐藏</el-tag>
           </div>
           <div>
-            <el-button type="text" :disabled="fItem.disabled" @click="() => handleEdit(index)">
+            <el-button type="text" :disabled="fItem.disabled && dialogVisible" @click="() => handleEdit(index)">
               <i class="mdi mdi-text-box-edit"></i>
             </el-button>
-            <el-button type="text" :disabled="fItem.disabled" style="color: red;" @click="() => handleDel(index)">
+            <el-button type="text" :disabled="fItem.disabled && dialogVisible" style="color: red;" @click="() => handleDel(index)">
               <i class="mdi mdi-delete"></i>
             </el-button>
           </div>
@@ -71,15 +71,15 @@
     <div style="margin-left: 2px;">
       <template v-if="dataList.length > 0">
         <div v-for="(dItem, index) in dataList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
-          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.title }}</span>
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
           <div>
-            <el-button type="text" :disabled="dItem.disabled" @click="() => handleEditData(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditData(index)">
               <i class="mdi mdi-text-box-edit"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled" @click="handleSort">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSort">
               <i class="mdi mdi-sort"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled" @click="() => handleDelData(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelData(index)">
               <i class="mdi mdi-close"></i>
             </el-button>
           </div>
@@ -96,15 +96,15 @@
     <div style="margin-left: 2px;">
       <template v-if="searchList.length > 0">
         <div v-for="(dItem, index) in searchList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
-          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.title }}</span>
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
           <div>
-            <el-button type="text" :disabled="dItem.disabled" @click="() => handleEditSearch(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditSearch(index)">
               <i class="mdi mdi-text-box-edit"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled" @click="handleSearchSort">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSearchSort">
               <i class="mdi mdi-sort"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled" @click="() => handleDelSearch(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelSearch(index)">
               <i class="mdi mdi-close"></i>
             </el-button>
           </div>
@@ -127,7 +127,7 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk">
       <Form v-show="dialogType == 0" ref="form" />
-      <Data v-show="dialogType == 1 || dialogType == 2" :del="dialogType" ref="Data" />
+      <Data v-show="dialogType == 1 || dialogType == 2" :dialogType="dialogType" :del="dialogType" ref="Data" />
 		</Dialog>
   </div>
 </template>
@@ -261,6 +261,9 @@ export default {
       this.dataList.reverse();
     },
     handleEditSearch(index) {
+      if (this.dialogVisible) {
+        return;
+      }
       this.open(2);
       this.$nextTick(() => {
         const temp = this.searchList[index];
@@ -357,6 +360,9 @@ export default {
     },
     // 编辑回写规则
     handleEditData(index) {
+      if (this.dialogVisible) {
+        return;
+      }
       this.open(1);
       this.$nextTick(() => {
         const temp = this.dataList[index];
@@ -373,6 +379,9 @@ export default {
     },
     /** 编辑权限规则 */
     handleEdit(index) {
+      if (this.dialogVisible) {
+        return;
+      }
       this.open(0);
       this.$nextTick(() => {
         const temp = this.formList[index];
