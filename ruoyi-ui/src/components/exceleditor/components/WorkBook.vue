@@ -19,7 +19,6 @@
                 style="height: 100%; background-color: white; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"
                 :style="sheetIndex == '_'+index ? { zIndex: 99 } : { zIndex: -1 }"
             >
-                <!-- :style="sheetIndex == '_'+index ? '' : { position: 'absolute', top: `calc(100vh - ${menusHeigth}px - 52px - 60px)` }"  -->
                 <Sheet
                     @selectCell="handleSelectCell"
                     @selectEnd="selectEnd"
@@ -32,10 +31,9 @@
                 />
             </div>
         </div>
-        <div style="background-color: #f5f7fa; width: 100vw; display: flex;">
+        <!-- <div style="background-color: #f5f7fa; width: 100vw; display: flex;">
             <div style="max-width: 50vw;">
                 <el-tabs type="border-card" :tab-position="tabPosition" v-model="sheetIndex" closable @tab-remove="(targetName) => handleTabsEdit(targetName, 'del')">
-                    <!-- :addable="true" @edit="handleTabsEdit" -->
                     <el-tab-pane v-for="(sheet,index) in data" :key="'_'+index" :name="'_'+index">
                         <template slot="label">
                             <el-input
@@ -53,7 +51,6 @@
                                 v-show="!ifEditTitle || sheetIndex != '_' + index"
                                 @dblclick="() => handleDblclickTitle('label_' + index)"
                             >
-                                <!-- <i class="el-icon-date"></i> -->
                                 {{sheet.title}}
                             </span>
                         </template>
@@ -63,7 +60,19 @@
             <div style="padding-left: 10px; display: flex; align-items: center;">
                 <el-button @click="() => handleTabsEdit('', 'add')" type="text"><i class="el-icon-plus"></i></el-button>
             </div>
-        </div>
+        </div> -->
+        <Tabs
+            :sheetIndex="sheetIndex"
+            :data="data"
+            :tabPosition="tabPosition"
+            :ifEditTitle="ifEditTitle"
+            @noEdit="ifEditTitle = false"
+            @handleTabsEdit="handleTabsEdit"
+            @handleChangeTitle="handleChangeTitle"
+            @handleDblclickTitle="handleDblclickTitle"
+            @tab-click="handleTabClick"
+            @copyTabsItem="copyTabsItem"
+        ></Tabs>
     </div>
 </template>
 
@@ -73,7 +82,8 @@ import Sheet from './sheet/Sheet.vue';
 
 import keyMap from './mixins/keyMap';
 import templateData from './templateData';
-import { even } from '../libs/formula';
+
+import Tabs from './tabs/index.vue';
 
 export default {
     name: 'app',
@@ -103,6 +113,7 @@ export default {
     components: {
         Sheet,
         Menus,
+        Tabs,
     },
     created() {
         this.init();
@@ -129,8 +140,19 @@ export default {
         },
     },
     methods: {
+        //　创建副本
+        copyTabsItem(index) {
+            if (!!this.data[index]) {
+                const temp = JSON.parse(JSON.stringify(this.data[index]));
+                temp.title += ' 副本';
+                this.data.push(temp);
+            }           
+        },
+        handleTabClick(sheetIndex) {
+            this.sheetIndex = sheetIndex;
+        },
         // 修改sheet name
-        handleChangeTitle(event, index) {
+        handleChangeTitle({ event, index }) {
             const tempIndex = this.tempTitle.findIndex(item => item == event);
             if (tempIndex != -1) {
                 this.$message({
@@ -150,14 +172,14 @@ export default {
                 }
             }
         },
-        handleDblclickTitle(refV) {
-            this.tempTitle = _.map(this.data, item => item.title);
+        handleDblclickTitle({ tempTitle }) {
+            this.tempTitle = tempTitle; //_.map(this.data, item => item.title);
             this.ifEditTitle = true;
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    this.$refs[refV][0].focus();
-                }, 200);
-            });
+            // this.$nextTick(() => {
+            //     setTimeout(() => {
+            //         this.$refs[refV][0].focus();
+            //     }, 200);
+            // });
         },
         handlePreview() {
             this.$emit('handlePreview');
@@ -215,7 +237,7 @@ export default {
             return `sheet${parseInt(titles[0]) + 1}`;
         },
         // 新增sheet
-        handleTabsEdit(targetName, action) {
+        handleTabsEdit({targetName, action}) {
             console.log(targetName, action);
             if (action == 'add') {
                 const title = this.getNewSheetName();
