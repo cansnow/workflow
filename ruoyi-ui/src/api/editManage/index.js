@@ -136,9 +136,26 @@ export function getDBTable(query) {
  * @param {*} query { table: '' }
  * @returns 
  */
-export function getTableFieldByName(query) {
+export function getTableFieldByName_old(query) {
   return request({
     url: '/workflow/wfForm/fieldList',
+    method: 'post',
+    params: query,
+    interval: true,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  })
+}
+
+/**
+ * 查询表字段
+ * @param {*} query { table: '' }
+ * @returns 
+ */
+export function getTableFieldByName(query) {
+  return request({
+    url: '/workflow/wfForm/fieldListNew',
     method: 'post',
     params: query,
     interval: true,

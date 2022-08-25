@@ -1,12 +1,38 @@
 <template>
-  <div class="preview" :style="pos == 'center' ? { width: `${((screenW > screenWidth ? screenWidth : (screenW + 25)) || 1400)}px` } : ''">
-    <!-- <div class="preview_title">{{ title }}</div> -->
-    <Sheet
-      style="height: 100%"
-      :ref="'sheet_'+index"
-      :options="data"
-      :sheetIndex="index"
-    />
+  <div>
+    <div class="mainPreview" style="position: relative; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; height: 100vh;">
+      <el-tabs type="border-card" tab-position="bottom" v-model="sheetIndex">
+          <el-tab-pane :label="sheet.data.title" v-for="(sheet,index) in data" :key="'_' + index" :name="'_' + index">
+          </el-tab-pane>
+      </el-tabs>
+      <div
+        class="preview"
+        :key="index"
+        v-for="(item, index) in data"
+        style="height: calc(100%-42px); width: 100vw; background-color: white; position: absolute; top: 42px; left: 0; right: 0; bottom: 0;"
+        :style="{ zIndex: sheetIndex == '_'+index ? 99 : -1 }"
+      >
+        <div
+          style="margin: auto; height: 100%"
+          :style="{ 
+            width: item.info.pos == 'center' ? 
+            `${(item.info.screenW > (maxWidth || 0) ? item.info.screenW : maxWidth) > screenWidth ? screenWidth : (item.info.screenW > (maxWidth || 0) ? item.info.screenW : maxWidth) + 50 || 1400}px`
+            : null
+          }"
+        >
+          <Sheet
+            style="height: 100%"
+            :ref="'sheet_'+index"
+            :options="item.data"
+            :sheetIndex="index"
+            @clikcCellBtn="clikcCellBtn"
+            @clikcCellLink="clikcCellLink"
+            @doDeleteData="doDeleteData"
+            @doAddData="doAddData"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,31 +46,33 @@ export default {
   components: { Sheet },
   data() {
     return {
-      data: testData[0].data,
-      index: 0,
-      title: testData[0].title,
+      data: [],
+      sheetIndex: '',
       previewData: {},
       ifPreview: true,
-      constants: {},
-      dataSetList: {},
-      pos: 'center',
-      cellFormData: [],// 单元格回写规则
-      extendInfo: {}, // 扩展信息记录
+      constants: {}, // 全局变量
+      dataSetList: {}, // 数据
       query: {}, // 参数
-      screenW: 0, // 宽度
-      tableField: {},
+      tableField: {}, // 表字段
       ifEdit: false, 
-      addData: {}, // 新增数据
       screenWidth: 0,
+      cellFormData: [],// 没用到，单元格回写规则
+
+      screenW: 0, // 宽度
+      pos: 'center',
+      addData: {}, // 新增数据
+      extendInfo: {}, // 扩展信息记录
+      maxWidth: 0,
+      // $sheet: null,
     };
   },
   computed: {
-    $curSheet() {
-      return this.$refs['sheet_' + this.index];
-    },
-    maxWidth() {
-      return this.$curSheet.maxWidth;
-    },
+    // $curSheet2() {
+    //   return this.$refs['sheet_' + this.sheetIndex][0];
+    // },
+    // maxWidth() {
+      // return this.$curSheet().maxWidth;
+    // },
     ...mapGetters(["name"]),
   },
   async mounted() {
@@ -79,9 +107,21 @@ export default {
          */
       });
     }
-    this.init();
+    this.init();    
+    this.screenWidth = document.body.clientWidth
+    window.onresize = () => {
+        return (() => {
+            this.screenWidth = document.body.clientWidth
+        })()
+    };
+  },
+  methods: {
+    $curSheet() {
+      return this.$refs['sheet' + this.sheetIndex][0];
+    },
     // 按钮点击事件
-    this.$curSheet.$on('clikcCellBtn', async function(res) {
+    async clikcCellBtn(res) {
+      const _this = this;
       if (_this.ifPreview) {
         return;
       }
@@ -91,9 +131,8 @@ export default {
         if (res.p.t == 'submit') {
           // 根据回写规则提交数据
           // 表单校验
-          // _this.$curSheet.cells
           let ifOK = true;
-          _.each(_this.$curSheet.cells, (cell, key) => {
+          _.each(_this.$curSheet().cells, (cell, key) => {
             _.each(cell, (col, index) => {
               if (
                 !!col &&
@@ -116,8 +155,8 @@ export default {
             _this.$modal.msgError('有必填项未填写，请填写！！！');
             return;
           }
-          if (_this.previewData.dataList && _this.previewData.dataList.length > 0 && ifOK) {
-            const dataList = _this.previewData.dataList;
+          const dataList = _this.data[_this.sheetIndex.substring(1)].info.dataList;
+          if (dataList && dataList.length > 0 && ifOK) {
             const responseData = [];
             _.map(dataList, (item, index) => {
               if (!item.ifDel || item.ifDel != '1') {
@@ -132,7 +171,7 @@ export default {
                       columnIndex = _.$ABC2Number(columnIndex);
                       rowIndex = rowIndex - 1;
                       const pos = { rowIndex, columnIndex };
-                      const cell = _this.$curSheet.getPosCell(pos);
+                      const cell = _this.$curSheet().getPosCell(pos);
                       // 1. 判断是否扩展
                       // 2. 获取扩展方向
                       // 3. 判断是否被顶出去
@@ -152,7 +191,8 @@ export default {
                                 for (let i = 0; i < record.count + 1; i++) {
                                   // 向下取行
                                   const pos = { rowIndex: rowIndex + i, columnIndex };
-                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  const cell = _this.$curSheet().getPosCell(pos);
+                                  console.log('cell', cell);
                                   values.push(cell.v);
                                 }
                                 fieldValue = values; // 获取扩展集合数据
@@ -172,7 +212,7 @@ export default {
                                 for (let i = 0; i < record.count + 1; i++) {
                                   // 向下取行
                                   const pos = { rowIndex, columnIndex: columnIndex + i };
-                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  const cell = _this.$curSheet().getPosCell(pos);
                                   values.push(cell.v);
                                 }
                                 fieldValue = values; // 获取扩展集合数据
@@ -339,14 +379,16 @@ export default {
                 // 客户的表新增
                 if (u.table == 'person' || u.table == 'tea_sale') {
                   if (c.fieldName == 'id') {
-                    const index = _this.addData[u.table].findIndex(item => item.id == c.fieldValue);
-                    if (index != -1) {
-                      addInfo.push({
-                        t: u.table,
-                        id: c.fieldValue,
-                        values: JSON.parse(JSON.stringify(u.fields)),
-                      });
-                      updateData.splice(i, 1);
+                    if (!!_this.addData[_this.sheetIndex] && !!_this.addData[_this.sheetIndex][u.table]) {
+                      const index = _this.addData[_this.sheetIndex][u.table].findIndex(item => item.id == c.fieldValue);
+                      if (index != -1) {
+                        addInfo.push({
+                          t: u.table,
+                          id: c.fieldValue,
+                          values: JSON.parse(JSON.stringify(u.fields)),
+                        });
+                        updateData.splice(i, 1);
+                      }
                     }
                   }
                 }
@@ -431,8 +473,7 @@ export default {
                 _this.dataSetList = {};
               });
             }
-
-            _this.addData = {};
+            _this.addData[_this.sheetIndex] = {};
             _this.dataSetList = {};
             _this.update(_this.$piniastore.$state);
             _this.cellFormData = [];
@@ -442,7 +483,7 @@ export default {
             const data = [];
             const temp = _.chain(_this.cellFormData).groupBy('table').map((item, table) => {
               const fileds = _.chain(item).map(field => {
-                const cell = _this.$curSheet.getPosCell(field.pos);
+                const cell = _this.$curSheet().getPosCell(field.pos);
                 return Object.assign({}, field, { value: cell.v });
               }).groupBy('id').map((value, id) => {
                 const fileds = _.map(value, val => {
@@ -487,7 +528,7 @@ export default {
                       columnIndex = _.$ABC2Number(columnIndex);
                       rowIndex = rowIndex - 1;
                       const pos = { rowIndex, columnIndex };
-                      const cell = _this.$curSheet.getPosCell(pos);
+                      const cell = _this.$curSheet().getPosCell(pos);
                       // 1. 判断是否扩展
                       // 2. 获取扩展方向
                       // 3. 判断是否被顶出去
@@ -507,7 +548,7 @@ export default {
                                 for (let i = 0; i < record.count + 1; i++) {
                                   // 向下取行
                                   const pos = { rowIndex: rowIndex + i, columnIndex };
-                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  const cell = _this.$curSheet().getPosCell(pos);
                                   values.push(cell.v);
                                 }
                                 fieldValue = values; // 获取扩展集合数据
@@ -528,7 +569,7 @@ export default {
                                 for (let i = 0; i < record.count + 1; i++) {
                                   // 向下取列
                                   const pos = { rowIndex, columnIndex: columnIndex + i };
-                                  const cell = _this.$curSheet.getPosCell(pos);
+                                  const cell = _this.$curSheet().getPosCell(pos);
                                   values.push(cell.v);
                                 }
                                 fieldValue = values; // 获取扩展集合数据
@@ -646,8 +687,8 @@ export default {
         
         // 搜索
         if (res.p.t == 'search') {
-          if (_this.previewData.searchList && _this.previewData.searchList.length > 0) {
-            const searchList = _this.previewData.searchList;
+          const searchList = _this.data[_this.sheetIndex.substring(1)].info.searchList;
+          if (searchList && searchList.length > 0) {
             _.map(searchList, item => {
               if (item.filedList && item.filedList.length > 0) {
                 _.map(item.filedList, fObj => {
@@ -659,7 +700,7 @@ export default {
                     columnIndex = _.$ABC2Number(columnIndex);
                     rowIndex = rowIndex - 1;
                     const pos = { rowIndex, columnIndex };
-                    const cell = _this.$curSheet.getPosCell(pos);
+                    const cell = _this.$curSheet().getPosCell(pos);
                     fieldValue = cell.v; // 字段值
                   }
                   // 固定值
@@ -699,14 +740,15 @@ export default {
         }
       } else {
         // 重置
-        _this.addData = {};
+        _this.addData[_this.sheetIndex] = {};
         _this.dataSetList = {};
         _this.update(_this.$piniastore.$state);
         _this.cellFormData = [];
       }
-    });
+    },
     // 单元格超链接点击事件
-    this.$curSheet.$on('clikcCellLink', function(link) {
+    clikcCellLink(link) {
+      const _this = this;
       const cells = link.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
       let linkTemp = link;
       if (!!cells && cells instanceof Array && cells.length > 0) {
@@ -714,7 +756,7 @@ export default {
           const str = item.replaceAll(/\$|\{|\}/g, '');
           if (str.indexOf(':') == -1) {
             const pos = _this.formatData(str);
-            const cell = _this.$curSheet.getPosCell(pos);
+            const cell = _this.$curSheet().getPosCell(pos);
             cell.v; // 字段值
             linkTemp = linkTemp.replace(item, cell.v);
           } else {
@@ -724,7 +766,7 @@ export default {
             const values = [];
             for (let i = start.rowIndex; i <= end.rowIndex; i++) {
               for(let j = start.columnIndex; j <= end.columnIndex; j++) {
-                const cell = _this.$curSheet.getPosCell({ rowIndex: i, columnIndex: j });
+                const cell = _this.$curSheet().getPosCell({ rowIndex: i, columnIndex: j });
                 if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
                   values.push(cell.v);
                 }
@@ -751,22 +793,22 @@ export default {
         });
       }
       window.open(linkTemp, '_blank');
-    });
-    
+    },
     // 删除数据
-    this.$curSheet.$on('doDeleteData', async function({ cell: data }) {
+    async doDeleteData({ cell: data }) {
+      const _this = this;
       console.log('data', data);
       const loading = _this.$loading({
-				lock: true,
-				text: 'Loading',
-				// spinner: 'el-icon-loading',
-				// background: 'rgba(0, 0, 0, 0.7)'
-			});
+        lock: true,
+        text: 'Loading',
+        // spinner: 'el-icon-loading',
+        // background: 'rgba(0, 0, 0, 0.7)'
+      });
       if (!!data && !!data.cdi && !!data.t && !!data.i) {
         if (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) {
-          const index = _this.addData[data.t].findIndex(item => item.id == data.i);
+          const index = _this.addData[_this.sheetIndex][data.t].findIndex(item => item.id == data.i);
           if (index != -1) {
-            _this.addData[data.t].splice(index, 1);
+            _this.addData[_this.sheetIndex][data.t].splice(index, 1)
           }
         } else {
           const res = await deleteFormData([{
@@ -784,16 +826,17 @@ export default {
         _this.cellFormData = [];
       }
       loading.close();
-    });
+    },
     // 新增数据
-    this.$curSheet.$on('doAddData', function({ cell: data }) {
+    doAddData({ cell: data }) {
+      const _this = this;
       console.log('data', data);
       const loading = _this.$loading({
-				lock: true,
-				text: 'Loading',
-				// spinner: 'el-icon-loading',
-				// background: 'rgba(0, 0, 0, 0.7)'
-			});
+        lock: true,
+        text: 'Loading',
+        // spinner: 'el-icon-loading',
+        // background: 'rgba(0, 0, 0, 0.7)'
+      });
       if (!!data && !!data.t && !!_this.tableField[data.t]) {
         const temp = {};
         //1. 获取字段，组合新数据
@@ -808,10 +851,16 @@ export default {
           Object.assign(temp, { id: -1 });
         }
         //3. 添加到全局，重载数据渲染
-        if (!!_this.addData[data.t]) {
-          _this.addData[data.t].push(temp);
+        if (!!_this.addData[_this.sheetIndex]) {
+          if (!!_this.addData[_this.sheetIndex][data.t]) {
+            _this.addData[_this.sheetIndex][data.t].push(temp);
+          } else {
+            _this.addData[_this.sheetIndex][data.t] = [temp];
+          }
         } else {
-          _this.addData[data.t] = [temp];
+          const addTemp = {};
+          addTemp[data.t] = [temp]
+          _this.addData[_this.sheetIndex] = addTemp;
         }
         // 重置数据
         _this.dataSetList = {};
@@ -819,15 +868,7 @@ export default {
         _this.cellFormData = [];
       }
       loading.close();
-    });
-    
-    window.onresize = () => {
-        return (() => {
-            this.screenWidth = document.body.clientWidth
-        })()
-    };
-  },
-  methods: {
+    },
     guid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0,
@@ -1055,6 +1096,7 @@ export default {
                 }
               }
               extendList.push(extend);
+              Object.assign(temp, { v: '' });
             }
           }
         }
@@ -1180,13 +1222,37 @@ export default {
                 let rowIndex = fObj.value.replace(/[^0-9]/g,'');
                 columnIndex = _.$ABC2Number(columnIndex);
                 rowIndex = rowIndex - 1;
-                if(typeof this.query[fObj.filed] != 'undefined') {
-                  if (typeof cells[rowIndex] != 'undefined') {
-                    const temp = !!cells[rowIndex][columnIndex] ? JSON.parse(JSON.stringify(cells[rowIndex][columnIndex])) : {};
+                if (typeof cells[rowIndex] != 'undefined') {
+                  const temp = !!cells[rowIndex][columnIndex] ? JSON.parse(JSON.stringify(cells[rowIndex][columnIndex])) : {};
+                  // 传参有值，填写到单元格
+                  if(typeof this.query[fObj.filed] != 'undefined') {
                     Object.assign(temp, { v: this.query[fObj.filed] });
                     cells[rowIndex].splice(columnIndex, 1, temp);
+                  } else {
+                    // 没值，单元格有值，填写到参数进行查询
+                    if (!!temp && typeof temp.v != 'undefined' && !!temp.v) {
+                      this.query[fObj.filed] = temp.v;
+                    }
                   }
                 }
+              }
+              // 固定值
+              if (fObj.type == 'value') {
+                this.query[fObj.filed] = fObj.value;
+              }
+              // 参数 parameter
+              if (fObj.type == 'parameter') {
+                let valueKey = '';
+                _.map(this.constants, (value, key) => {
+                  if (key.indexOf('key_') != -1) {
+                    // 判断是否包含替换变量
+                    if (fObj.value.indexOf(value) != -1) {
+                      // 获取值的key
+                      valueKey = key.replace('key_', 'value_');
+                    }
+                  }
+                });
+                this.query[fObj.filed] = this.constants[valueKey] || '';
               }
             });
           }
@@ -1272,12 +1338,21 @@ export default {
                 return item.columnName;
               });
               this.tableField[item.field] = fields;
+              // spl参数
+              const sqlParams = _.map(res.data.sqlParams, item => {
+                return item.paramName;
+              });
+              this.tableField[item.field + '_sqlParams'] = sqlParams;
             }
+
+            // 获取参数
             const query = {};
             _.map(this.query, (value, key) => {
-              const index = this.tableField[item.field].findIndex(field => field == key);
+              const index = this.tableField[item.field + '_sqlParams'].findIndex(field => field == key);
               if (index != -1) {
-                query[key] = value;
+                if (!!value) {
+                  query[key] = value;
+                }
               }
             });
 
@@ -1376,18 +1451,25 @@ export default {
             valueList = JSON.parse(JSON.stringify(this.dataSetList[item.fieldIndex]));
           } else {
 
-            if (typeof this.tableField[item.field] == 'undefined') {
+            if (typeof this.tableField[item.fieldIndex] == 'undefined') {
               const res = await getTableFieldByName({ table: item.fieldIndex });
               const fields = _.map(res.data.columns, item => {
                 return item.columnName;
               });
               this.tableField[item.fieldIndex] = fields;
+              // spl参数
+              const sqlParams = _.map(res.data.sqlParams, item => {
+                return item.paramName;
+              });
+              this.tableField[item.fieldIndex + '_sqlParams'] = sqlParams;
             }
             const query = {};
             _.map(this.query, (value, key) => {
-              const index = this.tableField[item.fieldIndex].findIndex(field => field == key);
+              const index = this.tableField[item.fieldIndex + '_sqlParams'].findIndex(field => field == key);
               if (index != -1) {
-                query[key] = value;
+                if (!!value) {
+                  query[key] = value;
+                }
               }
             });
 
@@ -1398,8 +1480,12 @@ export default {
           }
 
           // TODO 获取新增数据
-          if(!!this.addData[item.fieldIndex] && this.addData[item.fieldIndex].length > 0) {
-            valueList.push(...this.addData[item.fieldIndex]);
+          if (
+            !!this.addData[this.sheetIndex] &&
+            !!this.addData[this.sheetIndex][item.fieldIndex] &&
+            this.addData[this.sheetIndex][item.fieldIndex].length > 0
+          ) {
+            valueList.push(...this.addData[this.sheetIndex][item.fieldIndex]);
           }
           
           const len = valueList.length; // 长度
@@ -1731,7 +1817,7 @@ export default {
         this.$piniastore.$subscribe((mutation, state) => {
             _this.update(state);
         });
-        this.index = 0;
+        this.sheetIndex = '_0';
     },
     // 格式化数据
     formatData(data) {
@@ -1800,7 +1886,6 @@ export default {
     },
     async update(state) {
         this.previewData = state.previewData;
-        const tempData = JSON.parse(JSON.stringify(testData[0].data));
         this.ifPreview = state.previewData.ifPreview;
         // 自定动态变量
         if (!!state.previewData.query && Object.keys(state.previewData.query).length > 0) {
@@ -1818,42 +1903,105 @@ export default {
             index += 1;
           });
         }
+        // sheet 数据集
+        const sheetData = state.previewData.data;
+        if (!!sheetData && sheetData.length > 0) {
+          this.data = [];
+          for (let i = 0; i < sheetData.length; i++) {            
+            const temp = await this.formatCellData(
+              sheetData[i].cells,
+              sheetData[i].formList,
+              { end: sheetData[i].end, start: sheetData[i].start || 'A1' },
+              sheetData[i].searchList,
+              sheetData[i].dataList
+            );
 
-        this.pos = state.previewData.pos || 'center';
+            let columnIndex = null;
+            let rowIndex = null;
+            if (sheetData[i].end && false) {
+              columnIndex = sheetData[i].end.replace(/[^a-zA-Z]/g,'');
+              rowIndex = sheetData[i].end.replace(/[^0-9]/g,'');
+              columnIndex = _.$ABC2Number(columnIndex) + 1;
+              // rowIndex = rowIndex - 1;
+            } else {
+              // 如果没设，则默认最小单元格，
+              const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
+              const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
+              const colLen = rowLen != 0 ? temp.cells[key].length : rowLen; // temp.columns.length;
+              rowIndex = rowLen < 20 ? 200 : rowLen;
+              columnIndex = colLen < 20 ? 20 : colLen;
+            }
 
-        const temp = await this.formatCellData(
-          state.previewData.cells,
-          state.previewData.formList,
-          { end: state.previewData.end, start: state.previewData.start || 'A1' },
-          state.previewData.searchList,
-          state.previewData.dataList
-        );
-        
-        // start: data.start, 
-        let columnIndex = null;
-        let rowIndex = null;
-        if (state.previewData.end && false) {
-          columnIndex = state.previewData.end.replace(/[^a-zA-Z]/g,'');
-          rowIndex = state.previewData.end.replace(/[^0-9]/g,'');
-          columnIndex = _.$ABC2Number(columnIndex) + 1;
-          // rowIndex = rowIndex - 1;
-        } else {
-          // 如果没设，则默认最小单元格，
-          const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
-          const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
-          const colLen = temp.cells[key].length; // temp.columns.length;
-          rowIndex = rowLen < 20 ? 200 : rowLen;
-          columnIndex = colLen < 20 ? 20 : colLen;
+            let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
+            colLen = colLen < 20 ? 20 : colLen;
+            let screenW = 0;
+            for (let i = 0; i < colLen; i++) {
+              if (!!temp.columns[i]) {
+                screenW += temp.columns[i].wpx;
+              } else {
+                screenW += 64;
+              }
+            }
+
+            Object.assign(temp, {
+              title: sheetData[i].title,
+              rowCount: rowIndex || 200,
+              columnCount: columnIndex  || 20,
+              maxRowCount: rowIndex || 100000,
+              maxColumnCount: columnIndex || 200,
+              freezeColumn: sheetData[i].freezeColumn, // 冻结行列
+              freezeRow: sheetData[i].freezeRow, // 冻结行列
+            });
+            const dataTemp = JSON.parse(JSON.stringify(testData[0].data));
+            Object.assign(dataTemp, JSON.parse(JSON.stringify(temp)));
+            this.data.push({
+              data: dataTemp,
+              info: {
+                pos: sheetData[i].pos || 'center', // 布局
+                screenW, // 宽度
+                formList: sheetData[i].formList, // 权限规则
+                searchList: sheetData[i].searchList, // 搜索规则
+                dataList: sheetData[i].dataList, // 回写规则
+              }
+            });
+            // this.addData[i] = {};
+          }
         }
-        Object.assign(temp, {
-          title: state.previewData.title,
-          rowCount: rowIndex || 200,
-          columnCount: columnIndex  || 20,
-          maxRowCount: rowIndex || 100000,
-          maxColumnCount: columnIndex || 200,
-          freezeColumn: state.previewData.freezeColumn, // 冻结行列
-          freezeRow: state.previewData.freezeRow, // 冻结行列
-        });
+// 2022 0824 1430 多sheet start
+        // this.pos = state.previewData.pos || 'center';
+        // const temp = await this.formatCellData(
+        //   state.previewData.cells,
+        //   state.previewData.formList,
+        //   { end: state.previewData.end, start: state.previewData.start || 'A1' },
+        //   state.previewData.searchList,
+        //   state.previewData.dataList
+        // );
+        // let columnIndex = null;
+        // let rowIndex = null;
+        // if (state.previewData.end && false) {
+        //   columnIndex = state.previewData.end.replace(/[^a-zA-Z]/g,'');
+        //   rowIndex = state.previewData.end.replace(/[^0-9]/g,'');
+        //   columnIndex = _.$ABC2Number(columnIndex) + 1;
+        //   // rowIndex = rowIndex - 1;
+        // } else {
+        //   // 如果没设，则默认最小单元格，
+        //   const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
+        //   const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
+        //   const colLen = temp.cells[key].length; // temp.columns.length;
+        //   rowIndex = rowLen < 20 ? 200 : rowLen;
+        //   columnIndex = colLen < 20 ? 20 : colLen;
+        // }
+        // Object.assign(temp, {
+        //   title: state.previewData.title,
+        //   rowCount: rowIndex || 200,
+        //   columnCount: columnIndex  || 20,
+        //   maxRowCount: rowIndex || 100000,
+        //   maxColumnCount: columnIndex || 200,
+        //   freezeColumn: state.previewData.freezeColumn, // 冻结行列
+        //   freezeRow: state.previewData.freezeRow, // 冻结行列
+        // });
+// 2022 0824 1430 多sheet end
+
         // 对cells做处理，超出结束行列的cell要清空掉
         // _.map(temp.cells, (item, key) => {
         //   if (parseInt(key) > parseInt(rowIndex)) {
@@ -1863,28 +2011,35 @@ export default {
         //     item.splice(parseInt(columnIndex), item.length);
         //   }
         // });
-        let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
-        colLen = colLen < 20 ? 20 : colLen;
-        this.screenW = 0;
-        for (let i = 0; i < colLen; i++) {
-          if (!!temp.columns[i]) {
-            this.screenW += temp.columns[i].wpx;
-          } else {
-            this.screenW += 64;
-          }
-        }
-        Object.assign(tempData, temp);
-        this.data = tempData;
-        this.title = tempData.title || 'sheet';
 
+// 2022 0824 1430 多sheet start
+        // let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
+        // colLen = colLen < 20 ? 20 : colLen;
+        // this.screenW = 0;
+        // for (let i = 0; i < colLen; i++) {
+        //   if (!!temp.columns[i]) {
+        //     this.screenW += temp.columns[i].wpx;
+        //   } else {
+        //     this.screenW += 64;
+        //   }
+        // }
+        // Object.assign(tempData, temp);
+        // this.data = tempData;
+        // this.title = tempData.title || 'sheet';
+
+        // this.$nextTick(() => {
+        //   if (this.screenW < this.maxWidth) {
+        //     this.screenW = this.maxWidth;
+        //   }
+        // });
+// 2022 0824 1430 多sheet end
+        document.title = state.previewData.name || '未命名表单';
         this.$nextTick(() => {
-          if (this.screenW < this.maxWidth) {
-            this.screenW = this.maxWidth;
-          }
+          // this.$sheet = this.$curSheet();
+          // this.$watch('$sheet.maxWidth', function(newV) {
+          //   this.maxWidth = newV;
+          // });
         });
-        if (!!state.previewData.title) {
-          document.title = state.previewData.title;
-        }
     },
   },
 }
@@ -1892,7 +2047,7 @@ export default {
 
 <style lang="scss">
 .preview {
-  height: 100vh;
+  // height: 100vh;
   // width: 60vw;
   margin: auto;
   // border: 1px solid #ddd;
@@ -1904,5 +2059,26 @@ export default {
     height: 40px;
     // border-bottom: 1px solid #ddd;
   }
-}  
+}
+
+  .mainPreview .el-tabs--border-card > .el-tabs__content {
+      padding: 0px !important;
+  }
+
+  /* .mainPreview .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap {
+      width: calc(100vw - 30px) !important;
+  } */
+
+  .mainPreview .el-tabs--border-card {
+      box-shadow: unset !important;
+  }
+
+
+  .mainPreview .el-tabs--border-card > .el-tabs__header.is-bottom {
+      margin: unset !important;
+  }
+
+  .mainPreview .el-tabs--border-card > .el-tabs__header > .el-tabs__nav-wrap > .el-tabs__nav-scroll > .el-tabs__nav > .el-tabs__item.is-bottom.is-closable{
+      border-right-color: #dcdfe6;
+  }
 </style>

@@ -63,31 +63,33 @@ export default {
   watch: {
     dataSrc: {
       handler(value) {
-        const _this = this;
-        _this.data = [];
-        _this.checkList = [];
-        getTableFieldByName({ table: value })
-          .then((res) => {
-            console.log('res', res);
-            if (_this.dialogType == 1) {
-              _.map(res.data.columns, item => {
-                _this.data.push({
-                  label: item.aliasName || item.columnName,
-                  value: item.columnName,
-                  disabled: false,
+        if (!!value) {
+          const _this = this;
+          _this.data = [];
+          _this.checkList = [];
+          getTableFieldByName({ table: value })
+            .then((res) => {
+              console.log('res', res);
+              if (_this.dialogType == 1) {
+                _.map(res.data.columns, item => {
+                  _this.data.push({
+                    label: item.aliasName || item.columnName,
+                    value: item.columnName,
+                    disabled: false,
+                  });
                 });
-              });
-            } else {
-              _.map(res.data.sqlParams, item => {
-                _this.data.push({
-                  label: item.paramName,
-                  value: item.paramName,
-                  disabled: false,
-                });
-              });           
-            }
-            
-          });
+              } else {
+                _.map(res.data.sqlParams, item => {
+                  _this.data.push({
+                    label: item.paramName,
+                    value: item.paramName,
+                    disabled: false,
+                  });
+                });           
+              }
+              
+            });
+        }
       },
     },
   },
