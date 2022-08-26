@@ -1910,7 +1910,6 @@ export default {
         // sheet 数据集
         const sheetData = state.previewData.data;
         if (!!sheetData && sheetData.length > 0) {
-          this.data = [];
           for (let i = 0; i < sheetData.length; i++) {            
             const temp = await this.formatCellData(
               sheetData[i].cells,
@@ -1975,7 +1974,7 @@ export default {
             });
             const dataTemp = JSON.parse(JSON.stringify(testData[0].data));
             Object.assign(dataTemp, JSON.parse(JSON.stringify(temp)));
-            this.data.push({
+            const sheetDataTemp = {
               data: dataTemp,
               info: {
                 pos: sheetData[i].pos || 'center', // 布局
@@ -1984,7 +1983,12 @@ export default {
                 searchList: sheetData[i].searchList, // 搜索规则
                 dataList: sheetData[i].dataList, // 回写规则
               }
-            });
+            };
+            if (typeof this.data[i] != 'undefined') {
+              this.data.splice(i, 1, sheetDataTemp);
+            } else {
+              this.data.push(sheetDataTemp);
+            }
             // this.addData[i] = {};
           }
         }
