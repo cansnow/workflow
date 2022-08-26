@@ -149,12 +149,12 @@ export default {
             const up = () => {
                 this.clearBoundsScroll('selectCell');
                 this.$emit('select-over');
-                document.removeEventListener('mousemove', move);
-                document.removeEventListener('mouseup', up);
+                // document.removeEventListener('mousemove', move);
+                // document.removeEventListener('mouseup', up);
             };
 
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', up);
+            // document.addEventListener('mousemove', move);
+            // document.addEventListener('mouseup', up);
 
         }, 10, { leading: false }),
 
