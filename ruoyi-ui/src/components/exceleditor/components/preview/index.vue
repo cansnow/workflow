@@ -186,7 +186,7 @@ export default {
                         if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
                           if (cell.p.e == 'bottom') {
                             // 向下扩展
-                            const extend = _this.extendInfo.column[columnIndex];
+                            const extend = _this.extendInfo[_this.sheetIndex].column[columnIndex];
                             if (!!extend) {
                               const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
                               if (index != -1) {
@@ -207,7 +207,7 @@ export default {
                             }                          
                           } else {
                             // 向右扩展
-                            const extend = _this.extendInfo.row[rowIndex];
+                            const extend = _this.extendInfo[_this.sheetIndex].row[rowIndex];
                             if (!!extend) {
                               const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
                               if (index != -1) {
@@ -543,7 +543,7 @@ export default {
                         if (typeof cell.p != 'undefined' && typeof cell.p.e != 'undefined' && (cell.p.e == 'bottom' || cell.p.e == 'right')) {
                           if (cell.p.e == 'bottom') {
                             // 向下扩展
-                            const extend = _this.extendInfo.column[columnIndex];
+                            const extend = _this.extendInfo[_this.sheetIndex].column[columnIndex];
                             if (!!extend) {
                               const index = extend.record.findIndex(erfItem => erfItem.startRow == rowIndex);
                               if (index != -1) {
@@ -564,7 +564,7 @@ export default {
                             
                           } else {
                             // 向右扩展
-                            const extend = _this.extendInfo.row[rowIndex];
+                            const extend = _this.extendInfo[_this.sheetIndex].row[rowIndex];
                             if (!!extend) {
                               const index = extend.record.findIndex(erfItem => erfItem.startCol == columnIndex);
                               if (index != -1) {
@@ -759,12 +759,14 @@ export default {
       if (!!cells && cells instanceof Array && cells.length > 0) {
         _.map(cells, item => {
           const str = item.replaceAll(/\$|\{|\}/g, '');
+          // 单个单元格
           if (str.indexOf(':') == -1) {
             const pos = _this.formatData(str);
             const cell = _this.$curSheet().getPosCell(pos);
             cell.v; // 字段值
             linkTemp = linkTemp.replace(item, cell.v);
           } else {
+            // 多个单元格
             const strList = str.split(':');
             const start = _this.formatData(strList[0]);
             const end = _this.formatData(strList[1]);
@@ -1492,7 +1494,6 @@ export default {
           ) {
             valueList.push(...this.addData[this.sheetIndex][item.fieldIndex]);
           }
-          
           const len = valueList.length; // 长度
           // 获取填充数据
           const tempList = [];
@@ -1805,7 +1806,7 @@ export default {
         }
 
         // console.warn('extendInfo', extendInfo);
-        this.extendInfo = extendInfo;
+        this.extendInfo[this.sheetIndex] = extendInfo;
       }
 
       return {
@@ -1948,7 +1949,7 @@ export default {
               const cellsLen = Object.keys(temp.cells).sort((a, b) => b - a)[0];
               const rowLen = cellsLen || Object.keys(temp.cells).length; // temp.rows.length;
               const colLen = rowLen != 0 ? temp.cells[key].length : rowLen; // temp.columns.length;
-              rowIndex = rowLen; // rowLen < 20 ? 200 : rowLen;
+              rowIndex = rowLen + 1; // rowLen < 20 ? 200 : rowLen;
               columnIndex = colLen; // colLen < 20 ? 20 : colLen;
             }
 
