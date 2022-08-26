@@ -77,13 +77,24 @@
           >删除</el-button
         >
       </el-col>
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-if="false">
         <el-button
           type="warning"
           plain
           icon="el-icon-upload"
           size="mini"
           >导入</el-button
+        >
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-edit"
+          :disabled="single"
+          size="mini"
+          @click="handleCopy"
+          >复制</el-button
         >
       </el-col>
       <right-toolbar
@@ -168,7 +179,7 @@
 
 <script>
 // TODO 模板接口
-import { templateList, delTemplateById } from '@/api/editManage';
+import { templateList, delTemplateById, addTemplate } from '@/api/editManage';
 import cache from '@/plugins/cache';
 
 export default {
@@ -288,6 +299,33 @@ export default {
       // this.$router.push({ path: '/design/' + id });
       let url = this.$router.resolve({ path: '/design/' + id });
       window.open(url.href, '_blank');
+    },
+    // 复制
+    async handleCopy() {
+      if (typeof this.ids[0] != 'undefined') {
+        const index = this.tList.findIndex(item => item.id == this.ids[0])
+        if (index != -1) {
+          const loading = this.$loading({
+            lock: true,
+            text: 'Loading',
+            // spinner: 'el-icon-loading',
+            // background: 'rgba(0, 0, 0, 0.7)'
+          });
+          const temp = this.tList[index];
+          delete temp.id;
+          temp.title += ' 副本';
+          const res = await addTemplate(temp).finally(() => {
+            loading.close();
+          });
+          if (res.code == 200) {
+            this.getList();
+            this.$modal.msgSuccess('复制成功！');	
+          } else {
+            this.$modal.msgError('复制失败！');
+          }
+        }
+      }
+      
     },
     /** 删除按钮操作 */
     handleDelete(row) {
