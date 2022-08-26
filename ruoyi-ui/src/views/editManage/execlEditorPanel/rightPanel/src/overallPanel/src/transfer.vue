@@ -8,7 +8,7 @@
         placeholder="请输入字段"
         clearable
       /> -->
-      <div style="margin: 5px 0;">{{ dataSrc }} > 字段</div>
+      <div style="margin: 5px 0;">{{ dataSrc }} > {{ dialogType == 1 ? '字段' : '参数'}}</div>
       <!-- 数据 -->
       <div style="margin: 5px 0;">
         <el-checkbox-group v-model="checkList">

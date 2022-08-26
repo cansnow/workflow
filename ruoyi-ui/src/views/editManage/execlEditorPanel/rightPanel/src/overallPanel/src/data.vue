@@ -24,7 +24,7 @@
         <el-radio v-model="ifDel" label="1">是</el-radio>
         <el-radio v-model="ifDel" label="0">否</el-radio>
       </el-form-item>
-      <el-form-item label="字段">
+      <el-form-item :label="dialogType == 1 ? '字段' : '参数'">
         <el-button type="text" size="medium" @click="handleAddField">
           <i class="mdi mdi-plus"></i>
         </el-button>
@@ -40,6 +40,7 @@
         label="主键" 
         width="55"
         align="center"
+        v-if="dialogType == 1"
       >
         <template slot-scope="scope">
           <el-checkbox v-model="scope.row.key" />
@@ -47,7 +48,7 @@
       </el-table-column>
       <el-table-column
         prop="filed"
-        label="字段"
+        :label="dialogType == 1 ? '字段' : '参数'"
         :show-overflow-tooltip="true"
         width="120"
       ></el-table-column>
@@ -97,7 +98,7 @@
       </el-table-column>
     </el-table>
     <Dialog
-      title="选择字段"
+      :title="`选择${ dialogType == 1 ? '字段' : '参数'}`"
       :puncture="false"
       :appendToBody="true"
       width="40%"
