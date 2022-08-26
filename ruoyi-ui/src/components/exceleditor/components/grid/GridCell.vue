@@ -440,6 +440,10 @@ export default {
             flex-wrap: wrap;
             justify-content: left;
     }
+    .el-button {
+        padding: unset;
+        border-radius: unset;
+    }
 }
 
 .meg-cellval-warp {

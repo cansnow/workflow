@@ -481,6 +481,10 @@ export default {
     .el-input .el-input__inner {
         background-color: rgba(238, 238, 238, 0.479) !important;
     }
+    .el-button {
+        padding: unset;
+        border-radius: unset;
+    }
 }
 
 .meg-cellval-warp {
