@@ -47,7 +47,7 @@ export default {
   data() {
     return {
       data: [],
-      sheetIndex: '',
+      sheetIndex: '_0',
       previewData: {},
       ifPreview: true,
       constants: {}, // 全局变量
@@ -114,6 +114,11 @@ export default {
             this.screenWidth = document.body.clientWidth
         })()
     };
+  },
+  watch: {
+    sheetIndex(newV) {
+      this.$curSheet().maxWidth = this.data[newV.substring(1)].info.screenW;
+    },
   },
   methods: {
     $curSheet() {
@@ -1817,7 +1822,6 @@ export default {
         this.$piniastore.$subscribe((mutation, state) => {
             _this.update(state);
         });
-        this.sheetIndex = '_0';
     },
     // 格式化数据
     formatData(data) {
@@ -1916,6 +1920,22 @@ export default {
               sheetData[i].dataList
             );
 
+            // 删除空单元格
+            _.map(temp.cells, (item, key) => {
+              const ifDel = item.every(cell => !cell);
+              if (ifDel) {
+                delete temp.cells[key];
+              } else {
+                const tempCells = item.filter(cell => !!cell);
+                _.map(tempCells, tempCell => {
+                  if (typeof tempCell.c != 'undefined' && typeof tempCell.v == 'undefined') {
+                    delete temp.cells[key];
+                  }
+                })
+              }
+            });
+
+
             let columnIndex = null;
             let rowIndex = null;
             if (sheetData[i].end && false) {
@@ -1926,14 +1946,15 @@ export default {
             } else {
               // 如果没设，则默认最小单元格，
               const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
-              const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
+              const cellsLen = Object.keys(temp.cells).sort((a, b) => b - a)[0];
+              const rowLen = cellsLen || Object.keys(temp.cells).length; // temp.rows.length;
               const colLen = rowLen != 0 ? temp.cells[key].length : rowLen; // temp.columns.length;
-              rowIndex = rowLen < 20 ? 200 : rowLen;
-              columnIndex = colLen < 20 ? 20 : colLen;
+              rowIndex = rowLen; // rowLen < 20 ? 200 : rowLen;
+              columnIndex = colLen; // colLen < 20 ? 20 : colLen;
             }
 
             let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
-            colLen = colLen < 20 ? 20 : colLen;
+            // colLen = colLen < 20 ? 20 : colLen;
             let screenW = 0;
             for (let i = 0; i < colLen; i++) {
               if (!!temp.columns[i]) {
@@ -2035,10 +2056,10 @@ export default {
 // 2022 0824 1430 多sheet end
         document.title = state.previewData.name || '未命名表单';
         this.$nextTick(() => {
-          // this.$sheet = this.$curSheet();
-          // this.$watch('$sheet.maxWidth', function(newV) {
-          //   this.maxWidth = newV;
-          // });
+          this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
+          this.$watch('screenWidth', function() {
+            this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
+          });
         });
     },
   },
