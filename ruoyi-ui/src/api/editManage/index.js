@@ -80,11 +80,24 @@ export function getDBData(query) {
 }
 
 /**
+ * 回写提交接口, 新增，修改
+ * @param {*} data 
+ * @returns 
+ */
+ export function saveFormData(data) {
+  return request({
+    url: '/workflow/template/saveFormDataNew',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
  * 回写提交接口
  * @param {*} data 
  * @returns 
  */
-export function saveFormData(data) {
+export function saveFormData_old(data) {
   return request({
     url: '/workflow/template/saveFormData',
     method: 'post',

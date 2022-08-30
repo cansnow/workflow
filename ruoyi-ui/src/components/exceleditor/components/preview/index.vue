@@ -362,12 +362,22 @@ export default {
                 }
               }
             });
-            const data = _.map(resData, (item, key) => {
-              return {
-                table: key,
-                fields: item,
-              }
+            const data = [];
+            _.map(resData, (item, key) => {
+              _.map(item, fileds => {
+                data.push({
+                  table: key,
+                  singleFields: fileds,
+                })
+              })
+              // data.push();
+              // return {
+              //   table: key,
+              //   // fields: item,
+              //   singleFields: item,
+              // }
             });
+
             // 新增数据
             const addInfo = [];
             // 修改 剔除新增数据
@@ -425,42 +435,44 @@ export default {
                       }
                     }
                   });
-                  const di = data.findIndex(d => d.table == a.t);
-                  // 判断是否已存在该表
-                  if (di == -1) {
-                    data.push({
-                      table: a.t,
-                      fields: [fields],
-                    });
-                  } else {
-                    data[di].fields.push(fields);
-                  }
+                  data.push({
+                    table: a.t,
+                    singleFields: fields,
+                  });
+                  // const di = data.findIndex(d => d.table == a.t);
+                  // // 判断是否已存在该表
+                  // if (di == -1) {
+                  //   data.push({
+                  //     table: a.t,
+                  //     singleFields: [fields],
+                  //   });
+                  // } else {
+                  //   data[di].singleFields.push(fields);
+                  // }
                 });
               }
-              let ifNullData = false;
-              _.map(data, item => {
-                if (item.fields.length < 0) {
-                  ifNullData = true;
+              if (updateData.length <= 0) {
+                let ifNullData = false;
+                _.map(data, item => {
+                  if (item.singleFields.length < 0) {
+                    ifNullData = true;
+                  }
+                });
+                if (ifNullData) {
+                  _this.$modal.msgError('新增数据为空！！！');
+                  return;
                 }
-              });
-              if (ifNullData) {
-                _this.$modal.msgError('新增数据为空！！！');
-                return;
               }
-              await saveFormData(data).then((res) => {
-                console.log('saveFormData', res);
-                _this.$modal.msgSuccess('提交成功！！！');
-              });
             }
             // 修改
             if (updateData.length > 0) {
               let ifConditions = true;
               let ifFields = true;
               _.map(updateData, item => {
-                if (item.conditions.length < 0) {
+                if (item.conditions.length <= 0) {
                   ifConditions = false;
                 }
-                if (item.fields.length < 0) {
+                if (item.fields.length <= 0) {
                   ifFields = false;
                 }
               });
@@ -472,12 +484,15 @@ export default {
                 _this.$modal.msgError('修改数据为空，请检查回写规则！！！');
                 return;
               }
-              await updateFormData(updateData).then((res) => {
-                console.log('updateFormData', res);
-                _this.$modal.msgSuccess('提交成功！！！');
-                _this.dataSetList = {};
-              });
             }
+            const submitData = {
+              formDataVO: data,
+              updateObj: updateData,
+            };
+            await saveFormData(submitData).then((res) => {
+              console.log('saveFormData', res);
+              _this.$modal.msgSuccess('提交成功！！！');
+            });
             _this.addData[_this.sheetIndex] = {};
             _this.dataSetList = {};
             _this.update(_this.$piniastore.$state);
@@ -1949,7 +1964,7 @@ export default {
               const cellsLen = Object.keys(temp.cells).sort((a, b) => b - a)[0];
               const rowLen = cellsLen || Object.keys(temp.cells).length; // temp.rows.length;
               const colLen = rowLen != 0 ? temp.cells[key].length : rowLen; // temp.columns.length;
-              rowIndex = rowLen + 1; // rowLen < 20 ? 200 : rowLen;
+              rowIndex = parseInt(rowLen) + 1; // rowLen < 20 ? 200 : rowLen;
               columnIndex = colLen; // colLen < 20 ? 20 : colLen;
             }
 

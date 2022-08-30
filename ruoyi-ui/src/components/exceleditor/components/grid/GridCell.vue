@@ -40,14 +40,20 @@
 		
 		<el-image v-if="cellType == 'image'" :src="value | getImgUrl"></el-image>
 		<el-button :type="cellProps.t == 'text' ? 'text' : 'primary'" :style="setBtnStyle(cell.style.css)" v-if="cellType == 'button'" >{{value}}</el-button>
-		<el-date-picker
-			:value="value"
-            placement ="bottom"
+		<!-- <el-date-picker
+			v-model="value"
 			type="datetime"
 			placeholder="选择日期时间"
 			v-if="cellType == 'datetime'">
-		</el-date-picker>
-		<el-date-picker
+		</el-date-picker> -->
+        <el-date-picker
+            v-if="cellType == 'datetime'"
+            v-model="value"
+            type="datetime"
+            @change="handleChange"
+            placeholder="选择日期时间">
+        </el-date-picker>
+		<!-- <el-date-picker
 			:value="value"
             placement ="bottom"
 			type="date"
@@ -60,7 +66,7 @@
 			type="time"
 			placeholder="选择时间"
 			v-if="cellType == 'time'">
-		</el-date-picker>
+		</el-date-picker> -->
 		<el-radio-group v-model="value" v-if="cellType == 'radio'" @change="handleChange">
 			<el-radio :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
@@ -386,11 +392,30 @@ export default {
             if (!!this.cellProps && typeof this.cellProps.f != 'undefined') {
                 Object.assign(this.cellProps, { f: e + ''});
             }
-            Object.assign(temp, { p: this.cellProps, v: e + ''});
+            if (this.cellType == 'datetime') {
+                if (e instanceof Date || parseInt(e) != NaN) {
+                    Object.assign(temp, { p: this.cellProps, v: this.formatDate(e) + ''});
+                }
+            } else {
+                Object.assign(temp, { p: this.cellProps, v: e + ''});
+            }
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');
             this.$sheet.doEditCellValue(temp);
         },
+        formatDate(date) {
+            let temp = new Date(date);
+            let y = temp.getFullYear();
+            let m = temp.getMonth() + 1;
+            let d = temp.getDate();
+            let h = temp.getHours();
+            let M = temp.getMinutes();
+            let s = date.getSeconds();
+            function format(e) {
+                return e < 10 ? '0' + e : e;
+            }
+            return `${y}-${format(m)}-${d} ${format(h)}:${format(M)}:${format(s)}`;
+        }
     },
 };
 </script>

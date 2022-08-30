@@ -46,14 +46,20 @@
             v-if="cellType == 'button'"
             @click="handleCellBtnClick"
         >{{value}}</el-button>
-		<el-date-picker
+        <el-date-picker
+            v-if="cellType == 'datetime'"
+            v-model="value"
+            type="datetime"
+            @change="handleChange"
+            placeholder="选择日期时间">
+        </el-date-picker>
+		<!-- <el-date-picker
 			:value="value"
-            placement ="bottom"
             :disabled="!props.option.p.r.w"
 			type="datetime"
 			placeholder="选择日期时间"
 			v-if="cellType == 'datetime'">
-		</el-date-picker>
+		</el-date-picker> -->
 		<el-date-picker
 			:value="value"
             placement ="bottom"
@@ -341,6 +347,13 @@ export default {
                         this.fileList = this.value;
                     }
                 }
+                if (this.cellType == 'number') {
+                    if (parseInt(this.value) == NaN) {
+                        this.value = 0;
+                    } else {
+                        this.value = parseInt(this.value);
+                    }
+                }
                 this.cellProps = typeof this.cell.option['p'] == 'undefined' ? {} : this.cell.option.p;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
             }
@@ -411,9 +424,27 @@ export default {
             this.$sheet.$emit('selectCell');
             if (this.cellType == 'checkbox' || this.cellType == 'selectMultiple' || this.cellType == 'upload') {
                 this.$sheet.doEditCellValue(e);
-            } else {
-                this.$sheet.doEditCellValue(e + '');
+                return
             }
+            if (this.cellType == 'datetime') {
+                const temp = this.formatDate(e);
+                this.$sheet.doEditCellValue(temp);
+                return
+            }
+            this.$sheet.doEditCellValue(e + '');
+        },
+        formatDate(date) {
+            let temp = new Date(date);
+            let y = temp.getFullYear();
+            let m = temp.getMonth() + 1;
+            let d = temp.getDate();
+            let h = temp.getHours();
+            let M = temp.getMinutes();
+            let s = date.getSeconds();
+            function format(e) {
+                return e < 10 ? '0' + e : e;
+            }
+            return `${y}-${format(m)}-${d} ${format(h)}:${format(M)}:${format(s)}`;
         },
         // 点击了单元格按钮
         handleCellBtnClick() {
