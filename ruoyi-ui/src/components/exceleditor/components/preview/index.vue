@@ -252,7 +252,7 @@ export default {
       
                     return {
                       fieldName: fObj.filed, // 字段名
-                      fieldValue, // 字段值
+                      fieldValue: fieldValue, // 字段值
                       ifExtend: fieldValue instanceof Array, // 是否扩展
                     };
                   });
@@ -422,9 +422,10 @@ export default {
                       if (field == 'id') {
                         // 客户表需要id，我们的表不需要
                         if (a.t == 'person' || a.t == 'tea_sale') {
+                          const id = _this.guid();
                           fields.push({
                             fieldName: field,
-                            fieldValue: a.id,
+                            fieldValue: a.id || id,
                           });
                         }
                       } else {
