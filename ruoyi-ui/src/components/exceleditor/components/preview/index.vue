@@ -118,6 +118,7 @@ export default {
   watch: {
     sheetIndex(newV) {
       this.$curSheet().maxWidth = this.data[newV.substring(1)].info.screenW;
+      this.$curSheet().maxHeight = this.data[newV.substring(1)].info.screenH;
     },
   },
   methods: {
@@ -1954,6 +1955,7 @@ export default {
 
             let columnIndex = null;
             let rowIndex = null;
+            const cellsLen = Object.keys(temp.cells).sort((a, b) => b - a)[0];
             if (sheetData[i].end && false) {
               columnIndex = sheetData[i].end.replace(/[^a-zA-Z]/g,'');
               rowIndex = sheetData[i].end.replace(/[^0-9]/g,'');
@@ -1962,7 +1964,6 @@ export default {
             } else {
               // 如果没设，则默认最小单元格，
               const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
-              const cellsLen = Object.keys(temp.cells).sort((a, b) => b - a)[0];
               const rowLen = cellsLen || Object.keys(temp.cells).length; // temp.rows.length;
               const colLen = rowLen != 0 ? temp.cells[key].length : rowLen; // temp.columns.length;
               rowIndex = parseInt(rowLen) + 1; // rowLen < 20 ? 200 : rowLen;
@@ -1977,6 +1978,14 @@ export default {
                 screenW += temp.columns[i].wpx;
               } else {
                 screenW += 64;
+              }
+            }
+            let screenH = 0;
+            for (let i = 0; i <= cellsLen; i++) {
+              if (!!temp.rows[i]) {
+                screenH += temp.rows[i].hpx;
+              } else {
+                screenH += 19;
               }
             }
 
@@ -1996,6 +2005,7 @@ export default {
               info: {
                 pos: sheetData[i].pos || 'center', // 布局
                 screenW, // 宽度
+                screenH, // 高度
                 formList: sheetData[i].formList, // 权限规则
                 searchList: sheetData[i].searchList, // 搜索规则
                 dataList: sheetData[i].dataList, // 回写规则
@@ -2009,77 +2019,13 @@ export default {
             // this.addData[i] = {};
           }
         }
-// 2022 0824 1430 多sheet start
-        // this.pos = state.previewData.pos || 'center';
-        // const temp = await this.formatCellData(
-        //   state.previewData.cells,
-        //   state.previewData.formList,
-        //   { end: state.previewData.end, start: state.previewData.start || 'A1' },
-        //   state.previewData.searchList,
-        //   state.previewData.dataList
-        // );
-        // let columnIndex = null;
-        // let rowIndex = null;
-        // if (state.previewData.end && false) {
-        //   columnIndex = state.previewData.end.replace(/[^a-zA-Z]/g,'');
-        //   rowIndex = state.previewData.end.replace(/[^0-9]/g,'');
-        //   columnIndex = _.$ABC2Number(columnIndex) + 1;
-        //   // rowIndex = rowIndex - 1;
-        // } else {
-        //   // 如果没设，则默认最小单元格，
-        //   const key = Object.keys(temp.cells).sort((a, b) => temp.cells[b].length - temp.cells[a].length)[0];
-        //   const rowLen = Object.keys(temp.cells).length; // temp.rows.length;
-        //   const colLen = temp.cells[key].length; // temp.columns.length;
-        //   rowIndex = rowLen < 20 ? 200 : rowLen;
-        //   columnIndex = colLen < 20 ? 20 : colLen;
-        // }
-        // Object.assign(temp, {
-        //   title: state.previewData.title,
-        //   rowCount: rowIndex || 200,
-        //   columnCount: columnIndex  || 20,
-        //   maxRowCount: rowIndex || 100000,
-        //   maxColumnCount: columnIndex || 200,
-        //   freezeColumn: state.previewData.freezeColumn, // 冻结行列
-        //   freezeRow: state.previewData.freezeRow, // 冻结行列
-        // });
-// 2022 0824 1430 多sheet end
-
-        // 对cells做处理，超出结束行列的cell要清空掉
-        // _.map(temp.cells, (item, key) => {
-        //   if (parseInt(key) > parseInt(rowIndex)) {
-        //     delete temp.cells[key];
-        //   }
-        //   if (item.length > parseInt(columnIndex)) {
-        //     item.splice(parseInt(columnIndex), item.length);
-        //   }
-        // });
-
-// 2022 0824 1430 多sheet start
-        // let colLen = _.map(temp.cells, item => item.length).sort((a, b) => b - a)[0];
-        // colLen = colLen < 20 ? 20 : colLen;
-        // this.screenW = 0;
-        // for (let i = 0; i < colLen; i++) {
-        //   if (!!temp.columns[i]) {
-        //     this.screenW += temp.columns[i].wpx;
-        //   } else {
-        //     this.screenW += 64;
-        //   }
-        // }
-        // Object.assign(tempData, temp);
-        // this.data = tempData;
-        // this.title = tempData.title || 'sheet';
-
-        // this.$nextTick(() => {
-        //   if (this.screenW < this.maxWidth) {
-        //     this.screenW = this.maxWidth;
-        //   }
-        // });
-// 2022 0824 1430 多sheet end
         document.title = state.previewData.name || '未命名表单';
         this.$nextTick(() => {
           this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
+          this.$curSheet().maxHeight= this.data[this.sheetIndex.substring(1)].info.screenH;
           this.$watch('screenWidth', function() {
             this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
+            this.$curSheet().maxHeight= this.data[this.sheetIndex.substring(1)].info.screenH;
           });
         });
     },
