@@ -40,8 +40,14 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
-import { saveFormData, getDBData, updateFormDataNew as updateFormData, getConstants, deleteFormData, getTableFieldByName } from '@/api/editManage';
-import { mapGetters } from "vuex";
+import { 
+  saveFormData, 
+  getDBData, 
+  updateFormDataNew as updateFormData, 
+  getConstants, 
+  deleteFormData, 
+  getTableFieldByName,
+} from '@/api/editManage';
 export default {
   components: { Sheet },
   data() {
@@ -65,15 +71,6 @@ export default {
       maxWidth: 0,
       // $sheet: null,
     };
-  },
-  computed: {
-    // $curSheet2() {
-    //   return this.$refs['sheet_' + this.sheetIndex][0];
-    // },
-    // maxWidth() {
-      // return this.$curSheet().maxWidth;
-    // },
-    ...mapGetters(["name"]),
   },
   async mounted() {
     const _this = this;
@@ -829,12 +826,18 @@ export default {
         // background: 'rgba(0, 0, 0, 0.7)'
       });
       if (!!data && !!data.cdi && !!data.t && !!data.i) {
-        if (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) {
+        let ifDelApi = true;
+        if (
+          (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) && 
+          (typeof _this.addData[_this.sheetIndex] != 'undefined' && typeof _this.addData[_this.sheetIndex][data.t] != 'undefined')
+        ) {
           const index = _this.addData[_this.sheetIndex][data.t].findIndex(item => item.id == data.i);
           if (index != -1) {
+            ifDelApi = false;
             _this.addData[_this.sheetIndex][data.t].splice(index, 1)
           }
-        } else {
+        }
+        if (ifDelApi) {
           const res = await deleteFormData([{
             conditions: data.cdi,
             table: data.t
@@ -1441,19 +1444,7 @@ export default {
       if (extendList.length > 0) {
         console.log('extendList', extendList);
         // 扩展行列记录
-        // {
-        //   column: {
-        //     0: {
-        //       count: 25,
-        //       record: [
-        //         {
-        //           startRow: 0,
-        //           count: 25
-        //         }
-        //       ],
-        //     }
-        //   },
-        // }
+        // {column:{0:{count:25,record:[{startRow: 0,count: 25}]}}}
         const extendInfo = {
           column: {}, // 列
           row: {},
@@ -1602,6 +1593,7 @@ export default {
             }
           });
 
+          // 替换第一行数据
           const temp = JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex]));
           Object.assign(temp, tempListIndexValue);
           if (typeof temp.c != 'undefined' && (temp.c == 'checkbox' || temp.c == 'selectMultiple')) {
@@ -1944,11 +1936,17 @@ export default {
                 delete temp.cells[key];
               } else {
                 const tempCells = item.filter(cell => !!cell);
+                let ifCellDel = false;
                 _.map(tempCells, tempCell => {
-                  if (typeof tempCell.c != 'undefined' && typeof tempCell.v == 'undefined') {
-                    delete temp.cells[key];
+                  if (typeof tempCell.c != 'undefined' && (typeof tempCell.v == 'undefined' || !tempCell.v)) {
+                    ifCellDel = true;
+                  } else {
+                    ifCellDel = false;
                   }
-                })
+                });
+                if (ifCellDel) {
+                  delete temp.cells[key];
+                }
               }
             });
 
