@@ -18,28 +18,31 @@ export default {
     const tempId = this.$route.params.id;
     const _this = this;
     this.$piniastore.setPreviewData({});
+    const temp = { ifPreview: true, query: _this.$route.query, data: [] };
     if (tempId) {
       // 编辑预览
       getTemplateInfoById(tempId).then((res) => {
         const data = JSON.parse(res.data.data);
-        const sheet = res.data.sheet;
-        const temp = { ifPreview: true, query: _this.$route.query, name: res.data.title };
+        // const sheet = res.data.sheet;
+        Object.assign(temp, { name: res.data.title });
 				if (data instanceof Array && res.code == 200 && data.length > 0) {
-					const index = data.findIndex((item) => item.title == sheet);
+          // const index = data.findIndex((item) => item.title == sheet);
           const cacheData = cache.session.getJSON('PreviewData');
-          Object.assign(temp, index != -1 ? data[index] : data[0]);
-          if (!!cacheData) {
-            Object.assign(temp, cacheData);
-          }
+          // Object.assign(temp, index != -1 ? data[index] : data[0]);
+          // if (!!cacheData) {
+          //   Object.assign(temp, cacheData);
+          // }
+          // debugger;
+          Object.assign(temp, { data: cacheData || data });
           _this.$piniastore.setPreviewData(temp);
         }
       });
     } else {
       // 新建预览
-      const temp = { ifPreview: true, query: this.$route.query };
+      // const temp = { ifPreview: true, query: this.$route.query };
       const cacheData = cache.session.getJSON('PreviewData');
       if (!!cacheData) {
-        Object.assign(temp, cacheData);
+        Object.assign(temp, { data: cacheData });
       }
       this.$piniastore.setPreviewData(temp);
     }

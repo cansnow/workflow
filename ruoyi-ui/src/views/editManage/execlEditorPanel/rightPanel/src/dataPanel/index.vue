@@ -30,22 +30,29 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk"
     >
-      <el-tree
-        :data="data"
-        show-checkbox
-        ref="selectTree"
-        default-expand-all
-        :props="props"
-        :node-key="props.value"
-        check-on-click-node
-        @check="handleNodeCheck"
-      >
-        <span class="custom-tree-node" slot-scope="{ node, data }">
-          <i v-if="data.resourcetype == 4" class="mdi mdi-database" />
-          <i v-else class="mdi mdi-folder" />
-          <span>{{ node.label }}</span>
-        </span>
-      </el-tree>
+      <div :style="{ height: `${(screenHeight || 500) * 0.7 - 120}px`, overflowY: 'scroll' }">
+        <el-input
+          placeholder="输入关键字进行查询"
+          v-model="filterText">
+        </el-input>
+        <el-tree
+          :data="data"
+          show-checkbox
+          ref="selectTree"
+          :props="props"
+          :node-key="props.value"
+          default-expand-all
+          check-on-click-node
+          @check="handleNodeCheck"
+          :filter-node-method="filterNode"
+        >
+          <span class="custom-tree-node" slot-scope="{ node, data }">
+            <i v-if="data.resourcetype == 4" class="mdi mdi-database" />
+            <i v-else class="mdi mdi-folder" />
+            <span>{{ node.label }}</span>
+          </span>
+        </el-tree>
+      </div>
 		</Dialog>
 
     <Context-Menu v-model="contextMenuState" @click-item="clickItem" :items="curMenuItems" :style="contextMenuPos">
@@ -63,35 +70,17 @@ export default {
   mixins: [contextMenu],
   data() {
     return {
-      data: [
-        {
-          id: 1,
-          label: '省份',
-          children: [
-            {
-              label: '城市',
-              children: [
-                { label: '区域1' },
-                { label: '区域2' },
-                { label: '区域3' },
-              ]
-            },
-            { label: '城市2' },
-            { label: '城市3' },
-          ]
-        },{
-          id: 30,
-          label: 'dafds',
-        }
-      ],
+      data: [],
       props: {
-        value:'tableName',             // ID字段名
+        value:'id',             // ID字段名
         label: 'resourcename',  // 显示名称
         children: 'children',   // 子级字段名
       },
       dialogVisible: false,
       checkData: [],
       showData: [],
+      filterText: '',
+      screenHeight: 0,
     };
   },
   watch: {
@@ -99,9 +88,16 @@ export default {
       handler(value) {
         this.$emit('dataPanelSelect', value);
       }
+    },
+    filterText(val) {
+      this.$refs.selectTree.filter(val);
     }
   },
   methods: {
+    filterNode(value, data) {
+      if (!value) return true;
+      return data.resourcename.indexOf(value) !== -1;
+    },
     // 显示右键菜单
     showMenu(event, data) {
       if (data.resourcetype == 4) {
@@ -141,9 +137,10 @@ export default {
     },
     handleClose() {
       this.dialogVisible = false;
-      this.checkData.forEach(item => {
-        this.$refs.selectTree.setChecked(item, false, true);
-      });
+      // this.checkData.forEach(item => {
+      //   this.$refs.selectTree.setChecked(item, false, true);
+      // });
+      this.$refs.selectTree.setCheckedNodes([]);
       this.checkData = [];
     },
     getData(data, index) {
@@ -176,9 +173,16 @@ export default {
         if (index != -1) {
           this.showData.splice(index, 1);
         }
-        const res = await getTableFieldByName({ table: item.tableName });
+        let temp = {}; // { table: item.tableName }
+        if (item.type == 'table') {
+          Object.assign(temp, { table: item.tableName });
+        } else {
+          Object.assign(temp, { id: item.id });
+        }
+        const res = await getTableFieldByName(temp);
         const children = _.map(res.data.columns, item => {
           return {
+            id: item.columnName,
             tableName: item.columnName,
             relativeData: item.columnName,
             resourcename: item.aliasName || item.columnName,
@@ -203,27 +207,40 @@ export default {
         this.checkData = [];
         state.checkedNodes.forEach(item => {
           if (item.resourcetype == 4) {
-            this.checkData.push(item);
+            this.checkData.push(Object.assign({}, item, { tableName: item.tableName || item.id, type: !!item.tableName ? 'table' : 'id' }));
           }
         });
       } else {
         this.checkData.forEach(item => {
-          this.$refs.selectTree.setChecked(item, false, true);
+          this.$refs.selectTree.setChecked(item.tableName, false, true);
         });
+        // this.$refs.selectTree.setCheckedNodes([]);
         this.checkData = [];
       }
     },
     handleDragStart(node, event) {
       console.log('handleDragStart node', node);
-      event.dataTransfer.setData("Text", 'dataSetList.' + node.parent.key + '.' + node.key);
+      const temp = node.parent.data.tableName;
+      event.dataTransfer.setData("Text", 'dataSetList.' + temp + '.' + node.key);
     },
   },
   mounted() {
     const _this = this;
     getDBTable().then((res) => {
       console.log('res', res);
-      _this.data = res.data;
+      _this.data = res.data.map((item, index) => {
+        if (index + 1 == res.data.length) {
+          item.id = item.id + '_table';
+        }
+        return item;
+      });
     });
+    this.screenHeight = document.body.clientHeight;
+    window.onresize = () => {
+        return (() => {
+            this.screenHeight = document.body.clientHeight;
+        })()
+    };
   },
 }
 </script>

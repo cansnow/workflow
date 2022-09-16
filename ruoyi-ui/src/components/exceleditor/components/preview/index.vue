@@ -2019,8 +2019,16 @@ export default {
         }
         document.title = state.previewData.name || '未命名表单';
         this.$nextTick(() => {
+          if (Object.keys(this.$refs).length == 0) {
+            console.log('this.$refs', 0);
+            return;
+          }
+          if (this.data.length == 0) {
+            console.log('this.data', 0);
+            return;
+          }
           this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
-          this.$curSheet().maxHeight= this.data[this.sheetIndex.substring(1)].info.screenH;
+          this.$curSheet().maxHeight = this.data[this.sheetIndex.substring(1)].info.screenH;
           this.$watch('screenWidth', function() {
             this.$curSheet().maxWidth = this.data[this.sheetIndex.substring(1)].info.screenW;
             this.$curSheet().maxHeight= this.data[this.sheetIndex.substring(1)].info.screenH;
