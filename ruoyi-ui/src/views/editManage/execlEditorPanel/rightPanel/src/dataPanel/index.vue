@@ -105,17 +105,26 @@ export default {
       }
     },
     async refreshItem() {
-      console.log('refreshItem');
-      const res = await getTableFieldByName({ table: this.tempData.tableName });
+      console.log('refreshItem', this.tempData);
+      let temp = {};
+      if (this.tempData.type == 'id') {
+        Object.assign(temp, { tid: this.tempData.id });
+      } else {
+        Object.assign(temp, { table: this.tempData.tableName });
+      }
+      const res = await getTableFieldByName(temp);
       const children = _.map(res.data.columns, item => {
         return {
+          id: item.columnName,
           tableName: item.columnName,
           relativeData: item.columnName,
           resourcename: item.aliasName || item.columnName,
           resourcetype: 0,
+          tempTableName: res.data.tableName,
+          type: this.tempData.type,
         };
       });
-      const temp = JSON.parse(JSON.stringify(this.tempData));
+      temp = JSON.parse(JSON.stringify(this.tempData));
       Object.assign(temp, { children });
       const index = this.showData.findIndex(fItem => fItem.id == this.tempData.id);
       if (index != -1) {
@@ -143,30 +152,7 @@ export default {
       this.$refs.selectTree.setCheckedNodes([]);
       this.checkData = [];
     },
-    getData(data, index) {
-      const _this = this;
-      const temp = JSON.parse(JSON.stringify(data[index]));
-      getTableFieldByName({ table: temp.tableName }).then((res) => {
-        const children = [];
-        _.map(res.data.columns, item => {
-          children.push({
-            tableName: item.columnName,
-            relativeData: item.columnName,
-            resourcename: item.aliasName || item.columnName,
-            resourcetype: 0,
-          });
-        });
-        Object.assign(temp, { children });
-        _this.showData.push(temp);
-        if (data.length - 1 > index) {
-          setTimeout(() => {
-            this.getData(data, index + 1);
-          }, 1000);
-        }
-      });
-    },
     async handleIsOk() {
-      // this.getData(this.checkData, 0);
       for (let i = 0; i < this.checkData.length; i++) {
         const item = JSON.parse(JSON.stringify(this.checkData[i]));
         const index = this.showData.findIndex(fItem => fItem.id == item.id);
@@ -177,16 +163,18 @@ export default {
         if (item.type == 'table') {
           Object.assign(temp, { table: item.tableName });
         } else {
-          Object.assign(temp, { id: item.id });
+          Object.assign(temp, { tid: item.id });
         }
         const res = await getTableFieldByName(temp);
-        const children = _.map(res.data.columns, item => {
+        const children = _.map(res.data.columns, field => {
           return {
-            id: item.columnName,
-            tableName: item.columnName,
-            relativeData: item.columnName,
-            resourcename: item.aliasName || item.columnName,
+            id: field.columnName,
+            tableName: field.columnName,
+            relativeData: field.columnName,
+            resourcename: field.aliasName || field.columnName,
             resourcetype: 0,
+            tempTableName: res.data.tableName,
+            type: item.type,
           };
         });
         Object.assign(item, { children });
@@ -220,8 +208,11 @@ export default {
     },
     handleDragStart(node, event) {
       console.log('handleDragStart node', node);
-      const temp = node.parent.data.tableName;
+      const temp = node.data.tempTableName;
+      // uuid,表名： node.parent.data.tableName
+      const tableName = node.parent.data.tableName;
       event.dataTransfer.setData("Text", 'dataSetList.' + temp + '.' + node.key);
+      event.dataTransfer.setData("TableName", tableName);
     },
   },
   mounted() {

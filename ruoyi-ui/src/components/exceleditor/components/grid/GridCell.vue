@@ -313,6 +313,7 @@ export default {
                 rowIndex: this.cell.rowIndex,
             };
             const text = event.dataTransfer.getData("Text");
+            const tableName = event.dataTransfer.getData("TableName");
             // const p = { f: text, r: { r: [''], s: true } };
             // this.$sheet.setCellAttribute(pos, text, 'p', p);
             // this.cell.option
@@ -322,13 +323,13 @@ export default {
             if (!!this.cell.option && temp.c) {
                 if (!!temp.p) {
                     const p = temp.p;
-                    Object.assign(p, { f: text, e: 'none' });
+                    Object.assign(p, { f: text, e: 'none', tn: tableName });
                     if (temp.c == 'Cell') {
                         Object.assign(p, { ct: 'Cell', cl: '' });
                     }
                     Object.assign(temp, { p });
                 } else {
-                    const p = { f: text, e: 'none', r: { r: ['', ''], s: true, w: true } };
+                    const p = { f: text, e: 'none', r: { r: ['', ''], s: true, w: true }, tn: tableName };
                     if (temp.c == 'Cell') {
                         Object.assign(p, { ct: 'Cell', cl: '' });
                     }
@@ -338,7 +339,7 @@ export default {
             } else {
                 const value = {
                     c: 'Cell',
-                    p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true }, ct: 'Cell', cl: '' },
+                    p: { f: text, e: 'none', r: { r: ['', ''], s: true, w: true }, ct: 'Cell', cl: '', tn: tableName },
                     v: text,
                 }
                 Object.assign(temp, value);

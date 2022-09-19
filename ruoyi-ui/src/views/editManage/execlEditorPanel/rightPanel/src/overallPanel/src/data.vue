@@ -106,7 +106,7 @@
       @handleClose="handleClose"
       @handleIsOk="handleIsOk"
     >
-      <Transfer ref="transfer" :dataSrc="title" :dialogType="dialogType" />
+      <Transfer ref="transfer" :dataSrc="title" :dialogType="dialogType" :options="options" />
 		</Dialog>
   </div>
 </template>
@@ -132,6 +132,7 @@ export default {
       ifDel: '0',
       filedList: [],
       options: [],
+      optionsSrc: [],
       selectIndex: -1,
       dialogVisible: false,
       dataName: '', // 规则名称
@@ -197,13 +198,37 @@ export default {
     },
     /** 获取回写规则 */
     getFieldData() {
+      let ifId = false; // true 客户表，false我们的表
+      // 修改title值
+      // 获取表名
+      let title = this.title;
+      if (title.includes('_')) {
+        title = title.split('_')[0];
+        const table = this.optionsSrc.find(item => item.tableName == title);
+        if (!!table && table.type == 'id') {
+          title = table.children[0].tempTableName;
+        }
+        ifId = true;
+      } else {
+        // 判断是否客户表
+        this.optionsSrc.forEach((item) => {
+          if (item.type == 'id') {
+            item.children.forEach((cItem) => {
+              if (cItem.tempTableName == title) {
+                ifId = true;
+              }
+            });
+          }
+        });
+      }
       return {
-        title: this.title,
+        title: title,
         ifDel: this.ifDel,
         filedList: this.filedList,
         index: this.index,
         disabled: false,
         dataName: this.dataName,
+        ifId,
       };
     },
     /** 重置数据 */
@@ -215,11 +240,26 @@ export default {
       this.dataName = '';
     },
     setFieldData(data) {
-      this.index = data.index;
-      this.ifDel = data.ifDel || '0';
-      this.title = data.title;
-      this.filedList = data.filedList;
-      this.dataName = data.dataName;
+      this.$nextTick(() => {
+        const temp = [];
+        _.map(this.optionsSrc, item => {
+          if (item.type == 'id') {
+            temp.push({ key: item.children[0].tempTableName, value: item.tableName + '_id'});
+            }
+        });
+        this.index = data.index;
+        this.ifDel = data.ifDel || '0';
+        
+        // 格式化表
+        const index = temp.findIndex(item => item.key == data.title);
+        if (index == -1) {
+          this.title = data.title;
+        } else {
+          this.title = temp[index].value;
+        }
+        this.filedList = data.filedList;
+        this.dataName = data.dataName;
+      })
     },
     /** 变更值类型 */
     handleChangeType() {
@@ -260,9 +300,14 @@ export default {
     },
     setOptions(data) {
       if (!!data && data instanceof Array && data.length > 0) {
+        this.optionsSrc = data;
         this.options = _.map(data, item => {
+          let temp = item.tableName;
+          if (!!item.type && item.type == 'id') {
+            temp += '_id';
+          }
           return {
-            value: item.tableName,
+            value: temp,
             label: item.resourcename || item.tableName,
           };
         });

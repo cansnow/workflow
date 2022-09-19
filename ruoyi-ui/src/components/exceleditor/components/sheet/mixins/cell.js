@@ -400,7 +400,7 @@ export default {
                             p.f = val;
                             Object.assign(cell, { p });
                         } else {
-                            Object.assign(cell, { p: { f: val, e: 'none', r: { r: ['', ''], s: true, w: true } } });
+                            Object.assign(cell, { p: { f: val, e: 'none', r: { r: ['', ''], s: true, w: true }, tn: '' } });
                         }
                         if (cell.v !== val) {
                             cell.v = val;

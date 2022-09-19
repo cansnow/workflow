@@ -163,7 +163,7 @@ export default {
             const responseData = [];
             _.map(dataList, (item, index) => {
               if (!item.ifDel || item.ifDel != '1') {
-                const temp = { table: item.title };
+                const temp = { table: item.title, ifId: item.ifId };
                 if (item.filedList && item.filedList.length > 0) {
                   const fields = _.map(item.filedList, fObj => {
                     let fieldValue = '';
@@ -260,6 +260,7 @@ export default {
                     const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed).value();
                     Object.assign(temp, { ifKey: true, keys });
                   }
+                  
                   const ifExtend = fields.findIndex(field => field.ifExtend);
                   if (ifExtend != -1) {
                     // 有扩展
@@ -329,6 +330,7 @@ export default {
                         fieldValue,
                       });
                     }
+                    
                     const id = fields.findIndex(f => f.fieldName == 'id');
                     if (id != -1) {
                       fields.splice(id, 1);
@@ -340,13 +342,19 @@ export default {
                     conditions,
                     table: item.table,
                     fields,
+                    ifId: item.ifId
                   });
                 }
               } else {
+                // 新增删除id
+                const idIndex = fields.findIndex(f => f.fieldName == 'id');
+                if (idIndex != -1) {
+                  fields.splice(idIndex, 1);
+                }
                 // TODO 判断是否客户表，新增需要设置id，uuid
-                if (item.table == 'person' || item.table == 'tea_sale') {
+                if (item.ifId || item.table == 'person' || item.table == 'tea_sale') {
                   const id = _this.guid();
-                  item.fields.push({
+                  fields.push({
                     fieldName: 'id',
                     fieldValue: id,
                   })
@@ -390,7 +398,7 @@ export default {
                   updateData.splice(i, 1);
                 }
                 // 客户的表新增
-                if (u.table == 'person' || u.table == 'tea_sale') {
+                if (u.ifId || u.table == 'person' || u.table == 'tea_sale') {
                   if (c.fieldName == 'id') {
                     if (!!_this.addData[_this.sheetIndex] && !!_this.addData[_this.sheetIndex][u.table]) {
                       const index = _this.addData[_this.sheetIndex][u.table].findIndex(item => item.id == c.fieldValue);
@@ -407,7 +415,6 @@ export default {
                 }
               });
             });
-
             // 新增
             if ((data.length > 0 && !_this.ifEdit) || addInfo.length > 0) {
               if (addInfo.length > 0) {
@@ -1032,7 +1039,8 @@ export default {
           temp.p.ds == 'api' &&
           typeof temp.p.api != 'undefined' && !!temp.p.api &&
           (typeof temp.p.apiLabel != 'undefined' || typeof temp.p.apiValue != 'undefined') &&
-          (!!temp.p.apiLabel || !!temp.p.apiValue)
+          (!!temp.p.apiLabel || !!temp.p.apiValue) &&
+          typeof temp.p.apiT != 'undefined'
         ) {
           // 判断范围
           if (inRangeInside) {
@@ -1041,6 +1049,7 @@ export default {
               field: temp.p.api, // 变量
               apiLabel: temp.p.apiLabel || temp.p.apiValue,
               apiValue: temp.p.apiValue || temp.p.apiLabel,
+              fieldT: temp.p.apiT, // 表名
             });
           }
         }
@@ -1073,7 +1082,12 @@ export default {
         // 判断范围
         // 记录扩展
         // 获取p.f 变量，替换v
-        if (typeof temp.p != 'undefined' && typeof temp.p.f != 'undefined' && inRangeInside) {
+        if (
+          typeof temp.p != 'undefined' &&
+          typeof temp.p.f != 'undefined' &&
+          typeof temp.p.tn != 'undefined' &&
+          inRangeInside
+        ) {
           console.log('temp', temp);
           console.log('temp.p.f', temp.p.f);
           if (temp.p.f.indexOf('.') != -1 && temp.p.f.indexOf('dataSetList') != -1) {
@@ -1101,6 +1115,7 @@ export default {
                 fieldInfo: temp.p.f, // 变量信息
                 fieldIndex: fList[1], // 数据集下标
                 field: fList[2], // 变量
+                tableName: temp.p.tn, // 表名
                 extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
                 merges: typeof(item.merges) != 'undefined', // 是否合并
                 mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
@@ -1360,7 +1375,16 @@ export default {
           } else {
             
             if (typeof this.tableField[item.field] == 'undefined') {
-              const res = await getTableFieldByName({ table: item.field });
+              // TODO 判断是否uuid，如果是uuid则取fieldT，否则取field
+              // uuid 正则：/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+              // /^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i
+              const params = {};
+              if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(item.field)) {
+                Object.assign(params, { tid: item.field });
+              } else {
+                Object.assign(params, { table: item.field });
+              }
+              const res = await getTableFieldByName(params);
               const fields = _.map(res.data.columns, item => {
                 return item.columnName;
               });
@@ -1382,8 +1406,13 @@ export default {
                 }
               }
             });
-
-            const res = await getDBData({ table: item.field, ...query });
+            const params = {...query};
+            if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(item.field)) {
+              Object.assign(params, { table: item.fieldT });
+            } else {
+              Object.assign(params, { table: item.field });
+            }
+            const res = await getDBData(params);
             const dataSetListTemp = res.data.dataSetList;
             valueList = dataSetListTemp[0].valueList; // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = dataSetListTemp[0].valueList;
@@ -1467,7 +1496,13 @@ export default {
           } else {
 
             if (typeof this.tableField[item.fieldIndex] == 'undefined') {
-              const res = await getTableFieldByName({ table: item.fieldIndex });
+              const params = {};
+              if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(item.tableName)) {
+                Object.assign(params, { tid: item.tableName });
+              } else {
+                Object.assign(params, { table: item.tableName });
+              }
+              const res = await getTableFieldByName(params);
               const fields = _.map(res.data.columns, item => {
                 return item.columnName;
               });

@@ -220,6 +220,7 @@ export default {
 				api: '', // 数据集
 				apiValue: '', // 数据集值
 				apiLabel: '', // 数据值显示
+				apiT: '', // 数据表名
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
@@ -229,6 +230,7 @@ export default {
 				buttonText: '',
 				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
+				tableName: '', // 表名
 			},
 			options: [],
 			apiOptions: {},
@@ -421,7 +423,14 @@ export default {
   methods: {
 		handleApiChange() {
 			const _this = this;
-			getDBData({ table: this.form.api }).then((res) => {
+			const tableName = this.apiOptions[this.form.api][0].tempTableName;
+			const temp = {};
+			if (!!tableName) {
+				Object.assign(temp, { table: tableName });
+			} else {
+				Object.assign(temp, { table: this.form.api });
+			}
+			getDBData(temp).then((res) => {
 				console.log('res', res);
 				const data = res.data.dataSetList;
 				if (!!data && data instanceof Array && data.length > 0) {
@@ -430,6 +439,7 @@ export default {
 			});
 			this.form.apiValue = '';
 			this.form.apiLabel = '';
+			this.form.apiT = tableName || this.form.api;
 			this.change();
 		},
 		handleSelectSrc() {
@@ -496,6 +506,7 @@ export default {
 				api: '', // 数据集
 				apiValue: '', // 数据集值
 				apiLabel: '', // 数据值显示
+				apiT: '', // 数据表名
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
 				inputType: 'text', //输入类型
@@ -505,6 +516,7 @@ export default {
 				buttonText: '',
 				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
+				tableName: '', // 表名
 			};
 		},
     // 上传成功
@@ -573,6 +585,7 @@ export default {
 							api: data.p.api,
 							apiValue: data.p.apiValue,
 							apiLabel: data.p.apiLabel,
+							apiT: data.p.apiT,
 						});
 					}
 					
@@ -620,6 +633,7 @@ export default {
 					Object.assign(temp, {
 						extendType: typeof data.p.e != 'undefined' ? data.p.e : 'none',
 						formFiled: temp.default,
+						tableName: typeof data.p.tn != 'undefined' ? data.p.tn : '', // 表名
 					});
 				}
 				if (temp.componentType == 'upload') {
@@ -647,6 +661,7 @@ export default {
 						Object.assign(temp, { 
 							extendType: typeof data.p.e != 'undefined' ? data.p.e : 'none',
 							formFiled: typeof data.p.f != 'undefined' ? data.p.f : '',
+							tableName: typeof data.p.tn != 'undefined' ? data.p.tn : '', // 表名
 						});
 						// 单元格超链接
 						Object.assign(temp, { 

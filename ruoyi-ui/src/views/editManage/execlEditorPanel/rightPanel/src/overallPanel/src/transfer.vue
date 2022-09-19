@@ -8,7 +8,7 @@
         placeholder="请输入字段"
         clearable
       /> -->
-      <div style="margin: 5px 0;">{{ dataSrc }} > {{ dialogType == 1 ? '字段' : '参数'}}</div>
+      <div style="margin: 5px 0;">{{ dataSrc | formatTitle(options) }} > {{ dialogType == 1 ? '字段' : '参数'}}</div>
       <!-- 数据 -->
       <div style="margin: 5px 0;">
         <el-checkbox-group v-model="checkList">
@@ -43,6 +43,11 @@
 import { getTableFieldByName } from '@/api/editManage';
 export default {
   name: 'Transfer',
+  filters: {
+    formatTitle(val, options) {
+      return options.find(item => item.value == val).label;
+    },
+  },
   props: {
     dataSrc: {
       type: String,
@@ -51,6 +56,10 @@ export default {
     dialogType: {
       type: Number,
       default: 1,
+    },
+    options: {
+      type: Array,
+      default: () => ([])
     },
   },
   data() {
@@ -67,7 +76,13 @@ export default {
           const _this = this;
           _this.data = [];
           _this.checkList = [];
-          getTableFieldByName({ table: value })
+          const temp = {};
+          if (!!value && value.includes('_')) {
+            Object.assign(temp, { tid: value.split('_')[0] });
+          } else {
+            Object.assign(temp, { table: value });
+          }
+          getTableFieldByName(temp)
             .then((res) => {
               console.log('res', res);
               if (_this.dialogType == 1) {
@@ -101,7 +116,13 @@ export default {
       const _this = this;
       _this.data = [];
       _this.checkList = [];
-      getTableFieldByName({ table: this.dataSrc })
+      const temp = {};
+      if (!!this.dataSrc && this.dataSrc.includes('_')) {
+        Object.assign(temp, { tid: this.dataSrc.split('_')[0] });
+      } else {
+        Object.assign(temp, { table: this.dataSrc });
+      }
+      getTableFieldByName(temp)
         .then((res) => {
           console.log('res', res);
           if (_this.dialogType == 1) {

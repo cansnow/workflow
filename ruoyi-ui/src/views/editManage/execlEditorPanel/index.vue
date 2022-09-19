@@ -625,7 +625,7 @@ export default {
 				}
 				if (data.componentType == 'select') {
 					if (data.selectSrc != 'custom') {
-						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel });
+						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel, apiT: data.apiT });
 					}
 					Object.assign(props, { ds: data.selectSrc });
 				}
@@ -634,7 +634,7 @@ export default {
 					data.componentType == 'input' ||
 					data.componentType == 'select'
 				) {
-					Object.assign(props, { e: data.extendType, f: data.formFiled });
+					Object.assign(props, { e: data.extendType, f: data.formFiled, tn: data.tableName });
 				}
 				Object.assign(temp, { p: props });
 			}
@@ -654,7 +654,7 @@ export default {
 				// 单元格
 				if (data.componentType == 'Cell') {
 					// 扩展
-					Object.assign(props, { e: data.extendType, f: data.formFiled });
+					Object.assign(props, { e: data.extendType, f: data.formFiled, tn: data.tableName });
 					// 超链接 ct 单元格类型 cl 单元格超链接
 					Object.assign(props, { ct: data.cellType, cl: data.cellLink });
 				}
