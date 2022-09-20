@@ -32,7 +32,6 @@ export default {
           // if (!!cacheData) {
           //   Object.assign(temp, cacheData);
           // }
-          // debugger;
           Object.assign(temp, { data: cacheData || data });
           _this.$piniastore.setPreviewData(temp);
         }

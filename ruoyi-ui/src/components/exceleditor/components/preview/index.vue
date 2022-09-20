@@ -387,6 +387,7 @@ export default {
             // 新增数据
             const addInfo = [];
             // 修改 剔除新增数据
+            const delUpdateData = [];
             _.map(updateData, (u, i) => {
               _.map(u.conditions, c => {
                 // 我们的表新增
@@ -395,7 +396,8 @@ export default {
                     t: u.table,
                     values: JSON.parse(JSON.stringify(u.fields)),
                   });
-                  updateData.splice(i, 1);
+                  // updateData.splice(i, 1);
+                  delUpdateData.push(i);
                 }
                 // 客户的表新增
                 if (u.ifId || u.table == 'person' || u.table == 'tea_sale') {
@@ -408,13 +410,20 @@ export default {
                           id: c.fieldValue,
                           values: JSON.parse(JSON.stringify(u.fields)),
                         });
-                        updateData.splice(i, 1);
+                        // updateData.splice(i, 1);
+                        delUpdateData.push(i);
                       }
                     }
                   }
                 }
               });
             });
+            // 删除新增项
+            if (delUpdateData.length > 0) {
+              _.map(delUpdateData, item => {
+                updateData.splice(item, 1);
+              })
+            }
             // 新增
             if ((data.length > 0 && !_this.ifEdit) || addInfo.length > 0) {
               if (addInfo.length > 0) {
@@ -1530,6 +1539,8 @@ export default {
           }
 
           // TODO 获取新增数据
+          console.warn('this.addData', this.addData);
+          console.warn('this.sheetIndex', this.sheetIndex);
           if (
             !!this.addData[this.sheetIndex] &&
             !!this.addData[this.sheetIndex][item.fieldIndex] &&
@@ -1852,7 +1863,7 @@ export default {
         // console.warn('extendInfo', extendInfo);
         this.extendInfo[this.sheetIndex] = extendInfo;
       }
-
+      console.warn('cells', JSON.parse(JSON.stringify(cells)));
       return {
         rows,
         columns,
@@ -1972,15 +1983,19 @@ export default {
               } else {
                 const tempCells = item.filter(cell => !!cell);
                 let ifCellDel = false;
+                const noDelKey = {};
                 _.map(tempCells, tempCell => {
                   if (typeof tempCell.c != 'undefined' && (typeof tempCell.v == 'undefined' || !tempCell.v)) {
                     ifCellDel = true;
                   } else {
                     ifCellDel = false;
+                    noDelKey[key] = false;
                   }
                 });
                 if (ifCellDel) {
-                  delete temp.cells[key];
+                  if (typeof noDelKey[key] == 'undefined') {
+                    delete temp.cells[key];
+                  }
                 }
               }
             });
