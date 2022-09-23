@@ -962,6 +962,11 @@ export default {
       // 单元格超链接扩展记录
       const cellLinks = {};
 
+      // 记录隐藏带单元格判断
+
+
+      // 记录禁用带单元格判断
+
       let pos = -1;
 
       const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'fc', 'sv', 'fcv', 'd', 'options'];
@@ -1062,6 +1067,7 @@ export default {
             });
           }
         }
+
         // 判断范围
         // 判断默认值是否包含变量
         if (typeof temp.v != 'undefined' && inRangeInside) {
@@ -1171,13 +1177,17 @@ export default {
                 }
               }
             });
-            const ifStart = this.getResult(expression);
-            if (!ifStart) {
-              const p = temp.p;
-              const r = p.r;
-              r.w = !r.w;
-              Object.assign(p, { r });
-              Object.assign(temp, { p });
+            const operator = ['==', '<', '>', '!=', '<=', '>='];
+            const ifOperator = operator.findIndex(item => expression.includes(item));
+            if (ifOperator != -1) {
+              const ifStart = this.getResult(expression);
+              if (!ifStart) {
+                const p = temp.p;
+                const r = p.r;
+                r.w = !r.w;
+                Object.assign(p, { r });
+                Object.assign(temp, { p });
+              }
             }
           }
         }
@@ -1202,13 +1212,17 @@ export default {
                 }
               }
             });
-            const ifStart = this.getResult(expression);
-            if (!ifStart) {
-              const p = temp.p;
-              const r = p.r;
-              r.s = !r.s;
-              Object.assign(p, { r });
-              Object.assign(temp, { p });
+            const operator = ['==', '<', '>', '!=', '<=', '>='];
+            const ifOperator = operator.findIndex(item => expression.includes(item));
+            if (ifOperator != -1) {
+              const ifStart = this.getResult(expression);
+              if (!ifStart) {
+                const p = temp.p;
+                const r = p.r;
+                r.s = !r.s;
+                Object.assign(p, { r });
+                Object.assign(temp, { p });
+              }
             }
           }
         }
@@ -1891,11 +1905,8 @@ export default {
     getComparisonValue(data) {
       // == < > != <= >=
       const operator = ['==', '<', '>', '!=', '<=', '>='];
-      const index = operator.findIndex(item => {
-        const index = data.indexOf(item);
-        return index != -1;
-      });
-      return [index, data.replace(/[^a-zA-Z]/g,'')];
+      const index = operator.findIndex(item => data.includes(item));
+      return [index, data.replace(/[^a-zA-Z0-9]/g,'')];
     },
     comparison(variable, operator, value) {
       switch(operator) {
