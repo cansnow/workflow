@@ -19,7 +19,8 @@
 					<el-button type="default">数据</el-button>
 					<el-button type="default" @click="saveData">设置</el-button>
 				</el-button-group> -->
-				<rightMenu />
+				<rightMenu v-if="headRigth" />
+				<div v-else style="color: white;">1</div>
 				<!-- <el-button-group>
 					<el-button type="primary" @click="handlePreview">预览</el-button>
 					<el-button type="default" @click="viewData">查看代码</el-button>
@@ -74,6 +75,8 @@ import testData from './testData';
 import Dialog from './src/dialog.vue';
 import ReleaseForm from './src/releaseForm.vue';
 import Preview from './preview/index.vue';
+
+import { mapState } from "vuex";
 
 import cache from '@/plugins/cache';
 
@@ -145,6 +148,9 @@ export default {
 		};
 	},
 	computed: {
+		...mapState({
+      headRigth: state => state.settings.headRigth,
+    }),
 		// 点击单元格
 		selection: function() {
 			return this.$refs.vspread.getCurSheet()[0].selection;
