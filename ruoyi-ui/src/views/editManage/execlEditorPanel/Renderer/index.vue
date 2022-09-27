@@ -17,7 +17,7 @@ export default {
     const _this = this;
     if (tempId) {
       getTemplateInfoById(tempId).then((res) => {
-        const data = JSON.parse(res.data.data);
+        const data = JSON.parse(res.data.data.replaceAll('&lt;', '<').replaceAll('&gt;', '>'));
         // const sheet = res.data.sheet;
         const temp = { ifPreview: false, query: _this.$route.query, name: res.data.title };
 				if (data instanceof Array && res.code == 200 && data.length > 0) {

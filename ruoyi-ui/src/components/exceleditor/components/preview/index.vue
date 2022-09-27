@@ -793,7 +793,7 @@ export default {
           if (str.indexOf(':') == -1) {
             const pos = _this.formatData(str);
             const cell = _this.$curSheet().getPosCell(pos);
-            cell.v; // 字段值
+            // 字段值 cell.v;
             linkTemp = linkTemp.replace(item, cell.v);
           } else {
             // 多个单元格
@@ -941,6 +941,56 @@ export default {
       }
       return true;
     },
+    // 格式化数据
+    formatData(data) {
+      let columnIndex = data.replace(/[^a-zA-Z]/g,'');
+      let rowIndex = data.replace(/[^0-9]/g,'');
+      columnIndex = _.$ABC2Number(columnIndex);
+      rowIndex = rowIndex - 1;
+      return { columnIndex, rowIndex };
+    },
+    // 获取比对值
+    getComparisonValue(data) {
+      // == < > != <= >=
+      const operator = ['==', '<', '>', '!=', '<=', '>='];
+      const index = operator.findIndex(item => data.includes(item));
+      return [index, data.replace(/[^a-zA-Z0-9]/g,'')];
+    },
+    // 对比判断
+    comparison(variable, operator, value) {
+      switch(operator) {
+        // '==', '<', '>', '!=', '<=', '>='
+        case 0:
+          return variable == value;
+        case 1:
+          return variable < value;
+        case 2:
+          return variable > value;
+        case 3:
+          return variable != value;
+        case 4:
+          return variable <= value;
+        case 5:
+          return variable >= value;
+        default:
+          return false;
+      }
+    },
+    getResult(data) {
+      // 1.获取判断条，== < > != <= >=
+      // 2.获取对比值，如：admin
+      const expression = data;// '"admin" == "admin"';
+      let ifStart = true;
+      const operator = ['==', '<', '>', '!=', '<=', '>='];
+      const ifOperator = operator.findIndex(item => expression.includes(item));
+      if (ifOperator != -1) {
+        const strList = expression.split(operator[ifOperator]).filter(item => !!item);
+        if (strList.length > 1) {
+          ifStart = this.comparison(strList[0], ifOperator, strList[1]);
+        }
+      }
+      return ifStart;
+    },
     async formatCellData(data, formList, Range, searchList, dataList) {
       // 行的信息
       const rows = [];
@@ -963,9 +1013,10 @@ export default {
       const cellLinks = {};
 
       // 记录隐藏带单元格判断
-
+      const hiddenList = [];
 
       // 记录禁用带单元格判断
+      const disabledList = [];
 
       let pos = -1;
 
@@ -1173,16 +1224,22 @@ export default {
                   // 获取值的key
                   const valueKey = key.replace('key_', 'value_');
                   // ${USER_ID} == admin => '$userName$ == "admin"';
-                  expression = expression.replace(value, '$' + valueKey + '$');
+                  expression = expression.replace(value, this.constants[valueKey]);
                 }
               }
             });
-            const operator = ['==', '<', '>', '!=', '<=', '>='];
-            const ifOperator = operator.findIndex(item => expression.includes(item));
-            if (ifOperator != -1) {
+            if (/\$|\{|\}/g.test(expression)) {
+              // 单元格取值
+              disabledList.push({
+                expression, // 判断
+                pos: item.pos, // 位置
+              });
+            } else {
+              // 没有单元格
               const ifStart = this.getResult(expression);
               if (!ifStart) {
-                const p = temp.p;
+                const tempD = JSON.parse(JSON.stringify(temp));
+                const p = tempD.p;
                 const r = p.r;
                 r.w = !r.w;
                 Object.assign(p, { r });
@@ -1207,17 +1264,22 @@ export default {
                 if (expression.indexOf(value) != -1) {
                   // 获取值的key
                   const valueKey = key.replace('key_', 'value_');
-                  // ${USER_ID} == admin => '$userName$ == "admin"';
-                  expression = expression.replace(value, '$' + valueKey + '$');
+                  expression = expression.replace(value, this.constants[valueKey]);
                 }
               }
             });
-            const operator = ['==', '<', '>', '!=', '<=', '>='];
-            const ifOperator = operator.findIndex(item => expression.includes(item));
-            if (ifOperator != -1) {
+            if (/\$|\{|\}/g.test(expression)) {
+              // 单元格取值
+              hiddenList.push({
+                expression, // 判断
+                pos: item.pos, // 位置
+              });
+            } else {
+              // 没有单元格
               const ifStart = this.getResult(expression);
               if (!ifStart) {
-                const p = temp.p;
+                const tempH = JSON.parse(JSON.stringify(temp));
+                const p = tempH.p;
                 const r = p.r;
                 r.s = !r.s;
                 Object.assign(p, { r });
@@ -1337,13 +1399,45 @@ export default {
               if (expression.indexOf(value) != -1) {
                 // 获取值的key
                 const valueKey = key.replace('key_', 'value_');
-                // ${USER_ID} == admin => '$userName$ == "admin"';
-                expression = expression.replace(value, '$' + valueKey + '$');
+                // ${USER_ID} == admin => '"admin" == "admin"';
+                expression = expression.replace(value, this.constants[valueKey]);
               }
             }
           });
+          // 判断单元格，取值，有以下情况，该单元是读数据的
+          // 还有单元格变量
+          if (/\$|\{|\}/g.test(expression)) {
+            // 获取单元格集合
+            const cellsEx = expression.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+            _.map(cellsEx, cellItem => {
+              const str = cellItem.replaceAll(/\$|\{|\}/g, '');
+              // 单个单元格
+              if (str.indexOf(':') == -1) {
+                const pos = this.formatData(str);
+                const cell = cells[pos.rowIndex][pos.columnIndex]
+                // 字段值 cell.v;
+                expression = expression.replace(cellItem, cell.v);
+              } else {
+                // 多个单元格
+                const strList = str.split(':');
+                const start = _this.formatData(strList[0]);
+                const end = _this.formatData(strList[1]);
+                const values = [];
+                for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                  for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                    const cell = cells[i][j];
+                    if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                      values.push(cell.v);
+                    }
+                  }
+                }
+                expression = expression.replace(cellItem, values);
+              }
+            });
+          }
           const ifStart = this.getResult(expression); //'$userName$ == "admin"';
           if (ifStart) {
+            // 位置的隐藏，禁用隐藏
             const list = item.range.split(':');
             // G9
             if (list.length <= 1) {
@@ -1490,6 +1584,160 @@ export default {
           Object.assign(cellLinks[key], { posList });
         });
         console.log('cellLinks', cellLinks);
+      }
+
+      // expression pos
+      const disabledList2 = []
+      // 获取单元格判断禁用
+      if (disabledList.length > 0) {
+        _.map(disabledList, (item, index) => {
+          let expression = item.expression;
+          const cellsEx = expression.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+          _.map(cellsEx, cellItem => {
+            const str = cellItem.replaceAll(/\$|\{|\}/g, '');
+            // 单个单元格
+            if (str.indexOf(':') == -1) {
+              let pos = this.formatData(str);
+              const cell = cells[pos.rowIndex][pos.columnIndex]
+              // 字段值 cell.v;
+              if (
+                typeof cell.p != 'undefined' &&
+                typeof cell.p.f != 'undefined' &&
+                typeof cell.p.tn != 'undefined' &&
+                !!cell.p.tn
+              ) {
+                const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
+                if (dlIndex == -1) {
+                  disabledList2.push({
+                    expression,
+                    pos: item.pos,
+                    pos2: [pos],
+                    cellItem: [cellItem],
+                    index,
+                  });
+                } else {
+                  const tempDLI = JSON.parse(JSON.stringify(disabledList2[dlIndex]));
+                  tempDLI.pos2.push(pos);
+                  tempDLI.cellItem.push(cellItem);
+                  disabledList2.splice(dlIndex, 1, tempDLI);
+                }
+              } else {
+                expression = expression.replace(cellItem, cell.v);
+                const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
+                if (dlIndex != -1) {
+                  disabledList2.splice(dlIndex, 1, Object.assign(disabledList2[dlIndex], { expression }));
+                }
+              }
+            } else {
+              // 多个单元格
+              const strList = str.split(':');
+              const start = _this.formatData(strList[0]);
+              const end = _this.formatData(strList[1]);
+              const values = [];
+              for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                  const cell = cells[i][j];
+                  if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                    values.push(cell.v);
+                  }
+                }
+              }
+              expression = expression.replace(cellItem, values);
+            }
+          });
+          if (!/\$|\{|\}/g.test(expression)) {
+            const ifStart = this.getResult(expression);
+            const pos = item.pos;
+            if (!ifStart) {
+              const cell = cells[pos.start.rowIndex][pos.start.columnIndex];
+              if (!!cell) {
+                const cellDTemp = JSON.parse(JSON.stringify(cell));
+                const p = cellDTemp.p;
+                const r = p.r;
+                r.w = !r.w;
+                Object.assign(p, { r });
+                Object.assign(cellDTemp, { p });
+                cells[pos.start.rowIndex].splice(pos.start.columnIndex, 1, cellDTemp);
+              }            
+            }
+          }
+        });
+      }
+      const hiddenList2 = []
+      // 获取单元格判断隐藏
+      if (hiddenList.length > 0) {
+        _.map(hiddenList, (item, index) => {
+          let expression = item.expression;
+          const cellsEx = expression.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+          _.map(cellsEx, cellItem => {
+            const str = cellItem.replaceAll(/\$|\{|\}/g, '');
+            // 单个单元格
+            if (str.indexOf(':') == -1) {
+              const pos = this.formatData(str);
+              const cell = cells[pos.rowIndex][pos.columnIndex]
+              // 字段值 cell.v;
+              if (
+                typeof cell.p != 'undefined' &&
+                typeof cell.p.f != 'undefined' &&
+                typeof cell.p.tn != 'undefined' &&
+                !!cell.p.tn
+              ) {
+                const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
+                if (hlIndex == -1) {
+                  hiddenList2.push({
+                    expression,
+                    pos: item.pos,
+                    pos2: [pos],
+                    cellItem: [cellItem],
+                    index,
+                  });
+                } else {
+                  const tempHLI = JSON.parse(JSON.stringify(hiddenList2[hlIndex]));
+                  tempHLI.pos2.push(pos);
+                  tempHLI.cellItem.push(cellItem);
+                  hiddenList2.splice(hlIndex, 1, tempHLI);
+                }
+              } else {
+                expression = expression.replace(cellItem, cell.v);
+                const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
+                if (hlIndex != -1) {
+                  hiddenList2.splice(hlIndex, 1, Object.assign(hiddenList2[hlIndex], { expression }));
+                }
+              }
+            } else {
+              // 多个单元格
+              const strList = str.split(':');
+              const start = _this.formatData(strList[0]);
+              const end = _this.formatData(strList[1]);
+              const values = [];
+              for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                  const cell = cells[i][j];
+                  if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                    values.push(cell.v);
+                  }
+                }
+              }
+              expression = expression.replace(cellItem, values);
+            }
+          });
+          if (!/\$|\{|\}/g.test(expression)) {
+            const ifStart = this.getResult(expression);
+            const pos = item.pos;
+            if (!ifStart) {
+              const cell = cells[pos.start.rowIndex][pos.start.columnIndex];
+              if (!!cell) {
+                const cellHTemp = JSON.parse(JSON.stringify(cell));
+                const p = cellHTemp.p;
+                const r = p.r;
+                r.s = !r.s;
+                if (!r.s) {
+                  cells[pos.start.rowIndex].splice(pos.start.columnIndex, 1, null);
+                }
+              }
+            }
+          }
+        });
       }
 
       // 设置扩展
@@ -1664,6 +1912,74 @@ export default {
             }
           }
           cells[cellRowIndex].splice(cellColumnIndex, 1, temp);
+          // 隐藏，禁用，有些单元格是取后端返回值的，这时就要获取第一行数据
+          if (disabledList2.length > 0) {
+            // 值替换
+            for (let hdlI = 0; hdlI < disabledList2.length; hdlI++) {
+              for (let hpi = 0; hpi < disabledList2[hdlI].pos2.length; hpi++) {
+                const hp = disabledList2[hdlI].pos2[hpi];
+                if (hp.rowIndex == cellRowIndex && hp.columnIndex == cellColumnIndex) {
+                  Object.assign(disabledList2[hdlI], {
+                    expression: disabledList2[hdlI].expression.replace(disabledList2[hdlI].cellItem[hpi], temp.v),
+                  })
+                }
+              }
+            }
+
+            // 隐藏单元格 
+            _.map(disabledList2, hdl => {
+              if (!(/\$|\{|\}/g.test(hdl.expression))) {
+                const ifStart = this.getResult(hdl.expression);
+                const posD = hdl.pos;
+                if (!ifStart) {
+                  const cellD = cells[posD.start.rowIndex][posD.start.columnIndex];
+                  console.warn('disabledList2');
+                  if (!!cellD) {
+                    const cellDTemp = JSON.parse(JSON.stringify(cellD))
+                    const p = cellDTemp.p;
+                    const r = p.r;
+                    r.w = !r.w;
+                    Object.assign(p, { r });
+                    Object.assign(cellDTemp, { p });
+                    cells[posD.start.rowIndex].splice(posD.start.columnIndex, 1, cellDTemp);
+                  }
+                }
+              }
+            });
+          }
+          if (hiddenList2.length > 0) {
+            // 值替换
+            for (let hdlI = 0; hdlI < hiddenList2.length; hdlI++) {
+              for (let hpi = 0; hpi < hiddenList2[hdlI].pos2.length; hpi++) {
+                const hp = hiddenList2[hdlI].pos2[hpi];
+                if (hp.rowIndex == cellRowIndex && hp.columnIndex == cellColumnIndex) {
+                  Object.assign(hiddenList2[hdlI], {
+                    expression: hiddenList2[hdlI].expression.replace(hiddenList2[hdlI].cellItem[hpi], temp.v),
+                  })
+                }
+              }
+            }
+
+            // 隐藏单元格 
+            _.map(hiddenList2, hdl => {
+              if (!(/\$|\{|\}/g.test(hdl.expression))) {
+                const ifStart = this.getResult(hdl.expression);
+                const posH = hdl.pos;
+                if (!ifStart) {
+                  const cellH = cells[posH.start.rowIndex][posH.start.columnIndex];
+                  if (!!cellH) {
+                    const cellHTemp = JSON.parse(JSON.stringify(cellH));
+                    const p = cellHTemp.p;
+                    const r = p.r;
+                    r.s = !r.s;
+                    if (!r.s) {
+                      cells[posH.start.rowIndex].splice(posH.start.columnIndex, 1, null);
+                    }
+                  }
+                }
+              }
+            });
+          }     
 
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
@@ -1877,6 +2193,7 @@ export default {
         // console.warn('extendInfo', extendInfo);
         this.extendInfo[this.sheetIndex] = extendInfo;
       }
+
       console.warn('cells', JSON.parse(JSON.stringify(cells)));
       return {
         rows,
@@ -1892,68 +2209,6 @@ export default {
         this.$piniastore.$subscribe((mutation, state) => {
             _this.update(state);
         });
-    },
-    // 格式化数据
-    formatData(data) {
-      let columnIndex = data.replace(/[^a-zA-Z]/g,'');
-      let rowIndex = data.replace(/[^0-9]/g,'');
-      columnIndex = _.$ABC2Number(columnIndex);
-      rowIndex = rowIndex - 1;
-      return { columnIndex, rowIndex };
-    },
-    // 获取比对值
-    getComparisonValue(data) {
-      // == < > != <= >=
-      const operator = ['==', '<', '>', '!=', '<=', '>='];
-      const index = operator.findIndex(item => data.includes(item));
-      return [index, data.replace(/[^a-zA-Z0-9]/g,'')];
-    },
-    comparison(variable, operator, value) {
-      switch(operator) {
-        // '==', '<', '>', '!=', '<=', '>='
-        case 0:
-          return variable == value;
-        case 1:
-          return variable < value;
-        case 2:
-          return variable > value;
-        case 3:
-          return variable != value;
-        case 4:
-          return variable <= value;
-        case 5:
-          return variable >= value;
-        default:
-          return false;
-      }
-    },
-    getResult(data) {
-      // 1.获取变量，从this.constants[field]取值
-      // 2.获取判断条，== < > != <= >=
-      // 3.获取对比值，如：admin
-      const expression = data;// '$userName$ == "admin"';
-      let ifStart = false;
-      const index = expression.indexOf('$');
-      if (index != -1) {
-        const strList = expression.split('$').filter(item => !!item);
-        if (strList.length > 1) {
-          // 取变量
-          const value = this.constants[strList[index == 0 ? index : 1]];
-          if (typeof value != 'undefined') {
-            // 取值
-            const comparison = this.getComparisonValue(strList[index == 0 ? 1 : 0]);
-            if (comparison[0] != -1) {
-              // 判断是否生效规则
-              ifStart = this.comparison(
-                index == 0 ? value : comparison[1],
-                comparison[0],
-                index == 0 ? comparison[1] : value
-              );
-            }
-          }
-        }
-      }
-      return ifStart;
     },
     async update(state) {
         this.previewData = state.previewData;

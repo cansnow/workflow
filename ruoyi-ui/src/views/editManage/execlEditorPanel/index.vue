@@ -376,7 +376,7 @@ export default {
 						"sheet": this.title,
 						"status": "0",
 						"title": this.templateName,
-						"data": JSON.stringify(data),
+						"data": JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
 					};
 					const res = await addTemplate(this.updateInfo);
 					if (res.code == 200) {
@@ -420,7 +420,7 @@ export default {
 			this.$refs.vspread.data.forEach((_, index) => {
 				data.push(this.getCurSaveData(index));
 			});
-			Object.assign(form, { data: JSON.stringify(data) });
+			Object.assign(form, { data: JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'), });
 			// 编辑
 			if (!!this.tempId) {
 				// 修改
@@ -464,7 +464,7 @@ export default {
 						_this.$refs.vspread.data.forEach((_, index) => {
 							data.push(_this.getCurSaveData(index));
 						});
-						Object.assign(form, { data: JSON.stringify(data), id: _this.tempId });
+						Object.assign(form, { data: JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'), id: _this.tempId });
 						updateTemplate(form).then((result) => {
 							console.log('result', result);
 						});
@@ -712,7 +712,6 @@ export default {
 			const data = _this.$refs.vspread.data;
 			data[_this.sheetIndex].data.freezeColumn = index;
 			_this.$piniastore.setData(data);
-			
 		});
 		this.$OverallPanel.$on('freezeRow', function(index) {
 			_this.$curSheet.setFreezeRow(index);
@@ -773,7 +772,7 @@ export default {
 				data.push(_this.getCurSaveData(index));
 			});
 			if (!!_this.tempId) {
-				Object.assign(_this.updateInfo, { data: JSON.stringify(data) });
+				Object.assign(_this.updateInfo, { data: JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'), });
 				// 修改
 				await updateTemplate(_this.updateInfo).finally(() => {
 					loading.close();
@@ -786,7 +785,7 @@ export default {
 					"sheet": _this.title,
 					"status": "0",
 					"title": _this.templateName,
-					"data": JSON.stringify(data),
+					"data": JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
 				};
 				const res = await addTemplate(_this.updateInfo).finally(() => {
 					loading.close();
@@ -813,7 +812,8 @@ export default {
 		// 编辑
 		if (!!tempId) {
 			getTemplateInfoById(tempId).then((res) => {
-				const data = JSON.parse(res.data.data);
+				// &lt; < &gt; >
+				const data = JSON.parse(res.data.data.replaceAll('&lt;', '<').replaceAll('&gt;', '>'));
 				_this.updateInfo = res.data;
 				_this.templateName = _this.updateInfo.title || '未命名表单';
 				Object.assign(_this.updateInfo, {

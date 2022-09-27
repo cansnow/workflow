@@ -22,7 +22,14 @@ export default {
     if (tempId) {
       // 编辑预览
       getTemplateInfoById(tempId).then((res) => {
-        const data = JSON.parse(res.data.data);
+        let dataTemp = res.data.data;
+        if (dataTemp.includes('&gt;')) {
+          dataTemp = dataTemp.replaceAll('&gt;', '>');
+        }
+        if (dataTemp.includes('&lt;')) {
+          dataTemp = dataTemp.replaceAll('&lt;', '<');
+        }
+        const data = JSON.parse(dataTemp);
         // const sheet = res.data.sheet;
         Object.assign(temp, { name: res.data.title });
 				if (data instanceof Array && res.code == 200 && data.length > 0) {
