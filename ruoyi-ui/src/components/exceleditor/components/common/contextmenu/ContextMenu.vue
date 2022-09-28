@@ -4,6 +4,9 @@
             v-for="item in datas" :key="item.handler" @click.stop="click(item)" @mouseenter="item.show = true"
             @mouseleave="item.show = false">
             {{ item.text }}
+            <template v-if="!!item.type">
+                <el-input-number  v-model="item.value" controls-position="right" size="mini" @change="() => handleChange(item)" style="width: 80px; margin-left: 10px;" />
+            </template>
             <ctxmenu v-if="item.children" v-model="item.show" :items="item.children" class="meg-ctxmenu-submenu"
                 @click-item="click($event)" />
         </li>
@@ -43,6 +46,13 @@ export default {
     },
     methods: {
         click(item) {
+            if (!!item.type) { // 设置行高
+                return;
+            }
+            this.$emit('input', false)
+            this.$emit('click-item', item)
+        },
+        handleChange(item) {
             this.$emit('input', false)
             this.$emit('click-item', item)
         },

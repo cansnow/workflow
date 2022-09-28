@@ -47,7 +47,8 @@ const rowMenuItems = baseMenuItems.concat([{
     handler: 'doDelRow',
 }, {
     text: '设置行高',
-    handler: 'setRowHeight',
+    handler: 'setRowHeightMenu',
+    type: 'row',
 }, {
     text: '隐藏行',
     handler: 'doHideRow',
@@ -64,7 +65,8 @@ const columnMenuItems = baseMenuItems.concat([{
     handler: 'doDelColumn',
 }, {
     text: '设置列宽',
-    handler: 'setColumnHeight',
+    handler: 'setColumnHeightMenu',
+    type: 'column',
 }, {
     text: '隐藏列',
     handler: 'doHideColumn',
@@ -88,6 +90,9 @@ export default {
                 top: '',
                 left: '',
             },
+            curH: 0,
+            curW: 0,
+            itemMenuInfo: {},
         };
     },
     methods: {
@@ -98,6 +103,19 @@ export default {
             this.cm_showMenu(top, left, cellMenuItems);
         },
         showHeadMenu(type, top, left) {
+            if (type == 'row') {
+                this.curH = this.rows[this.selctionExpand.start.rowIndex].hpx;
+                const rowMenuIndex = rowMenuItems.findIndex(rowM => !!rowM.type);
+                if (rowMenuIndex != -1) {
+                    rowMenuItems.splice(rowMenuIndex, 1, Object.assign(rowMenuItems[rowMenuIndex], { value: this.curH }));
+                }
+            } else {
+                this.curW = this.columns[this.selctionExpand.start.columnIndex].wpx;
+                const colMenuIndex = columnMenuItems.findIndex(colM => !!colM.type);
+                if (colMenuIndex != -1) {
+                    columnMenuItems.splice(colMenuIndex, 1, Object.assign(columnMenuItems[colMenuIndex], { value: this.curW }));
+                }
+            }
             this.cm_showMenu(top, left, type == 'row' ? rowMenuItems : columnMenuItems);
         },
         cm_showMenu(top, left, menuItems) {
@@ -110,6 +128,7 @@ export default {
             };
         },
         clickItem(item) {
+            this.itemMenuInfo = item;
             if (this[item.handler]) {
                 this[item.handler].call(this);
             } else {
@@ -117,6 +136,16 @@ export default {
             ${item.handler}
         }`).call(this);
             }
+        },
+        // 设置行高
+        setRowHeightMenu() {
+            this.setRowHeight(this.selctionExpand.start.rowIndex, this.itemMenuInfo.value);
+            this.contextMenuState = true;
+        },
+        // 设置列高
+        setColumnHeightMenu() {
+            this.setColumnWidth(this.selctionExpand.start.columnIndex, this.itemMenuInfo.value);
+            this.contextMenuState = true;
         },
     },
 };

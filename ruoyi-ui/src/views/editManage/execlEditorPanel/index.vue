@@ -301,7 +301,6 @@ export default {
 							}
 						}
 						Object.assign(temp, col);
-						debugger;
 						cellsTemp.push(temp);
 					}
 				})
@@ -363,7 +362,6 @@ export default {
 		},
 		/** 发布 */
 		handleRelease() {
-			debugger;
 			// 编辑
 			this.dialogVisible = true;
 			if (!!this.tempId) {
