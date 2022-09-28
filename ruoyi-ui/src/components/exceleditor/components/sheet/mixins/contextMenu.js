@@ -104,13 +104,21 @@ export default {
         },
         showHeadMenu(type, top, left) {
             if (type == 'row') {
-                this.curH = this.rows[this.selctionExpand.start.rowIndex].hpx;
+                if (!!this.rows[this.selctionExpand.start.rowIndex]) {
+                    this.curH = this.rows[this.selctionExpand.start.rowIndex].hpx;
+                } else {
+                    this.curH = 20;
+                }                
                 const rowMenuIndex = rowMenuItems.findIndex(rowM => !!rowM.type);
                 if (rowMenuIndex != -1) {
                     rowMenuItems.splice(rowMenuIndex, 1, Object.assign(rowMenuItems[rowMenuIndex], { value: this.curH }));
                 }
             } else {
-                this.curW = this.columns[this.selctionExpand.start.columnIndex].wpx;
+                if (!!this.columns[this.selctionExpand.start.columnIndex]) {
+                    this.curW = this.columns[this.selctionExpand.start.columnIndex].wpx;
+                } else {
+                    this.curW = 64;
+                }
                 const colMenuIndex = columnMenuItems.findIndex(colM => !!colM.type);
                 if (colMenuIndex != -1) {
                     columnMenuItems.splice(colMenuIndex, 1, Object.assign(columnMenuItems[colMenuIndex], { value: this.curW }));
