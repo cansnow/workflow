@@ -650,6 +650,9 @@ export default {
 				) {
 					Object.assign(props, { e: data.extendType, f: data.formFiled, tn: data.tableName });
 				}
+				if (data.componentType == 'input') {
+					Object.assign(props, { ph: data.ph });
+				}
 				Object.assign(temp, { p: props });
 			}
 			// componentType 是 image button

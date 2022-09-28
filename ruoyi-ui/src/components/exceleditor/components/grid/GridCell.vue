@@ -11,12 +11,12 @@
     >   
         <div
             @keydown.enter.stop="() => {}"
-            style="height: 100%;" 
+            style="height: 100%;"
             v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
         >
-            <el-input type="text" v-model="value" @change="handleChange" v-if="cellType == 'text'" />
-            <el-input type="text" show-password @change="handleChange" v-model="value" v-if="cellType == 'password'" />
-            <el-input-number type="text" @change="handleChange" v-model="value" v-if="cellType == 'number'" />
+            <el-input type="text" v-model="value" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
+            <el-input type="text" show-password @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'password'" />
+            <el-input-number type="text" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
         </div>
 		<el-upload
 			v-if="cellType == 'upload'"
@@ -51,7 +51,8 @@
             v-model="value"
             type="datetime"
             @change="handleChange"
-            placeholder="选择日期时间">
+            :placeholder="cellProps.ph || '选择日期时间'"
+        >
         </el-date-picker>
 		<!-- <el-date-picker
 			:value="value"

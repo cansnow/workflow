@@ -148,6 +148,10 @@
 							<el-option label="向右" value="right" />
 						</el-select>
 					</el-form-item>
+
+					<el-form-item label="占位符" v-if="form.componentType == 'input'">
+						<el-input type="text" v-model="form.ph" placeholder="请输入" @change="change" />
+					</el-form-item>
 				</template>
 
         <el-form-item label="校验">
@@ -231,6 +235,7 @@ export default {
 				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
 				tableName: '', // 表名
+				ph: '', // 占位符
 			},
 			options: [],
 			apiOptions: {},
@@ -517,6 +522,7 @@ export default {
 				buttonLink: '', // 超链接地址
 				extendType: 'none', // 扩展
 				tableName: '', // 表名
+				ph: '', // 占位符
 			};
 		},
     // 上传成功
@@ -638,6 +644,10 @@ export default {
 				}
 				if (temp.componentType == 'upload') {
 					Object.assign(temp, { uploadType: data.p.t });
+				}
+				// 占位符
+				if (temp.componentType == 'input') {
+					Object.assign(temp, { ph: data.p.ph });
 				}
 			}
 			// componentType 是 image button
