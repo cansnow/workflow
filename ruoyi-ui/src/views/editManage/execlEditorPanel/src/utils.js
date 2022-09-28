@@ -42,7 +42,7 @@ export function formatData(data, ifPreview = false) {
           rows.push(null);
         }
       }
-      rows.push({ hpx: item.height });          
+      rows.push({ hpx: item.height, h: !!item.hh ? true : undefined });     
     }
     /** 列信息 */
     if (typeof(columns[item.pos.start.columnIndex]) == 'undefined') {
@@ -52,10 +52,10 @@ export function formatData(data, ifPreview = false) {
           columns.push(null);
         }
       }
-      columns.push({ wpx: item.width });          
+      columns.push({ wpx: item.width, h: !!item.wh ? true : undefined });          
     } else {
       if (columns[item.pos.start.columnIndex] == null) {
-        columns[item.pos.start.columnIndex] = { wpx: item.width };
+        columns[item.pos.start.columnIndex] = { wpx: item.width, h: !!item.wh ? true : undefined };
       }
     }
     /** 合并信息 */

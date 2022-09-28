@@ -288,6 +288,10 @@ export default {
 						if (!!rowInfo.h) {
 							Object.assign(temp, { height: rowInfo.hpx, hh: rowInfo.h }); // 隐藏了行
 						}
+						const colInfo = sheet.getHideCurColumn(selection.start.columnIndex); // 获取列信息
+						if (!!colInfo.h) {
+							Object.assign(temp, { width: colInfo.wpx, wh: colInfo.h }); // 隐藏了行
+						}
 						// console.log('col', col);
 						if (typeof(col.s) != 'undefined') {
 							const style = sheet.getStyle(col.s);

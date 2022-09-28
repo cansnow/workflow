@@ -257,6 +257,9 @@ export default {
                 }
             });
         },
+        getHideCurColumn(columnIndex) {
+            return this.columns[columnIndex];
+        },
         hideRow(area) {
             this.recordChange('RCChange', {
                 area,
