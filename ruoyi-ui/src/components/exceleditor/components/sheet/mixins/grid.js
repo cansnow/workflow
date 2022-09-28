@@ -278,5 +278,8 @@ export default {
                 }
             });
         },
+        getHideCurRow(rowIndex) {
+            return this.rows[rowIndex];
+        },
     },
 };

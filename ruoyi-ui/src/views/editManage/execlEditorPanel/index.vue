@@ -45,7 +45,7 @@
 					@formChange="handleFormChange"
 					@showSelectCells="showSelectionCells"
 					style="position: absolute; background-color: white; right: 30px; z-index: 999; border-radius: 6px; box-shadow: 0px 0px 5px #888888;"
-					:style="{ height: `calc(100vh - 52px - ${menusHeigth}px - 110px)`, top: `calc(${menusHeigth}px + 28px`}"
+					:style="{ height: `calc(100vh - 52px - ${menusHeigth}px - 120px)`, top: `calc(${menusHeigth}px + 38px`}"
 				></rightPanel>
 			</div>
 		</div>
@@ -284,6 +284,10 @@ export default {
 						// 单元格的高度
 						const pos = sheet.s_getSelectionRect(selection);
 						Object.assign(temp, pos); // 位置 top left height width
+						const rowInfo = sheet.getHideCurRow(selection.start.rowIndex); // 获取行信息
+						if (!!rowInfo.h) {
+							Object.assign(temp, { height: rowInfo.hpx, hh: rowInfo.h }); // 隐藏了行
+						}
 						// console.log('col', col);
 						if (typeof(col.s) != 'undefined') {
 							const style = sheet.getStyle(col.s);
@@ -293,6 +297,7 @@ export default {
 							}
 						}
 						Object.assign(temp, col);
+						debugger;
 						cellsTemp.push(temp);
 					}
 				})
@@ -354,6 +359,7 @@ export default {
 		},
 		/** 发布 */
 		handleRelease() {
+			debugger;
 			// 编辑
 			this.dialogVisible = true;
 			if (!!this.tempId) {

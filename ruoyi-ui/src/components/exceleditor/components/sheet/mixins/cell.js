@@ -325,7 +325,7 @@ export default {
          */
         c_addCell(rowIndex, columnIndex) {
             let row = this.getRow(rowIndex);
-            if (_.isUndefined(row)) {
+            if (_.isUndefined(row) || _.isNull(row)) {
                 row = this.setRow(rowIndex, columnIndex + 1);
             }
             if (isNullCell(row[columnIndex])) {
