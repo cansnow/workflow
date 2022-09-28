@@ -470,6 +470,9 @@ export default {
         padding: unset;
         border-radius: unset;
     }
+    .el-date-editor .el-input__prefix .el-input__icon.el-icon-time {
+        line-height: 100% !important;
+    }
 }
 
 .meg-cellval-warp {
