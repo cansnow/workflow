@@ -57,7 +57,19 @@ export default {
         },
         setSelctionExpandStyle(option) {
             this.setAreaStyle(this.selctionExpand, style => {
-                style.setOption(option);
+                const temp = option;
+                // 设置边框加减
+                if (!!style.option.border && !!option.border) {
+                    const border = style.option.border;
+                    if (option.border.length == 1) {
+                        if (border.includes(option.border)) {
+                            Object.assign(temp, { border: border.replace(option.border, '') });
+                        } else {
+                            Object.assign(temp, { border: border +  option.border});
+                        }
+                    }
+                }
+                style.setOption(temp);
             });
         },
         //设置单元格格式化

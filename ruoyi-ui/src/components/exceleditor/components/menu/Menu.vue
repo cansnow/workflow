@@ -162,10 +162,6 @@ export default {
 							value: 'b'
 						},
 						{
-							label: '左上边框',
-							value: 'lt'
-						},
-						{
 							label: '左边框',
 							value: 'l'
 						},
