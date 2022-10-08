@@ -148,6 +148,7 @@ export default {
                 this.setCellAttribute(cell.pos, cell.options, 's', style.id);
             });
         },
+        // 获取上下左右相邻单元格
         s_getTargetPos(pos, type) {
             const targetPos = {};
             if (type == 't') {
@@ -166,7 +167,7 @@ export default {
         },
         // 去除边框重叠
         s_removeBorderOverlap(curPos, type) {
-            // 1. 获取上下左右单元格样式 columnIndex rowIndex
+            // 1. 获取 上 下 左 右 单元格样式 columnIndex rowIndex
             // 2. 判断是否有边框
             // 3. 判断是否有重叠
             // 4. 修改重叠单元样式
@@ -174,37 +175,64 @@ export default {
             const pos = JSON.parse(JSON.stringify(curPos));
             const style = this.s_ifBorderByType(pos, type);
             if (!!style) {
-                const option = JSON.parse(JSON.stringify(style.option));
-                option.border = style.option.border.replace(types[type], '');
-                style.setOption(option);
+                if (style.merge) {
+                    return true;
+                }
+                const option = JSON.parse(JSON.stringify(style.style.option));
+                option.border = style.style.option.border.replace(types[type], '');
+                style.style.setOption(option);
             }
+            return false;
         },
+        // 获取相邻单元格边框样式
         s_ifBorderByType(pos, type) {
             const types = { t: 'b', b: 't', l: 'r', r: 'l' };
             const targetPos = this.s_getTargetPos(pos, type);
-            const cell = this.getPosCell(targetPos);
+            let ifMerge = false; // 合并单元格
+            const tempPos = this.s_computedExtendSelection({
+                end: targetPos,
+                start: targetPos,
+            });
+            if (JSON.stringify(tempPos.end) != JSON.stringify(tempPos.start)) {
+                ifMerge = true;
+            }
+            const cell = this.getPosCell(!!ifMerge ? tempPos.start : targetPos);
             if (!!cell && typeof cell.s != 'undefined') {
                 const cellStyle = this.getStyle(cell.s);
                 if (!!cellStyle.option.border && cellStyle.option.border.indexOf(types[type]) != -1) {
-                    return cellStyle;
+                    return { style: cellStyle, merge: ifMerge };
                 }
                 return undefined;
             }
             return undefined;
         },
-
+        // 删除相邻单元格边框
         removeBorder(style, pos) {
+            const option = JSON.parse(JSON.stringify(style.option));
+            // 相邻单元格是合并则删除自己边框
             if (style.option.border.indexOf('t') != -1) {
-                this.s_removeBorderOverlap(pos, 't');
+                const ifMerge = this.s_removeBorderOverlap(pos, 't');
+                if (!!ifMerge) {
+                    option.border = option.border.replace('t', '');
+                }
             }
             if (style.option.border.indexOf('b') != -1) {
-                this.s_removeBorderOverlap(pos, 'b');
+                const ifMerge = this.s_removeBorderOverlap(pos, 'b');
+                if (!!ifMerge) {
+                    option.border = option.border.replace('b', '');
+                }
             }
             if (style.option.border.indexOf('l') != -1) {
-                this.s_removeBorderOverlap(pos, 'l');
+                const ifMerge = this.s_removeBorderOverlap(pos, 'l');
+                if (!!ifMerge) {
+                    option.border = option.border.replace('l', '');
+                }
             }
             if (style.option.border.indexOf('r') != -1) {
-                this.s_removeBorderOverlap(pos, 'r');
+                const ifMerge = this.s_removeBorderOverlap(pos, 'r');
+                if (!!ifMerge) {
+                    option.border = option.border.replace('r', '');
+                }
             }
 
             if (
@@ -213,7 +241,6 @@ export default {
                 !!style.option.borderBold
             ) {
                 // 设置样式，设置颜色，设置粗细
-                const option = JSON.parse(JSON.stringify(style.option));
                 const topCellStyle = this.s_ifBorderByType(pos, 't');
                 if (!!topCellStyle && style.option.border.indexOf('t') == -1) {
                     this.s_removeBorderOverlap(pos, 't');
@@ -234,8 +261,9 @@ export default {
                     this.s_removeBorderOverlap(pos, 'r');
                     option.border = option.border + 'r';
                 }
-                style.setOption(option);
             }
+
+            style.setOption(option);
         },
 
         s_setStyle(groupStyle, stylesCount, type, iteratee, setIteratee) {

@@ -69,6 +69,10 @@ export default {
                         }
                     }
                 }
+                if (!!option.border) {
+                    // 保留边框副本
+                    Object.assign(temp, { borderSrc: temp.border });
+                }
                 style.setOption(temp);
             });
         },

@@ -126,8 +126,19 @@ export default {
 
         getCellStyle(option, baseStyle, rowStyle, columnStyle) {
             const styleObj = this.$sheet.getUseStyle(_.get(option, 's'));
+            const css = styleObj.getStyle(baseStyle, [rowStyle, columnStyle]);
+            // 合并有边框时，设置宽高+1
+            if (baseStyle.merge) {
+                if (!!css['border-bottom']) {
+                    Object.assign(css, { height: `${parseInt(css.height) + 1}px` });
+                }
+
+                if (!!css['border-right']) {
+                    Object.assign(css, { width: `${parseInt(css.width) + 1}px` });
+                }
+            }
             return {
-                css: styleObj.getStyle(baseStyle, [rowStyle, columnStyle]),
+                css,
                 alignCss: styleObj.getAlignment([rowStyle, columnStyle])
             };
         },

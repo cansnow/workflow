@@ -80,6 +80,14 @@ export default {
 
             _.each(nMerges, mergeInfo => {
                 this.clearAreaCells(mergeInfo, true);
+                // 合并要将边框还原
+                const cellTemp = this.getPosCell(mergeInfo.start);
+                if (!!cellTemp && typeof cellTemp.s != 'undefined') {
+                    const cellTempStyle = this.getStyle(cellTemp.s);
+                    if (!!cellTempStyle.option.border && !!cellTempStyle.option.borderSrc) {
+                        cellTempStyle.setOption({ border: cellTempStyle.option.borderSrc });
+                    }
+                }
             });
 
             this.merges = Object.assign({}, this.merges, t);

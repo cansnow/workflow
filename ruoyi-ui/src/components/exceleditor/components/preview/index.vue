@@ -1801,8 +1801,8 @@ export default {
           }
 
           // TODO 获取新增数据
-          console.warn('this.addData', this.addData);
-          console.warn('this.sheetIndex', this.sheetIndex);
+          // console.warn('this.addData', this.addData);
+          // console.warn('this.sheetIndex', this.sheetIndex);
           if (
             !!this.addData[this.sheetIndex] &&
             !!this.addData[this.sheetIndex][item.fieldIndex] &&
