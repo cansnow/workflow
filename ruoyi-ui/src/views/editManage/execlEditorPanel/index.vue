@@ -285,11 +285,11 @@ export default {
 						const pos = sheet.s_getSelectionRect(selection);
 						Object.assign(temp, pos); // 位置 top left height width
 						const rowInfo = sheet.getHideCurRow(selection.start.rowIndex); // 获取行信息
-						if (!!rowInfo.h) {
+						if (!!rowInfo && !!rowInfo.h) {
 							Object.assign(temp, { height: rowInfo.hpx, hh: rowInfo.h }); // 隐藏了行
 						}
 						const colInfo = sheet.getHideCurColumn(selection.start.columnIndex); // 获取列信息
-						if (!!colInfo.h) {
+						if (!!colInfo && !!colInfo.h) {
 							Object.assign(temp, { width: colInfo.wpx, wh: colInfo.h }); // 隐藏了行
 						}
 						// console.log('col', col);
