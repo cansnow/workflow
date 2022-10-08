@@ -194,7 +194,11 @@ export default {
                     if (isOnlyValueCell(sCell)) {
                         t = v;
                     } else {
-                        t.v = v;
+                        if (!!t.c) {
+                            t.v = '';
+                        } else {
+                            t.v = v;
+                        }
                     }
                 }
                 return t;
