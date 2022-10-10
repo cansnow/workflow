@@ -31,6 +31,7 @@ export function formatData(data, ifPreview = false) {
     'textDel',
     'borderColor',
     'borderBold',
+    'borderSrc',
   ];
   
   _.each(data, item => {

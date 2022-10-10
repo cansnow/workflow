@@ -22,14 +22,14 @@ export default {
             if (this.resizeInfo.type == 'row') {
                 const top = this.getGapHeight(index, 0) - 1;
                 return [
-                    { top: `${top}px` },
-                    { top: `${top + this.resizeGap}px` },
+                    { top: `${top - this.scrollTop}px` },
+                    { top: `${top + this.resizeGap - this.scrollTop}px` },
                 ];
             } else {
                 const left = this.getGapWidth(index, 0) - 1;
                 return [
-                    { left: `${left}px` },
-                    { left: `${left + this.resizeGap}px` },
+                    { left: `${left - this.scrollLeft}px` },
+                    { left: `${left + this.resizeGap - this.scrollLeft}px` },
                 ];
             }
         },

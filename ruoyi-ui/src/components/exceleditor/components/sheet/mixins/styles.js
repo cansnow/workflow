@@ -193,8 +193,16 @@ export default {
                 end: targetPos,
                 start: targetPos,
             });
-            if (JSON.stringify(tempPos.end) != JSON.stringify(tempPos.start)) {
+            if (
+                (tempPos.end.columnIndex != tempPos.start.columnIndex || tempPos.end.rowIndex != tempPos.start.rowIndex)
+            ) {
                 ifMerge = true;
+            }
+            if (ifMerge) {
+                // 如果是自己则不清除边框
+                if (tempPos.start.columnIndex == pos.columnIndex && tempPos.start.rowIndex == pos.rowIndex) {
+                    ifMerge = false;
+                }
             }
             const cell = this.getPosCell(!!ifMerge ? tempPos.start : targetPos);
             if (!!cell && typeof cell.s != 'undefined') {
