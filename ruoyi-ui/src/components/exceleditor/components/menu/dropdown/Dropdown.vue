@@ -40,8 +40,11 @@ export default {
                     placement: 'bottom-start',
                     boundariesPadding: 0,
                     forceAbsolute: true,
-                    boundariesElement: 'body'
+                    boundariesElement: 'body',
                 });
+
+                const body = document.querySelector('body');
+                body.append(this.$el.querySelector('.meg-dr-content'));
             }
             setTimeout(() => {
                 document.addEventListener('click', this.hideContent)
@@ -70,9 +73,10 @@ export default {
         background: url('../../../assets/icon_down-arrow.png') no-repeat;
         opacity: 0.7;
     }
-
-    .meg-dr-content {
-        z-index: 100;
-    }
+}
+.meg-dr-content {
+    z-index: 2015;
+    font-size: 12px;
+    color: #666;
 }
 </style>

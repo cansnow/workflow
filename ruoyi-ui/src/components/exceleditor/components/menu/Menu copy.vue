@@ -1,38 +1,32 @@
 <template>
-	<div class="meg-menu" style="display: flex; align-items: center;">
-		<div style="width: 100%;">
-			<el-tabs type="border-card" tab-position="bottom">
-				<el-tab-pane v-for="(tool, name) in toolbars" :key="name">
-						<template slot="label">
-							<el-tooltip :content="tool.title" placement="top" :hide-after="500">
-								<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor' || name == 'borderColor'">
-									<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
-									<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
-									<Colorpick class="meg-menu-op meg-menu-op-color" slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
-								</Dropdown>	
-								<Dropdown class="meg-menu-op" v-else-if="name == 'border' || name == 'formula'">
-									<i @click="toolbarEvent(name,$event)" v-if="name == 'border'" :class="tool.icon"></i>
-									<span style="font-size: 14px;" v-else>{{ tool.title }}</span>
-									<mSelect slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></mSelect>
-								</Dropdown>				
-								<el-select v-else-if="tool.options" :style="tool.style ? tool.style : ''" v-model="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择">
-									<el-option
-										v-for="(option,index) in tool.options"
-										:value="option.value ? option.value : option"
-										:label="option.label ? option.label : option"
-										:key="index"
-									>
-										{{option.label ? option.label : option}}
-									</el-option>
-								</el-select>
-								<el-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
-									<i :class="tool.icon"></i>
-								</el-button>
-							</el-tooltip>
-						</template>
-					</el-tab-pane>
-			</el-tabs>
-		</div>
+	<div class="meg-menu">
+		<el-tooltip :content="tool.title" placement="top" v-for="(tool, name) in toolbars" :key="name" :hide-after="500">
+			<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor' || name == 'borderColor'">
+				<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
+				<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
+				<Colorpick slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
+			</Dropdown>	
+			<Dropdown class="meg-menu-op" v-else-if="name == 'border' || name == 'formula'">
+				<i @click="toolbarEvent(name,$event)" v-if="name == 'border'" :class="tool.icon"></i>
+				<span style="font-size: 14px;" v-else>{{ tool.title }}</span>
+				<m-Select slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></m-Select>
+			</Dropdown>
+
+			<el-select v-else-if="tool.options" :style="tool.style ? tool.style : ''" v-model="tool.value" @change="toolbarEvent(name,$event)" placeholder="请选择">
+				<el-option
+					v-for="(option,index) in tool.options"
+					:value="option.value ? option.value : option"
+					:label="option.label ? option.label : option"
+					:key="index"
+				>
+					<!-- <i v-if="option.icon" :class="option.icon"></i> -->
+					{{option.label ? option.label : option}}
+				</el-option>
+			</el-select>
+			<el-button class="" :disabled="tool.disabled" :selected="tool.selected" :checked="tool.checked" @click="toolbarEvent(name)" :title="tool.title" v-else>
+				<i :class="tool.icon"></i>
+			</el-button>
+		</el-tooltip>
 	</div>
 </template>
 
@@ -824,23 +818,5 @@ export default {
 	.el-input__inner {
 		border: 0;
 	}
-}
-
-.meg-menu .el-tabs,
-.meg-menu .el-tabs--border-card > .el-tabs__header .el-tabs__item
-{
-	border: unset !important;
-	// background-color: #FFFFFF;
-}
-
-.meg-menu .el-tabs--border-card > .el-tabs__header .el-tabs__item {
-	padding: unset !important;
-}
-
-.meg-menu .el-tabs .el-tabs__header .el-tabs__nav-wrap {
-	background-color: #FFFFFF;
-}
-.meg-menu .el-tabs--border-card > .el-tabs__header {
-	background-color: unset !important;
 }
 </style>

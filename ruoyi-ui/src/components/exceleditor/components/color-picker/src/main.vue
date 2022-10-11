@@ -5,6 +5,7 @@
       colorDisabled ? 'is-disabled' : '',
       colorSize ? `el-color-picker--${ colorSize }` : ''
     ]"
+    class="myColorPicker"
     v-clickoutside="hide">
     <!-- <div class="el-color-picker__mask" v-if="colorDisabled"></div>
     <div class="el-color-picker__trigger" @click="handleTrigger">
@@ -184,3 +185,18 @@
     }
   };
 </script>
+
+<style lang="scss">
+  .myColorPicker .el-input__inner {
+    border: 0;
+  }
+
+  .myColorPicker button {
+      border: 0;
+      min-width: 40px;
+      padding: 0;
+      background: transparent;
+      color: #999;
+  }
+</style>
+
