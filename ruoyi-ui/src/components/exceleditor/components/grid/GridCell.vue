@@ -14,9 +14,9 @@
             style="height: 100%;"
             v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
         >
-            <el-input type="text" v-model="value" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
-            <el-input type="text" show-password @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'password'" />
-            <el-input-number type="text" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
+            <el-input type="text" v-model="value" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
+            <el-input type="text" show-password @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'password'" />
+            <el-input-number type="text" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
         </div>
 		<el-upload
 			v-if="cellType == 'upload'"
@@ -40,34 +40,15 @@
 		
 		<el-image v-if="cellType == 'image'" :src="value | getImgUrl"></el-image>
 		<el-button :type="cellProps.t == 'text' ? 'text' : 'primary'" :style="setBtnStyle(cell.style.css)" v-if="cellType == 'button'" >{{value}}</el-button>
-		<!-- <el-date-picker
-			v-model="value"
-			type="datetime"
-			placeholder="选择日期时间"
-			v-if="cellType == 'datetime'">
-		</el-date-picker> -->
         <el-date-picker
             v-if="cellType == 'datetime'"
             v-model="value"
             type="datetime"
-            @change="handleChange"
+            @change="handleChangeDate"
+            @focus="handleDateFocus"
             :placeholder="cellProps.ph || '选择日期时间'"
         >
         </el-date-picker>
-		<!-- <el-date-picker
-			:value="value"
-            placement ="bottom"
-			type="date"
-			placeholder="选择日期"
-			v-if="cellType == 'date'">
-		</el-date-picker>
-        <el-date-picker
-			:value="value"
-            placement ="bottom"
-			type="time"
-			placeholder="选择时间"
-			v-if="cellType == 'time'">
-		</el-date-picker> -->
 		<el-radio-group v-model="value" v-if="cellType == 'radio'" @change="handleChange">
 			<el-radio :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
@@ -180,6 +161,7 @@ export default {
             headers: {
                 Authorization: "Bearer " + getToken(),
             },
+            cellPos: {}, // 日期位置
 		}
 	},
     watch: {
@@ -412,12 +394,23 @@ export default {
             let d = temp.getDate();
             let h = temp.getHours();
             let M = temp.getMinutes();
-            let s = date.getSeconds();
+            let s = temp.getSeconds();
             function format(e) {
                 return e < 10 ? '0' + e : e;
             }
             return `${y}-${format(m)}-${d} ${format(h)}:${format(M)}:${format(s)}`;
-        }
+        },
+        // 日期组件获取焦点
+        handleDateFocus() {
+            this.cellPos = JSON.parse(JSON.stringify(this.$sheet.selctionExpand));
+        },
+        // 日期变更
+        handleChangeDate(e) {
+            // 判断是否该组件
+            if (JSON.stringify(this.cellPos) == JSON.stringify(this.$sheet.selctionExpand)) {
+                this.handleChange(e);
+            }
+        },
     },
 };
 </script>
@@ -471,7 +464,8 @@ export default {
         padding: unset;
         border-radius: unset;
     }
-    .el-date-editor .el-input__prefix .el-input__icon.el-icon-time {
+    .el-date-editor .el-input__prefix .el-input__icon.el-icon-time,
+    .el-date-editor .el-input__suffix .el-input__suffix-inner .el-input__icon {
         line-height: 100% !important;
     }
 }

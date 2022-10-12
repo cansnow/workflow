@@ -50,7 +50,8 @@
             v-if="cellType == 'datetime'"
             v-model="value"
             type="datetime"
-            @change="handleChange"
+            @change="handleChangeDate"
+            @focus="handleDateFocus"
             :placeholder="cellProps.ph || '选择日期时间'"
         >
         </el-date-picker>
@@ -189,6 +190,7 @@ export default {
             headers: {
                 Authorization: "Bearer " + getToken(),
             },
+            cellPos: {}, // 日期位置
 		}
 	},
     watch: {
@@ -441,11 +443,22 @@ export default {
             let d = temp.getDate();
             let h = temp.getHours();
             let M = temp.getMinutes();
-            let s = date.getSeconds();
+            let s = temp.getSeconds();
             function format(e) {
                 return e < 10 ? '0' + e : e;
             }
             return `${y}-${format(m)}-${d} ${format(h)}:${format(M)}:${format(s)}`;
+        },
+        // 日期组件获取焦点
+        handleDateFocus() {
+            this.cellPos = JSON.parse(JSON.stringify(this.$sheet.selctionExpand));
+        },
+        // 日期变更
+        handleChangeDate(e) {
+            // 判断是否该组件
+            if (JSON.stringify(this.cellPos) == JSON.stringify(this.$sheet.selctionExpand)) {
+                this.handleChange(e);
+            }
         },
         // 点击了单元格按钮
         handleCellBtnClick() {
@@ -517,7 +530,8 @@ export default {
         padding: unset;
         border-radius: unset;
     }
-    .el-date-editor .el-input__prefix .el-input__icon.el-icon-time {
+    .el-date-editor .el-input__prefix .el-input__icon.el-icon-time,
+    .el-date-editor .el-input__suffix .el-input__suffix-inner .el-input__icon {
         line-height: 100% !important;
     }
 }
