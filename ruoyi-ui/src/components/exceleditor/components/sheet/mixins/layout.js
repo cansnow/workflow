@@ -93,9 +93,13 @@ export default {
         ['lt', 'rt', 'lb', 'rb'].forEach(pos => {
             this[`$${pos}Dom`] = this.$el.querySelector('.grid-' + pos);
         });
-
         const cRect = this.$el.querySelector('.grid-content').getBoundingClientRect();
         this.contentPos = { top: cRect.top, left: cRect.left, width: cRect.width, height: cRect.height };
+        // 首次获取top不准确，设置定时重新获取
+        setTimeout(() => {
+            const cRect = this.$el.querySelector('.grid-content').getBoundingClientRect();
+            this.contentPos = { top: cRect.top, left: cRect.left, width: cRect.width, height: cRect.height };
+        }, 500);
 
         this.updateBlockRect();
         this.$nextTick(() => {
@@ -104,7 +108,7 @@ export default {
     },
 
     methods: {
-
+        // 设置边框高度
         getAreaLayoutPos(area, info) {
 
             info = info || this.s_getSelectionRect(area);
