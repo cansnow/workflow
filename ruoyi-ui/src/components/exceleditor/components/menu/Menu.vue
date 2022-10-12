@@ -5,12 +5,12 @@
 				<el-tab-pane v-for="(tool, name) in toolbars" :key="name">
 						<template slot="label">
 							<el-tooltip :content="tool.title" placement="top" :hide-after="500">
-								<Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor' || name == 'borderColor'">
+								<Dropdown class="meg-menu-op meg-menu-op-color" style="border: unset;" v-if="name == 'color' || name == 'bgColor' || name == 'borderColor'">
 									<i :class="tool.icon" @click="toolbarEvent(name,$event)"></i>
 									<span class="meg-menu-pcol" :style="{ background: tool.value }" @click="toolbarEvent(name,$event)"></span>
 									<Colorpick class="meg-menu-op meg-menu-op-color" slot="content" v-model="tool.value" @input="toolbarEvent(name,$event)"></Colorpick>
 								</Dropdown>	
-								<Dropdown class="meg-menu-op" v-else-if="name == 'border' || name == 'formula'">
+								<Dropdown class="meg-menu-op" style="border: unset;" v-else-if="name == 'border' || name == 'formula'">
 									<i @click="toolbarEvent(name,$event)" v-if="name == 'border'" :class="tool.icon"></i>
 									<span style="font-size: 14px;" v-else>{{ tool.title }}</span>
 									<mSelect slot="content" v-model="tool.value" :options="tool.options" @input="toolbarEvent(name,$event)"></mSelect>
