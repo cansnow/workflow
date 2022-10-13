@@ -2251,7 +2251,7 @@ export default {
                 let ifCellDel = false;
                 const noDelKey = {};
                 _.map(tempCells, tempCell => {
-                  if (typeof tempCell.c != 'undefined' && (typeof tempCell.v == 'undefined' || !tempCell.v)) {
+                  if (typeof tempCell.c != 'undefined' && (typeof tempCell.v == 'undefined' || !tempCell.v) && typeof tempCell.c == 'Cell') {
                     ifCellDel = true;
                   } else {
                     ifCellDel = false;
