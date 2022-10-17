@@ -1,5 +1,9 @@
 <template>
   <div>
+		<!-- <div
+			style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff8a; pointer-events: none;"
+			@mousedown="test"
+		></div> -->
     <el-form ref="form" :model="form" label-position="top" size="small">
       <!-- 动态表单字段 -->
       <template v-for="(fItem, index) in formConfig">
@@ -117,7 +121,20 @@
 						<el-select v-if="form.selectSrc == 'api'" v-model="form.api" @change="handleApiChange" placeholder="请选择" style="width: 100%">
 							<el-option :label="item.resourcename" :value="item.tableName" v-for="(item, index) in options" :key="index" />
 						</el-select>
-						<el-input v-else type="textarea" :rows="4" v-model="form.defaultSelect" placeholder="请输入" @change="change" />
+						<!-- 提示 -->
+						<template v-else>
+							<el-tooltip placement="top" :hide-after="500">
+								<template slot="content">
+									<div>【单选】、【多选】、【下拉单选】、【下拉多选】自定义数据格式：</div>
+									<div>简单数据以逗号分割, 如: 1,2,3、选项1,选项2,选项3</div>
+									<div>复杂格式以对象数组形式, 格式如下: </div>
+									<div>[{"label":"选项1","value":"1"},{"label":"选项2","value":"2"}]</div>
+									<div>【下拉树】自定义数据格式，格式如下: </div>
+									<div>[{"id":1,"label":"一级 1","children":[{"id":4,"label":"二级 1-1","children":[{"id":9,"label":"三级 1-1-1"},{"id":10,"label":"三级 1-1-2"}]}]}]</div>
+								</template>
+								<el-input type="textarea" :rows="4" v-model="form.defaultSelect" placeholder="请输入" @change="change" />
+							</el-tooltip>
+						</template>
 					</el-form-item>
 					<template v-if="form.selectSrc == 'api' && !!form.api">
 						<el-form-item label="选项value">
@@ -474,6 +491,7 @@ export default {
 					_this.change();
 				});
     },
+		// 默认值赋值
 		defaultChange() {
 			Object.assign(this.form, { formFiled: this.form.default });
 			this.change();
@@ -576,14 +594,15 @@ export default {
 					if (data.p.ds == 'custom') {
 						// 单选 多选 下拉，转成字符串，树直接转JSON字符串
 						if (data.options.length > 0) {
-							const labels = [];
-							data.options.forEach(item => {
-								labels.push(item.label);
-							});
-							defValue = labels.join(',');
+							// const labels = [];
+							// data.options.forEach(item => {
+							// 	labels.push(item.label);
+							// });
+							// defValue = labels.join(',');
+							defValue = !!data.options ? JSON.stringify(data.options) : '';
 						}
 						// 树
-						defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
+						// defValue = data.c != 'treeSelect' && data.c != 'treeSelectMultiple' ? defValue : JSON.stringify(data.options);
 						Object.assign(temp, { defaultSelect: defValue });
 					} else {
 						Object.assign(temp, { 

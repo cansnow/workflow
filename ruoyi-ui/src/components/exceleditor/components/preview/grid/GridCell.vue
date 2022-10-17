@@ -10,13 +10,13 @@
         :style="gridcellStyle(cell.style.css)"
     >   
         <div
-            @keydown.enter.stop="() => {}"
+            @keydown.enter="handleInputEnter"
             style="height: 100%;" 
             v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
         >
-            <el-input type="text" :disabled="!props.option.p.r.w" v-model="value" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
-            <el-input type="text" :disabled="!props.option.p.r.w" show-password @change="handleChange" v-model="value" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'password'" />
-            <el-input-number type="text" :disabled="!props.option.p.r.w" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
+            <el-input type="text" :ref="cellType" :disabled="!props.option.p.r.w" v-model="value" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
+            <el-input type="text" :ref="cellType" :disabled="!props.option.p.r.w" show-password @input="handleChange" v-model="value" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'password'" />
+            <el-input-number type="text" :ref="cellType" :disabled="!props.option.p.r.w" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
         </div>
 		<el-upload
 			v-if="cellType == 'upload'"
@@ -180,7 +180,6 @@ export default {
 			data:{},
 			props:this.cell,
             fileList:[],
-			checkboxValue:[],
             cellType: undefined,
             value: undefined, // 默认值
             options: undefined, // select 组件必须参数
@@ -207,6 +206,14 @@ export default {
         });
     },
     methods: {
+        // 回车去除焦点
+        handleInputEnter() {
+            if (this.cellType == 'number') {
+                this.$el.querySelector('.el-input__inner').blur();
+                return;
+            }
+            this.$refs[this.cellType].blur();
+        },
         setBtnStyle(style) {
             const styleTemp = JSON.parse(JSON.stringify(style));
             const temp = {};

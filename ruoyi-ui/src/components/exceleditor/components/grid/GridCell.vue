@@ -10,13 +10,13 @@
         :style="cell.style.css"
     >   
         <div
-            @keydown.enter.stop="() => {}"
+            @keydown.enter="handleInputEnter"
             style="height: 100%;"
             v-if="cellType == 'text' || cellType == 'password' || cellType == 'number'"
         >
-            <el-input type="text" v-model="value" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
-            <el-input type="text" show-password @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'password'" />
-            <el-input-number type="text" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
+            <el-input type="text" :ref="cellType" v-model="value" @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-if="cellType == 'text'" />
+            <el-input type="text" :ref="cellType" show-password @input="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'password'" />
+            <el-input-number :ref="cellType" type="text" @change="handleChange" :placeholder="cellProps.ph || '请输入'" v-model="value" v-if="cellType == 'number'" />
         </div>
 		<el-upload
 			v-if="cellType == 'upload'"
@@ -49,12 +49,15 @@
             :placeholder="cellProps.ph || '选择日期时间'"
         >
         </el-date-picker>
+        <!-- 单选 -->
 		<el-radio-group v-model="value" v-if="cellType == 'radio'" @change="handleChange">
 			<el-radio :label="item.value + ''" v-for="item in options" :key="item.value">{{item.label}}</el-radio>
 		</el-radio-group>
-		<el-checkbox-group v-model="checkboxValue" v-if="cellType == 'checkbox'" @change="handleChange">
+        <!-- 多选 -->
+		<el-checkbox-group v-model="value" v-if="cellType == 'checkbox'" @change="handleChange">
 			<el-checkbox :label="item.value" v-for="item in options" :key="item.value">{{item.label}}</el-checkbox>
 		</el-checkbox-group>
+        <!-- 下拉单选 -->
 		<el-select v-model="value" v-if="cellType == 'select'" @change="handleChange">
 			<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
 			</el-option>
@@ -151,7 +154,6 @@ export default {
 			data:{},
 			props:this.cell,
             fileList:[],
-			checkboxValue:[],
             cellType: undefined,
             value: undefined, // 默认值
             options: undefined, // select 组件必须参数
@@ -178,6 +180,14 @@ export default {
         });
     },
     methods: {
+        // 回车去除焦点
+        handleInputEnter() {
+            if (this.cellType == 'number') {
+                this.$el.querySelector('.el-input__inner').blur();
+                return;
+            }
+            this.$refs[this.cellType].blur();
+        },
         setBtnStyle(style) {
             const styleTemp = JSON.parse(JSON.stringify(style));
             const temp = {};
@@ -271,6 +281,12 @@ export default {
                     this.ifCell = this.cellType == 'Cell';
                 }
                 this.value = typeof(this.cell.option['v']) == 'undefined' ? '' : this.cell.option.v;
+                // radio checkbox select 是字符串
+                if (this.cellType == 'radio' || this.cellType == 'select') {
+                    if (!!this.value && this.value instanceof Array) {
+                        if (this.cellType == 'radio' || this.cellType == 'select') this.value = '';
+                    }
+                }
                 this.cellProps = typeof this.cell.option['p'] == 'undefined' ? {} : this.cell.option.p;
                 this.options = typeof(this.cell.option['options']) == 'undefined' ? [] : this.cell.option.options;
             }
@@ -380,8 +396,10 @@ export default {
                 if (e instanceof Date || parseInt(e) != NaN) {
                     Object.assign(temp, { p: this.cellProps, v: this.formatDate(e) + ''});
                 }
+            } else if (this.cellType == 'selectMultiple' || this.cellType == 'checkbox') {
+                Object.assign(temp, { p: this.cellProps, v: e });
             } else {
-                Object.assign(temp, { p: this.cellProps, v: e + ''});
+                Object.assign(temp, { p: this.cellProps, v: e + '' });
             }
             this.$sheet.doCancelEdit();
             this.$sheet.$emit('selectCell');

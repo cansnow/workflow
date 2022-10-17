@@ -549,18 +549,25 @@ export default {
 					temp.c = data.selectType;
 					let options = [];
 					if (data.selectSrc == 'custom') {
-						// 非树结构
-						const valueList = data.defaultSelect.split(',');
-						valueList.forEach(item => {
-							options.push({ value: item, label: item });
-						});
-						// 树结构 将字符串转JSON对象
-						if (
-							data.selectType == 'treeSelect' ||
-							data.selectType == 'treeSelectMultiple'
-						) {
+						// 格式判断，如果是复杂结构，则直接转JSON对象
+						if (data.defaultSelect.includes('[')) {
 							options = JSON.parse(data.defaultSelect);
+						} else {
+							// 非树结构
+							const valueList = data.defaultSelect.split(',');
+							valueList.forEach(item => {
+								options.push({ value: item, label: item });
+							});
 						}
+						// // 树结构 将字符串转JSON对象
+						// if (
+						// 	data.selectType == 'treeSelect' ||
+						// 	data.selectType == 'treeSelectMultiple'
+						// ) {
+						// 	if (!!data.defaultSelect) {
+						// 		options = JSON.parse(data.defaultSelect);
+						// 	}
+						// }
 					} else {
 						// api
 						// apiValue
@@ -579,7 +586,8 @@ export default {
 					// 多选 v 是数组
 					if (
 						data.selectType == 'treeSelectMultiple' ||
-						data.selectType == 'selectMultiple'
+						data.selectType == 'selectMultiple' ||
+						data.selectType == 'checkbox'
 					) {
 						const value = data.default.split(',');
 						temp.v = value;

@@ -16,6 +16,7 @@
           <i v-else class="mdi mdi-folder" />
           <span>{{ node.label }}</span>
         </span>
+        <span v-else class="custom-tree-node" slot-scope="{ node }">{{ node.label }}</span>
       </el-tree>
     </el-option>
   </el-select>
