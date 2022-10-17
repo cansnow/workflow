@@ -104,6 +104,7 @@
     </el-row>
     <!-- 表格 -->
     <el-table
+      :height="tableHeight"
       v-if="refreshTable"
       v-loading="loading"
       :data="tList"
@@ -211,6 +212,8 @@ export default {
         title: undefined,
         status: '',
       },
+      // 表高度
+      tableHeight: 0,
     };
   },
   created() {
@@ -224,6 +227,16 @@ export default {
       });
     });
     cache.session.setJSON('DesignMatched', matched);
+  },
+  mounted() {
+    window.onresize = () => {
+        return (() => {
+            this.tableHeight = document.body.clientHeight - 40 - 50 - 51 - 28 - 8 - 32 - 64;
+        })()
+    };
+    this.$nextTick(() => {
+      this.tableHeight = document.body.clientHeight - 40 - 50 - 51 - 28 - 8 - 32 - 64;
+    });
   },
   methods: {
     // 点击跳转链接
