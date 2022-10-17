@@ -1019,9 +1019,9 @@ export default {
       const disabledList = [];
 
       let pos = -1;
-
+      // 配置属性
       const cellPro = ['s', 'fs', 'f', 'v', 'c', 'p', 'fc', 'sv', 'fcv', 'd', 'options'];
-      
+      // 样式属性
       const stylePro = [
         'border',
         'borderStyle',
@@ -1600,32 +1600,34 @@ export default {
               let pos = this.formatData(str);
               const cell = cells[pos.rowIndex][pos.columnIndex]
               // 字段值 cell.v;
-              if (
-                typeof cell.p != 'undefined' &&
-                typeof cell.p.f != 'undefined' &&
-                typeof cell.p.tn != 'undefined' &&
-                !!cell.p.tn
-              ) {
-                const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
-                if (dlIndex == -1) {
-                  disabledList2.push({
-                    expression,
-                    pos: item.pos,
-                    pos2: [pos],
-                    cellItem: [cellItem],
-                    index,
-                  });
+              if (!!cell) {
+                if (
+                  typeof cell.p != 'undefined' &&
+                  typeof cell.p.f != 'undefined' &&
+                  typeof cell.p.tn != 'undefined' &&
+                  !!cell.p.tn
+                ) {
+                  const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
+                  if (dlIndex == -1) {
+                    disabledList2.push({
+                      expression,
+                      pos: item.pos,
+                      pos2: [pos],
+                      cellItem: [cellItem],
+                      index,
+                    });
+                  } else {
+                    const tempDLI = JSON.parse(JSON.stringify(disabledList2[dlIndex]));
+                    tempDLI.pos2.push(pos);
+                    tempDLI.cellItem.push(cellItem);
+                    disabledList2.splice(dlIndex, 1, tempDLI);
+                  }
                 } else {
-                  const tempDLI = JSON.parse(JSON.stringify(disabledList2[dlIndex]));
-                  tempDLI.pos2.push(pos);
-                  tempDLI.cellItem.push(cellItem);
-                  disabledList2.splice(dlIndex, 1, tempDLI);
-                }
-              } else {
-                expression = expression.replace(cellItem, cell.v);
-                const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
-                if (dlIndex != -1) {
-                  disabledList2.splice(dlIndex, 1, Object.assign(disabledList2[dlIndex], { expression }));
+                  expression = expression.replace(cellItem, cell.v);
+                  const dlIndex = disabledList2.findIndex(dlItem => dlItem.index == index);
+                  if (dlIndex != -1) {
+                    disabledList2.splice(dlIndex, 1, Object.assign(disabledList2[dlIndex], { expression }));
+                  }
                 }
               }
             } else {
@@ -1676,32 +1678,34 @@ export default {
               const pos = this.formatData(str);
               const cell = cells[pos.rowIndex][pos.columnIndex]
               // 字段值 cell.v;
-              if (
-                typeof cell.p != 'undefined' &&
-                typeof cell.p.f != 'undefined' &&
-                typeof cell.p.tn != 'undefined' &&
-                !!cell.p.tn
-              ) {
-                const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
-                if (hlIndex == -1) {
-                  hiddenList2.push({
-                    expression,
-                    pos: item.pos,
-                    pos2: [pos],
-                    cellItem: [cellItem],
-                    index,
-                  });
+              if (!!cell) {
+                if (
+                  typeof cell.p != 'undefined' &&
+                  typeof cell.p.f != 'undefined' &&
+                  typeof cell.p.tn != 'undefined' &&
+                  !!cell.p.tn
+                ) {
+                  const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
+                  if (hlIndex == -1) {
+                    hiddenList2.push({
+                      expression,
+                      pos: item.pos,
+                      pos2: [pos],
+                      cellItem: [cellItem],
+                      index,
+                    });
+                  } else {
+                    const tempHLI = JSON.parse(JSON.stringify(hiddenList2[hlIndex]));
+                    tempHLI.pos2.push(pos);
+                    tempHLI.cellItem.push(cellItem);
+                    hiddenList2.splice(hlIndex, 1, tempHLI);
+                  }
                 } else {
-                  const tempHLI = JSON.parse(JSON.stringify(hiddenList2[hlIndex]));
-                  tempHLI.pos2.push(pos);
-                  tempHLI.cellItem.push(cellItem);
-                  hiddenList2.splice(hlIndex, 1, tempHLI);
-                }
-              } else {
-                expression = expression.replace(cellItem, cell.v);
-                const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
-                if (hlIndex != -1) {
-                  hiddenList2.splice(hlIndex, 1, Object.assign(hiddenList2[hlIndex], { expression }));
+                  expression = expression.replace(cellItem, cell.v);
+                  const hlIndex = hiddenList2.findIndex(hlItem => hlItem.index == index);
+                  if (hlIndex != -1) {
+                    hiddenList2.splice(hlIndex, 1, Object.assign(hiddenList2[hlIndex], { expression }));
+                  }
                 }
               }
             } else {
@@ -1933,7 +1937,7 @@ export default {
                 const posD = hdl.pos;
                 if (!ifStart) {
                   const cellD = cells[posD.start.rowIndex][posD.start.columnIndex];
-                  console.warn('disabledList2');
+                  // console.warn('disabledList2');
                   if (!!cellD) {
                     const cellDTemp = JSON.parse(JSON.stringify(cellD))
                     const p = cellDTemp.p;
