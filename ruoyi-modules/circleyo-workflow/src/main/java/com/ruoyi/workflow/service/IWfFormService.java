@@ -1,8 +1,10 @@
 package com.ruoyi.workflow.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.ruoyi.workflow.domain.*;
+import com.ruoyi.workflow.domain.vo.ParamVo;
 
 /**
  * 工作流表单Service接口
@@ -75,6 +77,13 @@ public interface IWfFormService
     List<TableColumn> findFieldList(String table);
 
     /**
+     * 获取表对应的字段
+     * @param table 表名称
+     * @return 表字段
+     */
+    List<TableColumn> findFieldListSlave(String table);
+
+    /**
      * 保存业务数据
      * @param wfForm
      * @return
@@ -97,5 +106,11 @@ public interface IWfFormService
 
     List<ResourceVO> dataList();
 
+    Object dataListObject();
+
     UserDBVO userDataList(String table);
+
+    UserDBVO userDataListParam(ParamVo paramVo);
+
+    UserDBVO userDataListParamSlave(ParamVo paramVo);
 }

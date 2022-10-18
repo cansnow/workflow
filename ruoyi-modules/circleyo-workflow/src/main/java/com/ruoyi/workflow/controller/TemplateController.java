@@ -1,5 +1,8 @@
 package com.ruoyi.workflow.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.ruoyi.common.core.utils.StringUtils;
 import com.ruoyi.common.core.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
@@ -9,12 +12,18 @@ import com.ruoyi.common.log.enums.BusinessType;
 import com.ruoyi.common.security.annotation.RequiresPermissions;
 import com.ruoyi.workflow.domain.FormDataVO;
 import com.ruoyi.workflow.domain.ConditionVO;
+import com.ruoyi.workflow.domain.FormVO;
 import com.ruoyi.workflow.domain.Template;
 import com.ruoyi.workflow.service.ITemplateService;
+import com.ruoyi.workflow.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.lang.annotation.Documented;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +38,16 @@ public class TemplateController extends BaseController
 {
     @Autowired
     private ITemplateService templateService;
+
+    //定义从数据库名，后续改为库读取？
+    List<String> slaveTables = new ArrayList(){
+        {
+//            this.add("person");
+//            this.add("tea_sale");
+            this.add("lang");
+            this.add("coffee");
+        }
+    };
 
     /**
      * 查询模板列表
@@ -100,22 +119,417 @@ public class TemplateController extends BaseController
         return toAjax(templateService.deleteTemplateByIds(ids));
     }
 
-    @Log(title = "表单数据", businessType = BusinessType.INSERT)
-    @PostMapping("/saveFormData")
-    public AjaxResult saveFormData(@RequestBody List<FormDataVO> formDataVO)
-    {
-        return toAjax(templateService.insrtFormDatas(formDataVO));
-    }
+//    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+//    @PostMapping("/saveFormData")
+//    public AjaxResult saveFormData(@RequestBody List<FormDataVO> formDataVO)
+//    {
+//        return toAjax(templateService.insrtFormDatas(formDataVO));
+//    }
     @Log(title = "表单数据", businessType = BusinessType.UPDATE)
     @PostMapping("/updateFormData")
     public AjaxResult updateFormData(HttpServletResponse response, @RequestBody List<ConditionVO> updates)
     {
         return toAjax(templateService.updateFormData(updates));
     }
+//    @Log(title = "表单数据", businessType = BusinessType.DELETE)
+//    @PostMapping("/deleteFormData")
+//    public AjaxResult deleteFormData(HttpServletResponse response, @RequestBody List<ConditionVO> deletes)
+//    {
+//        return toAjax(templateService.deleteFormData(deletes));
+//    }
+
+
+    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+    @PostMapping("/saveFormData")
+    public AjaxResult saveFormData(@RequestBody List<FormDataVO> formDataVO)
+    {
+        try{
+            if(formDataVO.isEmpty()){
+                System.out.println("没有传任何参数！！！");
+                return toAjax(0);
+            }
+            for (FormDataVO form : formDataVO) {
+                System.out.println("table:"+form.getTable());
+                if(StringUtils.isEmpty(form.getTable())){
+                    System.out.println("table字段为空");
+                    return toAjax(0);
+                }
+                if(!slaveTables.contains(form.getTable())){
+                    System.out.println("查询从库");
+                    templateService.insrtFormDataSlave(form);
+                }else{
+                    System.out.println("查询主库");
+                    templateService.insrtFormData(form);
+                }
+            }
+            return toAjax(formDataVO.size());
+        }catch (Exception e){
+            System.out.println("报错！！！");
+            e.printStackTrace();
+            return toAjax(0);
+        }
+    }
+
+//    @Log(title = "表单数据", businessType = BusinessType.UPDATE)
+//    @PostMapping("/updateFormDataNew")
+//    public AjaxResult updateFormDataNew(HttpServletResponse response, @RequestBody List<ConditionVO> updates)
+//    {
+//        List<ConditionVO> ma = new ArrayList<>();
+//        List<ConditionVO> sl = new ArrayList<>();
+//
+//        for(ConditionVO update : updates){
+//            System.out.println("table:"+update.getTable());
+//            if(slaveTables.contains(update.getTable())){
+//                System.out.println("插入从库");
+//                sl.add(update);
+//            }else {
+//                System.out.println("插入主库");
+//                ma.add(update);
+//            }
+//        }
+//        if(!ma.isEmpty()){
+//            System.out.println("修改主库");
+//            templateService.updateFormData(ma);
+//        }
+//        if(!sl.isEmpty()){
+//            System.out.println("修改从库");
+//            templateService.updateFormDataSlave(sl);
+//        }
+//        return toAjax(updates.size());
+//    }
+
+//    //2.7
+//    @Log(title = "表单数据", businessType = BusinessType.UPDATE)
+//    @PostMapping("/updateFormDataNew")
+//    public AjaxResult updateFormDataNew(HttpServletResponse response, @RequestBody List<ConditionVO> updates)
+//    {
+//        try{
+//            if(updates.isEmpty()){
+//                System.out.println("没有传任何参数！！！");
+//                return toAjax(0);
+//            }
+//            for(ConditionVO update : updates){
+//                System.out.println("table:"+update.getTable());
+//                if(StringUtils.isEmpty(update.getTable())){
+//                    System.out.println("table字段为空");
+//                    return toAjax(0);
+//                }
+//                if(slaveTables.contains(update.getTable())){
+//                    System.out.println("修改从库");
+//                    templateService.updateFormDatasNewSlave(update);
+//                }else {
+//                    System.out.println("修改主库");
+//                    templateService.updateFormDatasNew(update);
+//                }
+//            }
+//            return toAjax(updates.size());
+//        }catch (Exception e){
+//            System.out.println("报错！！！");
+//            e.printStackTrace();
+//            return toAjax(0);
+//        }
+//    }
+//
+//    //2.7
+//    @Log(title = "表单数据", businessType = BusinessType.DELETE)
+//    @PostMapping("/deleteFormData")
+//    public AjaxResult deleteFormData(HttpServletResponse response, @RequestBody List<ConditionVO> deletes)
+//    {
+//        try{
+//            if(deletes.isEmpty()){
+//                System.out.println("没有传任何参数！！！");
+//                return toAjax(0);
+//            }
+//            List<ConditionVO> ma = new ArrayList<>();
+//            List<ConditionVO> sl = new ArrayList<>();
+//
+//            for(ConditionVO delete : deletes){
+//                System.out.println("table:"+delete.getTable());
+//                if(StringUtils.isEmpty(delete.getTable())){
+//                    System.out.println("table字段为空");
+//                    return toAjax(0);
+//                }
+//                if(slaveTables.contains(delete.getTable())){
+//                    System.out.println("插入从库List");
+//                    sl.add(delete);
+//                }else {
+//                    System.out.println("插入主库List");
+//                    ma.add(delete);
+//                }
+//            }
+//            if(!ma.isEmpty()){
+//                System.out.println("删除主库");
+//                templateService.deleteFormData(ma);
+//            }
+//            if(!sl.isEmpty()){
+//                System.out.println("删除从库");
+//                templateService.deleteFormDataSlave(sl);
+//            }
+//            return toAjax(deletes.size());
+//        }catch (Exception e){
+//            System.out.println("报错！！！");
+//            e.printStackTrace();
+//            return toAjax(0);
+//        }
+//    }
+//
+////    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+////    @PostMapping("/saveFormDataNew")
+////    public AjaxResult saveFormDataNew(@RequestBody List<FormDataVO> formDataVO)
+////    {
+////        try{
+////            return toAjax(templateService.saveFormDatasNew(formDataVO));
+////        }catch (Exception e){
+////            System.out.println("报错！！！");
+////            e.printStackTrace();
+////            return toAjax(0);
+////        }
+////    }
+//
+//
+////    /**
+////     * 2.4
+////     * @param formVO
+////     * @return
+////     */
+////    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+////    @PostMapping("/saveFormDataNew")
+////    public AjaxResult saveFormDataNew(@RequestBody FormVO formVO)
+////    {
+////        try{
+////            return toAjax(templateService.saveFormDatasNew(formVO));
+////        }catch (Exception e){
+////            System.out.println("报错！！！");
+////            e.printStackTrace();
+////            return toAjax(0);
+////        }
+////    }
+//
+//    //2.7
+//    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+//    @PostMapping("/saveFormDataNew")
+//    public AjaxResult saveFormDataNew(@RequestBody FormVO formVO)
+//    {
+//        try{
+//            return toAjax(saveFormDatasNew(formVO));
+//        }catch (Exception e){
+//            System.out.println("报错！！！");
+//            e.printStackTrace();
+//            return toAjax(0);
+//        }
+//    }
+//    //2.7
+//    @Transactional(rollbackFor = Exception.class)
+//    public int saveFormDatasNew(FormVO formVO) {
+//        for (FormDataVO form : formVO.getFormDataVO()) {
+//            System.out.println("add table:"+form.getTable());
+//            if(StringUtils.isEmpty(form.getTable())){
+//                System.out.println("table字段为空");
+//                throw new RuntimeException("table字段为空");
+//            }
+//            if(slaveTables.contains(form.getTable())){
+//                System.out.println("新增从库");
+//                templateService.insrtFormDataSlaveNew(form);
+//            }else{
+//                System.out.println("新增主库");
+//                templateService.insrtFormDataNew(form);
+//            }
+//
+//        }
+//        for(ConditionVO update : formVO.getUpdateObj()){
+//            System.out.println("update table:"+update.getTable());
+//            if(StringUtils.isEmpty(update.getTable())){
+//                System.out.println("table字段为空");
+//                throw new RuntimeException("table字段为空");
+//            }
+//            if(slaveTables.contains(update.getTable())){
+//                System.out.println("修改从库");
+//                templateService.updateFormDatasNewSlave(update);
+//            }else {
+//                System.out.println("修改主库");
+//                templateService.updateFormDatasNew(update);
+//            }
+//        }
+//        return 1;
+//    }
+
+    //================================2.8,加id，调用http获取table name==================================
+    @Log(title = "表单数据", businessType = BusinessType.UPDATE)
+    @PostMapping("/updateFormDataNew")
+    public AjaxResult updateFormDataNew(HttpServletResponse response, @RequestBody List<ConditionVO> updates)
+    {
+        try{
+            if(updates.isEmpty()){
+                System.out.println("没有传任何参数！！！");
+                return toAjax(0);
+            }
+            for(ConditionVO update : updates){
+                System.out.println("table:"+update.getTable());
+                if(StringUtils.isNotEmpty(update.getTid())){
+                    String table = returnTable(update.getTid());
+                    if(StringUtils.isNotEmpty(table)){
+                        update.setTable(table);
+                        System.out.println("id修改从库");
+                        templateService.updateFormDatasNewSlave(update);
+                    }
+                }else{
+                    if(StringUtils.isEmpty(update.getTable())){
+                        System.out.println("table字段为空");
+                        return toAjax(0);
+                    }
+                    if(!slaveTables.contains(update.getTable())){
+                        System.out.println("修改从库");
+                        templateService.updateFormDatasNewSlave(update);
+                    }else {
+                        System.out.println("修改主库");
+                        templateService.updateFormDatasNew(update);
+                    }
+                }
+            }
+            return toAjax(updates.size());
+        }catch (Exception e){
+            System.out.println("报错！！！");
+            e.printStackTrace();
+            return toAjax(0);
+        }
+    }
+
     @Log(title = "表单数据", businessType = BusinessType.DELETE)
     @PostMapping("/deleteFormData")
     public AjaxResult deleteFormData(HttpServletResponse response, @RequestBody List<ConditionVO> deletes)
     {
-        return toAjax(templateService.deleteFormData(deletes));
+        try{
+            if(deletes.isEmpty()){
+                System.out.println("没有传任何参数！！！");
+                return toAjax(0);
+            }
+            List<ConditionVO> ma = new ArrayList<>();
+            List<ConditionVO> sl = new ArrayList<>();
+
+            for(ConditionVO delete : deletes){
+                System.out.println("table:"+delete.getTable());
+                if(StringUtils.isNotEmpty(delete.getTid())){
+                    String table = returnTable(delete.getTid());
+                    if(StringUtils.isNotEmpty(table)){
+                        delete.setTable(table);
+                        System.out.println("id插入从库List");
+                        sl.add(delete);
+                    }
+                }else{
+                    if(StringUtils.isEmpty(delete.getTable())){
+                        System.out.println("table字段为空");
+                        return toAjax(0);
+                    }
+                    if(!slaveTables.contains(delete.getTable())){
+                        System.out.println("插入从库List");
+                        sl.add(delete);
+                    }else {
+                        System.out.println("插入主库List");
+                        ma.add(delete);
+                    }
+                }
+            }
+            if(!ma.isEmpty()){
+                System.out.println("删除主库");
+                templateService.deleteFormData(ma);
+            }
+            if(!sl.isEmpty()){
+                System.out.println("删除从库");
+                templateService.deleteFormDataSlave(sl);
+            }
+            return toAjax(deletes.size());
+        }catch (Exception e){
+            System.out.println("报错！！！");
+            e.printStackTrace();
+            return toAjax(0);
+        }
+    }
+
+    @Log(title = "表单数据", businessType = BusinessType.INSERT)
+    @PostMapping("/saveFormDataNew")
+    public AjaxResult saveFormDataNew(@RequestBody FormVO formVO)
+    {
+        try{
+            return toAjax(saveFormDatasNew2(formVO));
+        }catch (Exception e){
+            System.out.println("报错！！！");
+            e.printStackTrace();
+            return toAjax(0);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int saveFormDatasNew2(FormVO formVO) {
+        for (FormDataVO form : formVO.getFormDataVO()) {
+            System.out.println("add table:"+form.getTable());
+            if(StringUtils.isNotEmpty(form.getTid())){
+                String table = returnTable(form.getTid());
+                if(StringUtils.isNotEmpty(table)){
+                    form.setTable(table);
+                    System.out.println("id新增从库");
+                    templateService.insrtFormDataSlaveNew(form);
+                }
+            }else{
+                if(StringUtils.isEmpty(form.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(form.getTable())){
+                    System.out.println("新增从库");
+                    templateService.insrtFormDataSlaveNew(form);
+                }else{
+                    System.out.println("新增主库");
+                    templateService.insrtFormDataNew(form);
+                }
+            }
+        }
+        for(ConditionVO update : formVO.getUpdateObj()){
+            System.out.println("update table:"+update.getTable());
+            if(StringUtils.isNotEmpty(update.getTid())){
+                String table = returnTable(update.getTid());
+                if(StringUtils.isNotEmpty(table)){
+                    update.setTable(table);
+                    System.out.println("id修改从库");
+                    templateService.updateFormDatasNewSlave(update);
+                }
+            }else{
+                if(StringUtils.isEmpty(update.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(update.getTable())){
+                    System.out.println("修改从库");
+                    templateService.updateFormDatasNewSlave(update);
+                }else {
+                    System.out.println("修改主库");
+                    templateService.updateFormDatasNew(update);
+                }
+            }
+        }
+        return 1;
+    }
+
+    public String returnTable(String id){
+        String res = HttpUtils.sendGet("http://admin.datains.cn/finance-admin/form/getDataSetDetail","id="+id);
+        JSONObject jsonObject = JSON.parseObject(res);
+        Integer code = (Integer) jsonObject.get("code");
+
+        if(code == 1000){
+            JSONObject json = jsonObject.getJSONObject("data");
+            String sql = json.getString("sql");
+
+            String[] tabs = sql.split("from ");
+            String tab = "";
+            if(tabs.length <= 1){
+                tab = sql.split("FROM ")[1].split(" ")[0];
+            }else{
+                tab = tabs[1].split(" ")[0];
+            }
+            System.out.println("sql:"+sql);
+            System.out.println("table:"+tab);
+            return tab;
+        }else{
+            return "";
+        }
     }
 }

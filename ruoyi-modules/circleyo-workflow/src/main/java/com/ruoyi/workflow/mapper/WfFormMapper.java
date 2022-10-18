@@ -6,6 +6,7 @@ import java.util.Map;
 import com.ruoyi.workflow.domain.GenTable;
 import com.ruoyi.workflow.domain.TableColumn;
 import com.ruoyi.workflow.domain.WfForm;
+import com.ruoyi.workflow.domain.vo.ParamVo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -102,4 +103,6 @@ public interface WfFormMapper
     int updateItemData(WfForm wfForm);
 
     List<Map> selectTableDataList(String table);
+
+    List<Map> selectTableDataListParam(ParamVo paramVo);
 }

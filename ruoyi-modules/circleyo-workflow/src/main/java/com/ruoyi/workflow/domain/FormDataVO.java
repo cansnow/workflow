@@ -9,6 +9,7 @@ public class FormDataVO {
     private List<ConditionVO> updateObj;
     private List<ConditionVO> deleteObj;
     private Object id;
+    private String tid;
 
     public void setTable(String table) {
         this.table = table;
@@ -58,5 +59,13 @@ public class FormDataVO {
 
     public void setId(Object id) {
         this.id = id;
+    }
+
+    public String getTid() {
+        return tid;
+    }
+
+    public void setTid(String tid) {
+        this.tid = tid;
     }
 }

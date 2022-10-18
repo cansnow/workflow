@@ -147,7 +147,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </if>
         </foreach>
     </update>
-    <delete id="deleteFormData" parameterType="Integer">
-        delete from ${table} where ${idName} = #{idValue}
+    <delete id="deleteFormDatas" parameterType="Integer">
+        <foreach collection="deletes" item="each"  separator=";" >
+            delete from  ${each.table}
+            <if test="each.conditions != null and each.conditions.size()>0">
+                <where>
+                    <foreach collection="each.conditions" item="condition"  separator=" and " >
+                        ${condition.fieldName}=#{condition.fieldValue}
+                    </foreach>
+                </where>
+            </if>
+        </foreach>
     </delete>
+
+    <!--//remember-->
+    <update id="updateFormDatasNew" parameterType="com.ruoyi.workflow.domain.FormDataVO">
+        update  ${table}
+        <trim prefix="SET" suffixOverrides=",">
+            <foreach collection="fields" item="item"  separator="," >
+                ${item.fieldName}=#{item.fieldValue}
+            </foreach>
+        </trim>
+        <if test="conditions != null and conditions.size()>0">
+            <where>
+                <foreach collection="conditions" item="condition"  separator=" and " >
+                    ${condition.fieldName}=#{condition.fieldValue}
+                </foreach>
+            </where>
+        </if>
+    </update>
 </mapper>

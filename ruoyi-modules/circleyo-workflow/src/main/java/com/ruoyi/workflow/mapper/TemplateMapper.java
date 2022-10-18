@@ -70,4 +70,9 @@ public interface TemplateMapper
     void deleteFormData(ConditionVO form);
 
     void updateFormDatas(@Param("updates")List<ConditionVO> updates);
+
+    void deleteFormDatas(@Param("deletes")List<ConditionVO> deletes);
+
+    int updateFormDatasNew(ConditionVO idvo);
+
 }

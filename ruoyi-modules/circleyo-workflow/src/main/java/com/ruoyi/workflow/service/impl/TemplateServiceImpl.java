@@ -1,17 +1,19 @@
 package com.ruoyi.workflow.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.ruoyi.common.core.utils.StringUtils;
+import com.ruoyi.common.datasource.annotation.Slave;
 import com.ruoyi.common.security.utils.SecurityUtils;
-import com.ruoyi.workflow.domain.FieldVO;
-import com.ruoyi.workflow.domain.FormDataVO;
-import com.ruoyi.workflow.domain.ConditionVO;
-import com.ruoyi.workflow.domain.Template;
+import com.ruoyi.workflow.domain.*;
 import com.ruoyi.workflow.mapper.TemplateMapper;
 import com.ruoyi.workflow.service.ITemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 /**
  * 模板Service业务层处理
@@ -122,9 +124,154 @@ public class TemplateServiceImpl implements ITemplateService {
 
     @Override
     public int deleteFormData(List<ConditionVO> deletes) {
-        for (ConditionVO form : deletes) {
-            templateMapper.deleteFormData(form);
-        }
+//        for (ConditionVO form : deletes) {
+//            templateMapper.deleteFormData(form);
+//        }
+        templateMapper.deleteFormDatas(deletes);
         return deletes.size();
+    }
+
+
+    //slave
+    @Override
+    @Slave
+    public int insrtFormDataSlave(FormDataVO formDataVO) {
+        for (List<FieldVO> fields : formDataVO.getFields()) {
+            FormDataVO form = new FormDataVO();
+            form.setSingleFields(fields);
+            form.setTable(formDataVO.getTable());
+            templateMapper.insrtFormData(form);
+        }
+        return 1;
+    }
+
+    @Override
+    @Slave
+    public int updateFormDataSlave(List<ConditionVO> updates) {
+        templateMapper.updateFormDatas(updates);
+        return updates.size();
+    }
+
+    @Override
+    @Slave
+    public int deleteFormDataSlave(List<ConditionVO> deletes) {
+//        for (ConditionVO form : deletes) {
+//            templateMapper.deleteFormData(form);
+//        }
+        templateMapper.deleteFormDatas(deletes);
+        return deletes.size();
+    }
+
+    @Override
+    public int updateFormDatasNew(ConditionVO update) {
+        return templateMapper.updateFormDatasNew(update);
+    }
+
+    @Override
+    @Slave
+    public int updateFormDatasNewSlave(ConditionVO update) {
+        return templateMapper.updateFormDatasNew(update);
+    }
+
+    //v2.3
+    //定义从数据库名，后续改为库读取？
+    List<String> slaveTables = new ArrayList(){
+        {
+//            this.add("person");
+//            this.add("tea_sale");
+            this.add("lang");
+            this.add("coffee");
+        }
+    };
+
+//    @Override
+//    @Transactional
+//    public int saveFormDatasNew(List<FormDataVO> formDataVO) {
+//        for (FormDataVO form : formDataVO) {
+//            System.out.println("table:"+form.getTable());
+//            if(StringUtils.isEmpty(form.getTable())){
+//                System.out.println("table字段为空");
+//                return 0;
+//            }
+//
+//            if(slaveTables.contains(form.getTable())){
+//                System.out.println("查询从库");
+//                this.insrtFormDataSlaveNew(form);
+//            }else{
+//                System.out.println("查询主库");
+//                this.insrtFormDataNew(form);
+//            }
+//            for(ConditionVO update : form.getUpdateObj()){
+//                if(slaveTables.contains(update.getTable())){
+//                    System.out.println("修改从库");
+//                    this.updateFormDatasNewSlave(update);
+//                }else {
+//                    System.out.println("修改主库");
+//                    this.updateFormDatasNew(update);
+//                }
+//            }
+//        }
+//        return 1;
+//    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int saveFormDatasNew(FormVO formVO) {
+        try{
+            for (FormDataVO form : formVO.getFormDataVO()) {
+                System.out.println("add table:"+form.getTable());
+                if(StringUtils.isEmpty(form.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(form.getTable())){
+                    System.out.println("查询从库");
+                    this.insrtFormDataSlaveNew(form);
+                }else{
+                    System.out.println("查询主库");
+                    this.insrtFormDataNew(form);
+                }
+
+            }
+            for(ConditionVO update : formVO.getUpdateObj()){
+                System.out.println("update table:"+update.getTable());
+                if(StringUtils.isEmpty(update.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(update.getTable())){
+                    System.out.println("修改从库");
+                    this.updateFormDatasNewSlave(update);
+                }else {
+                    System.out.println("修改主库");
+                    this.updateFormDatasNew(update);
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return 0;
+        }
+        return 1;
+    }
+
+
+    @Override
+    @Slave
+    public int insrtFormDataSlaveNew(FormDataVO formDataVO) {
+        FormDataVO form = new FormDataVO();
+        form.setSingleFields(formDataVO.getSingleFields());
+        form.setTable(formDataVO.getTable());
+        templateMapper.insrtFormData(form);
+        return 1;
+    }
+
+    @Override
+    public int insrtFormDataNew(FormDataVO formDataVO) {
+        FormDataVO form = new FormDataVO();
+        form.setSingleFields(formDataVO.getSingleFields());
+        form.setTable(formDataVO.getTable());
+        templateMapper.insrtFormData(form);
+        return 1;
     }
 }

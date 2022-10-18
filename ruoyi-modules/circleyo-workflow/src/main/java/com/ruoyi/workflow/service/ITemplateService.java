@@ -2,6 +2,7 @@ package com.ruoyi.workflow.service;
 
 import com.ruoyi.workflow.domain.FormDataVO;
 import com.ruoyi.workflow.domain.ConditionVO;
+import com.ruoyi.workflow.domain.FormVO;
 import com.ruoyi.workflow.domain.Template;
 
 import java.util.List;
@@ -64,9 +65,29 @@ public interface ITemplateService
 
     int insrtFormData(FormDataVO formDataVO);
 
+
     int updateFormData(List<ConditionVO> updates);
 
     int insrtFormDatas(List<FormDataVO> formDataVO);
 
     int deleteFormData(List<ConditionVO> deletes);
+
+    //slave
+    int insrtFormDataSlave(FormDataVO formDataVO);
+
+    int updateFormDataSlave(List<ConditionVO> updates);
+
+    int deleteFormDataSlave(List<ConditionVO> deletes);
+
+    int updateFormDatasNew(ConditionVO updates);
+
+    int updateFormDatasNewSlave(ConditionVO updates);
+
+//    int saveFormDatasNew(List<FormDataVO> formDataVO);
+
+    int saveFormDatasNew(FormVO formVO);
+
+    int insrtFormDataSlaveNew(FormDataVO formDataVO);
+
+    int insrtFormDataNew(FormDataVO formDataVO);
 }

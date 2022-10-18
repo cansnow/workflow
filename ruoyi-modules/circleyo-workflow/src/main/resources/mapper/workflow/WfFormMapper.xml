@@ -188,4 +188,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectTableDataList" resultType="map">
         select * from ${table}
     </select>
+
+    <select id="selectTableDataListParam" resultType="map" parameterType="com.ruoyi.workflow.domain.vo.ParamVo">
+        select * from ${table}
+        <where>
+            <foreach collection="map.entrySet()" index="key" item="val">
+                and ${key} = #{val}
+            </foreach>
+        </where>
+    </select>
 </mapper>

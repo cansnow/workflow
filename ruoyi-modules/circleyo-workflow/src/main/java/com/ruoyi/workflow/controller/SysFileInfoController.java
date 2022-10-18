@@ -101,7 +101,10 @@ public class SysFileInfoController extends BaseController {
     public AjaxResult avatar(HttpServletRequest request, @RequestParam("uploadFile") MultipartFile file) {
         AjaxResult ajax = AjaxResult.success();
         if (!file.isEmpty()) {
-            String path = request.getSession().getServletContext().getRealPath("WEB-INF/fileInfo");
+//            String path = request.getSession().getServletContext().getRealPath("WEB-INF/fileInfo");
+            String path = "/www/wwwroot/workflow/WEB-INF/fileInfo";
+            System.out.println("path:"+path);
+            logger.info("path:"+path);
             String name = null;
             try {
                 name = FileUploadUtils.upload(path, file);

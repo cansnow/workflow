@@ -8,6 +8,7 @@ public class ConditionVO {
     private Object idValue;
     private List<FieldVO> conditions;
     private List<FieldVO> fields;
+    private String tid;
 
     public void setIdName(String idName) {
         this.idName = idName;
@@ -47,5 +48,13 @@ public class ConditionVO {
 
     public void setConditions(List<FieldVO> conditions) {
         this.conditions = conditions;
+    }
+
+    public String getTid() {
+        return tid;
+    }
+
+    public void setTid(String tid) {
+        this.tid = tid;
     }
 }
