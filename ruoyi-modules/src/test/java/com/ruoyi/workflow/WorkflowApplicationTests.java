@@ -1,4 +1,4 @@
-package com.circleyo.workflow;
+package com.ruoyi.workflow;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
