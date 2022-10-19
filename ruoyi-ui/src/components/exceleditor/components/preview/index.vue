@@ -1012,6 +1012,9 @@ export default {
       // 单元格超链接扩展记录
       const cellLinks = {};
 
+      // 单元格超链接跟随扩展记录
+      const cellLinks_noFiled = {};
+
       // 记录隐藏带单元格判断
       const hiddenList = [];
 
@@ -1176,12 +1179,15 @@ export default {
               // 记录超链接属性，用于扩展
               const extend = {
                 conditions,
-                c: temp.c,
-                pos: itemPost, // 位置信息
                 fieldInfo: temp.p.f, // 变量信息
                 fieldIndex: fList[1], // 数据集下标
                 field: fList[2], // 变量
                 tableName: temp.p.tn, // 表名
+
+                noReplace: false, // 替换v, false 替换， true 不替换
+
+                c: temp.c,
+                pos: itemPost, // 位置信息
                 extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
                 merges: typeof(item.merges) != 'undefined', // 是否合并
                 mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
@@ -1205,6 +1211,56 @@ export default {
               }
               extendList.push(extend);
               Object.assign(temp, { v: '' });
+            }
+          } else {
+            if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
+            const itemPost = item.pos;
+            if (!!temp.p.cl) {
+              const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+              if (!!fields && fields.length > 0) {
+                cellLinks[itemPost.start.rowIndex  + '' + itemPost.start.columnIndex] = {
+                  fields,
+                  noReplace: true,
+                  extend: {
+                    c: temp.c,
+                    pos: itemPost, // 位置信息
+                    extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+                    merges: typeof(item.merges) != 'undefined', // 是否合并
+                    mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
+                    height: item.height,
+                    width: item.width,
+                    ct: temp.p.ct,
+                    cl: temp.p.cl || '',
+                  }
+                };
+              }
+            }
+          }
+          }
+        } else {
+          // 跟随扩展单元，非数据绑定
+          if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
+            debugger;
+            const itemPost = item.pos;
+            if (!!temp.p.cl) {
+              const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+              if (!!fields && fields.length > 0) {
+                cellLinks[itemPost.start.rowIndex  + '' + itemPost.start.columnIndex] = {
+                  fields,
+                  noReplace: true,
+                  extend: {
+                    c: temp.c,
+                    pos: itemPost, // 位置信息
+                    extendType: typeof temp.p.e != 'undefined' ? temp.p.e : 'none', // 扩展方向
+                    merges: typeof(item.merges) != 'undefined', // 是否合并
+                    mergesInfo: typeof(item.merges) != 'undefined' ? item.merges : '',
+                    height: item.height,
+                    width: item.width,
+                    ct: temp.p.ct,
+                    cl: temp.p.cl || '',
+                  }
+                };
+              }
             }
           }
         }
@@ -1577,6 +1633,22 @@ export default {
               const cell = cells[temp.start.rowIndex][temp.start.columnIndex];
               if (!!cell && !!cell.p && !!cell.p.e) {
                 Object.assign(temp, { e: cell.p.e });
+                const index = extendList.findIndex(item => item.pos.start.rowIndex == temp.start.rowIndex && item.pos.start.columnIndex == temp.start.columnIndex);
+                if (index != -1) {
+                  // 添加扩展
+                  if (item.noReplace) {
+                    const exTarget = extendList[index];
+                    const extend = Object.assign({}, item.extend, {
+                      noReplace: true,
+                      conditions: exTarget.conditions,
+                      fieldInfo: exTarget.fieldInfo,
+                      fieldIndex: exTarget.fieldIndex,
+                      field: exTarget.field,
+                      tableName: exTarget.tableName,
+                    });
+                    extendList.push(extend);
+                  }
+                }
               }
             }
             return temp;
@@ -1765,6 +1837,7 @@ export default {
           // 合并列数
           const colCountMerges = item.merges ? item.mergesInfo.end.columnIndex - item.pos.start.columnIndex : 0;
           let valueList = [];
+          // 获取表数据
           if (typeof this.dataSetList[item.fieldIndex] != 'undefined') {
             // TODO 记录已有数据
             valueList = JSON.parse(JSON.stringify(this.dataSetList[item.fieldIndex]));
@@ -1805,8 +1878,6 @@ export default {
           }
 
           // TODO 获取新增数据
-          // console.warn('this.addData', this.addData);
-          // console.warn('this.sheetIndex', this.sheetIndex);
           if (
             !!this.addData[this.sheetIndex] &&
             !!this.addData[this.sheetIndex][item.fieldIndex] &&
@@ -1834,7 +1905,10 @@ export default {
             }
             if (index != 0) {
               const template = !!cells[cellRowIndex] && !!cells[cellRowIndex][cellColumnIndex] ? JSON.parse(JSON.stringify(cells[cellRowIndex][cellColumnIndex])) : {};
-              Object.assign(template, { v: value[item.field], t: item.fieldIndex });
+              Object.assign(template, { t: item.fieldIndex });
+              if (!item.noReplace) {
+                Object.assign(template, { v: value[item.field] });
+              }
               
               // 判断是否超链接单元格
               if (!!item.ct && typeof cellLinks[rowIndex + '' + columnIndex] != 'undefined') {
@@ -1872,7 +1946,12 @@ export default {
               Object.assign(template, { i: value['id'] });
               tempList.push(template);
             } else {
-              Object.assign(tempListIndexValue, { v: value[item.field] + '', t: item.fieldIndex, i: value['id'] });
+              // 首个单元格
+              Object.assign(tempListIndexValue, { t: item.fieldIndex, i: value['id'] });
+              // 非跟随扩展修改v
+              if (!item.noReplace) {
+                Object.assign(tempListIndexValue, { v: value[item.field] + '' });
+              }
               if (cdi.length > 0) {
                 Object.assign(tempListIndexValue, { cdi });
               }
