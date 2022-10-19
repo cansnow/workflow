@@ -368,6 +368,7 @@ export default {
                 }
               }
             });
+            // 新增的数据
             const data = [];
             _.map(resData, (item, key) => {
               _.map(item, fileds => {
@@ -376,12 +377,6 @@ export default {
                   singleFields: fileds,
                 })
               })
-              // data.push();
-              // return {
-              //   table: key,
-              //   // fields: item,
-              //   singleFields: item,
-              // }
             });
 
             // 新增数据
@@ -391,7 +386,7 @@ export default {
             _.map(updateData, (u, i) => {
               _.map(u.conditions, c => {
                 // 我们的表新增
-                if (c.fieldName == 'id' && c.fieldValue == -1) {
+                if (!u.ifId && c.fieldName == 'id' && c.fieldValue == -1) {
                   addInfo.push({
                     t: u.table,
                     values: JSON.parse(JSON.stringify(u.fields)),
@@ -454,16 +449,6 @@ export default {
                     table: a.t,
                     singleFields: fields,
                   });
-                  // const di = data.findIndex(d => d.table == a.t);
-                  // // 判断是否已存在该表
-                  // if (di == -1) {
-                  //   data.push({
-                  //     table: a.t,
-                  //     singleFields: [fields],
-                  //   });
-                  // } else {
-                  //   data[di].singleFields.push(fields);
-                  // }
                 });
               }
               if (updateData.length <= 0) {
@@ -1012,9 +997,6 @@ export default {
       // 单元格超链接扩展记录
       const cellLinks = {};
 
-      // 单元格超链接跟随扩展记录
-      const cellLinks_noFiled = {};
-
       // 记录隐藏带单元格判断
       const hiddenList = [];
 
@@ -1240,7 +1222,6 @@ export default {
         } else {
           // 跟随扩展单元，非数据绑定
           if (!!temp.c && temp.c == 'Cell' && !!temp.p.ct && temp.p.ct == 'Link') {
-            debugger;
             const itemPost = item.pos;
             if (!!temp.p.cl) {
               const fields = temp.p.cl.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
