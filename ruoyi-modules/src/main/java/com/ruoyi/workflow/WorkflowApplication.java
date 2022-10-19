@@ -1,4 +1,4 @@
-package com.circleyo.workflow;
+package com.ruoyi.workflow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
