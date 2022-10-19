@@ -40,6 +40,7 @@
 import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
+import { validPhone, validIDCard, validEmail } from '@/utils/validate';
 import { 
   saveFormData, 
   getDBData, 
@@ -70,6 +71,8 @@ export default {
       extendInfo: {}, // 扩展信息记录
       maxWidth: 0,
       // $sheet: null,
+      cellCheck: true, // 单元格校验
+      cellCheckStyle: {}, // 单元格样式缓存
     };
   },
   async mounted() {
@@ -134,7 +137,7 @@ export default {
         if (res.p.t == 'submit') {
           // 根据回写规则提交数据
           // 表单校验
-          let ifOK = true;
+          _this.cellCheck = true;
           _.each(_this.$curSheet().cells, (cell, key) => {
             _.each(cell, (col, index) => {
               if (
@@ -144,22 +147,100 @@ export default {
                 col.c != 'image' &&
                 col.c != 'button'
               ) {
-                if (col.p.vd.r && col.p.r.w && col.p.r.s) {
-                  if (!col.v) {
-                    console.log('pos', key, index);
-                    ifOK = false;
-                    return;
+                if (col.p.r.w && col.p.r.s) {
+                  const exPos = { columnIndex: index, rowIndex: key };
+                  const exSelect = { end: exPos, start: exPos };
+                  let ifOkTemp = true;
+                  // 必填校验
+                  if (col.p.vd.r) {
+                    if (!col.v) {
+                      console.log('pos', key, index);
+                      ifOkTemp = false;
+                    }
+                  }
+                  if (!!col.p.vd.ex) {
+                    switch(col.p.vd.ex) {
+                      case 'phone':
+                        // 手机号码校验
+                        if (!!col.v) {
+                          if (!validPhone(col.v)) {
+                            // 校验不通过
+                            ifOkTemp = false;
+                          }
+                        }
+                        break;
+                      case 'idCard':
+                        // 身份证校验
+                        if (!!col.v) {
+                          if (!validIDCard(col.v)) {
+                            // 校验不通过
+                            ifOkTemp = false;
+                          }
+                        }
+                        break;
+                      case 'email':
+                        // 邮箱校验
+                        if (!!col.v) {
+                          if (!validEmail(col.v)) {
+                            // 校验不通过
+                            ifOkTemp = false;
+                          }
+                        }
+                        break;
+                      case 'number':
+                        // 数值校验
+                        break;
+                      case 'length':
+                        // 文本长度校验
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+                  if (!ifOkTemp) {
+                    // 修改单元格边框颜色
+                    _this.cellCheck = false;
+                    if (!!col.s) {
+                      const style = _this.$curSheet().getStyle(col.s);
+                      // console.log('style.option', style);
+                      if (style) {
+                        _this.cellCheckStyle[index + '' + key] = JSON.parse(JSON.stringify(style.option));
+                      }
+                    }
+                    
+                    _this.$curSheet().setAreaStyle(exSelect, style => {
+                        style.setOption({
+                          borderColor: 'red',
+                          border: 'blrt',
+                        });
+                    });
+                  } else {
+                    if (col.p.vd.r || !!col.p.vd.ex) {
+                      const option = {};
+                      if (!!_this.cellCheckStyle[index + '' + key]) {
+                        Object.assign(option, JSON.parse(JSON.stringify(_this.cellCheckStyle[index + '' + key])))
+                      }
+                      if (!option.borderColor) {
+                        Object.assign(option, { borderColor: undefined });
+                      }
+                      if (!option.border) {
+                        Object.assign(option, { border: undefined });
+                      }
+                      _this.$curSheet().setAreaStyle(exSelect, style => {
+                          style.setOption(option);
+                      });
+                    }
                   }
                 }
               }
-            })
+            });
           });
-          if (!ifOK) {
-            _this.$modal.msgError('有必填项未填写，请填写！！！');
+          if (!_this.cellCheck) {
+            _this.$modal.msgError('校验未通过！！！');
             return;
           }
           const dataList = _this.data[_this.sheetIndex.substring(1)].info.dataList;
-          if (dataList && dataList.length > 0 && ifOK) {
+          if (dataList && dataList.length > 0 && _this.cellCheck) {
             const responseData = [];
             _.map(dataList, (item, index) => {
               if (!item.ifDel || item.ifDel != '1') {

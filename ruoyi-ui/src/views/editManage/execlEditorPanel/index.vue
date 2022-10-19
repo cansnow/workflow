@@ -632,6 +632,7 @@ export default {
 						vd: {
 								r: data.check.noNull, // Required 必填
 								u: data.check.only, // unique 唯一
+								ex: data.checkExtend || '', // 扩展校验
 						}, // validate 验证
 						r: {
 								s: data.power.ifShow, // show 可见

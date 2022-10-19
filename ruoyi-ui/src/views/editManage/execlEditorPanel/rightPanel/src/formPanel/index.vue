@@ -179,6 +179,19 @@
             <el-checkbox label="不允许重复值" v-model="form.check.only" @change="change" />
           </el-col>
         </el-form-item>
+
+				<!-- 扩展校验 -->
+				<el-form-item label="校验">
+					<el-select v-model="form.checkExtend" @change="change" placeholder="请选择" style="width: 100%">
+						<el-option label="手机" value="phone" />
+						<el-option label="身份证号" value="idCard" />
+						<el-option label="邮件" value="email" />
+						<el-option label="数值大小" value="number" />
+						<el-option label="文本长度" value="length" />
+						<!-- <el-option label="唯一" value="only" />
+						<el-option label="必填" value="noNull" /> -->
+					</el-select>
+				</el-form-item>
       </template>
 
       <el-form-item label="权限">
@@ -231,6 +244,7 @@ export default {
           noNull: true,
           only: false,
 				}, // 校验
+				checkExtend: '', // 校验扩展
 				imageUrl: '', // 图片
 				// default: {
 				// 	type: 'custom',
@@ -519,6 +533,7 @@ export default {
           noNull: false,
           only: false,
 				}, // 校验
+				checkExtend: '', // 校验扩展
 				imageUrl: '', // 图片
 				// default: {
 				// 	type: 'custom',
@@ -644,6 +659,7 @@ export default {
 						noNull: data.p.vd.r, // Required 必填
 						only: data.p.vd.u, // unique 唯一
 					}, // validate 验证
+					checkExtend: data.p.vd.ex || '', // 校验扩展
 					power: {
 						ifShow: data.p.r.s, // show 可见
 						ifEdit: data.p.r.w, // write 可写

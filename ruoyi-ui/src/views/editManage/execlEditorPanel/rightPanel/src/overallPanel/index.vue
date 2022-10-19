@@ -348,7 +348,7 @@ export default {
             this.title = '回写规则';
             break;
           case 2:
-            this.title = '搜索规则';
+            this.title = '查询规则';
             break;
         }
       }

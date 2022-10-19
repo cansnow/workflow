@@ -91,3 +91,21 @@ export function isNumber(arg) {
   const reg = /^(\-|\+)?\d+(\.\d+)?$/;
   return reg.test(arg);
 }
+
+/**
+ * @param {string} phone
+ * @returns {Boolean}
+ */
+ export function validPhone(phone) {
+  const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
+  return reg.test(phone)
+}
+
+/**
+ * @param {string} ID
+ * @returns {Boolean}
+ */
+ export function validIDCard(ID) {
+  const reg = /^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[Xx])$)$/
+  return reg.test(ID)
+}
