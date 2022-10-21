@@ -273,6 +273,30 @@ export default {
             this.freezeRow = options.freezeRow || 0;
             // 设置
             this.freezeWindow(this.freezeRow, this.freezeColumn);
+
+            // 判断合并单元格是否为空
+            const _this = this;
+            _.map(this.merges, (item) => {
+                if (typeof _this.cells[item.start.rowIndex] == 'undefined') {
+                    const temp = [];
+                    for (let i = 0; i < item.start.columnIndex; i++) {
+                        temp.push(null);
+                    }
+                    temp.push({ v: undefined });
+                    _this.cells[item.start.rowIndex] = temp;
+                } else {
+                    if (_this.cells[item.start.rowIndex].length - 1 < item.start.columnIndex) {
+                        for (let i = _this.cells[item.start.rowIndex].length - 1; i < item.start.columnIndex; i++) {
+                            _this.cells[item.start.rowIndex].push(null);
+                        }
+                        _this.cells[item.start.rowIndex].push({ v: undefined });
+                    } else {
+                        if (!_this.cells[item.start.rowIndex][item.start.columnIndex]) {
+                            _this.cells[item.start.rowIndex].splice(item.start.columnIndex, 1, { v: undefined })
+                        }
+                    }
+                }
+            });
         },
         updateData(name, value) {
             let data = this.$piniastore.$state.data;
