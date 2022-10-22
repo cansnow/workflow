@@ -1,8 +1,8 @@
 {
   "name": "ruoyi",
-  "version": "3.5.0",
-  "description": "盈析数据后台管理系统",
-  "author": "盈析数据",
+  "version": "3.8.4",
+  "description": "若依管理系统",
+  "author": "若依",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
@@ -33,18 +33,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/y_project/RuoYi-Cloud.git"
+    "url": "https://gitee.com/y_project/RuoYi-Vue.git"
   },
   "dependencies": {
     "@riophae/vue-treeselect": "0.4.0",
-    "@datagridxl/datagridxl2": "^2.0.8",
-    "@mdi/font": "^6.7.96",
-    "@vue/composition-api": "^1.6.2",
-    "axios": "^0.27.2",
+    "axios": "0.24.0",
     "clipboard": "2.0.8",
-    "core-js": "3.19.1",
+    "core-js": "3.25.3",
     "echarts": "4.9.0",
-    "element-ui": "^2.15.9",
+    "element-ui": "2.15.10",
     "file-saver": "2.0.5",
     "fuse.js": "6.4.3",
     "highlight.js": "9.18.5",
@@ -55,26 +52,18 @@
     "quill": "1.3.7",
     "screenfull": "5.0.2",
     "sortablejs": "1.10.2",
-    "vue": "2.6.14",
+    "vue": "2.6.12",
     "vue-count-to": "1.0.13",
     "vue-cropper": "0.5.5",
     "vue-meta": "2.4.0",
     "vue-router": "3.4.9",
-    "pinia": "^2.0.0-rc.10",
-    "popper.js": "^1.16.1",
     "vuedraggable": "2.24.3",
-    "vue-draggable": "^2.0.6",
-    "vuex": "3.6.0",
-    "handsontable-secure-open-source": "^6.2.3"
+    "vuex": "3.6.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.6",
     "@vue/cli-plugin-eslint": "4.4.6",
     "@vue/cli-service": "4.4.6",
-    "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
-    "babel-plugin-component": "^1.1.1",
-    "babel-preset-es2015": "^6.24.1",
     "babel-eslint": "10.1.0",
     "babel-plugin-dynamic-import-node": "2.3.3",
     "chalk": "4.1.0",
@@ -88,7 +77,7 @@
     "sass-loader": "10.1.1",
     "script-ext-html-webpack-plugin": "2.1.5",
     "svg-sprite-loader": "5.1.1",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.6.12"
   },
   "engines": {
     "node": ">=8.9",

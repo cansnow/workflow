@@ -35,7 +35,7 @@ export default {
   },
   data() {
     return {
-      title: '盈析数据',
+      title: '若依管理系统',
       logo: logoImg
     }
   }

@@ -47,16 +47,6 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/design',
-    component: () => import('@/views/editManage/execlEditorPanel/index'),
-    hidden: true
-  },
-  {
-    path: '/Preview',
-    component: () => import('@/views/editManage/execlEditorPanel/preview/index'),
-    hidden: true
-  },
-  {
     path: '/register',
     component: () => import('@/views/register'),
     hidden: true

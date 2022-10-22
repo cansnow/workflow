@@ -7,7 +7,7 @@ function resolve(dir) {
 
 const CompressionPlugin = require('compression-webpack-plugin')
 
-const name = process.env.VUE_APP_TITLE || '盈析数据后台管理系统' // 网页标题
+const name = process.env.VUE_APP_TITLE || '若依管理系统' // 网页标题
 
 const port = process.env.port || process.env.npm_config_port || 80 // 端口
 
@@ -35,10 +35,10 @@ module.exports = {
     proxy: {
       // detail: https://cli.vuejs.org/config/#devserver-proxy
       [process.env.VUE_APP_BASE_API]: {
-        target: `http://1010.circleyo.com`,
+        target: `http://localhost:8080`,
         changeOrigin: true,
         pathRewrite: {
-          ['^' + process.env.VUE_APP_BASE_API]: '/prod-api'
+          ['^' + process.env.VUE_APP_BASE_API]: ''
         }
       }
     },
@@ -61,6 +61,7 @@ module.exports = {
     plugins: [
       // http://doc.ruoyi.vip/ruoyi-vue/other/faq.html#使用gzip解压缩静态文件
       new CompressionPlugin({
+        cache: false,                   // 不启用文件缓存
         test: /\.(js|css|html)?$/i,     // 压缩文件格式
         filename: '[path].gz[query]',   // 压缩后的文件名
         algorithm: 'gzip',              // 使用gzip压缩
@@ -88,12 +89,6 @@ module.exports = {
         symbolId: 'icon-[name]'
       })
       .end()
-    config.module
-      .rule("mjs")
-      .test(/\.mjs$/)
-      .type("javascript/auto")
-      .include.add(/node_modules/)
-      .end();
 
     config
       .when(process.env.NODE_ENV !== 'development',
@@ -102,7 +97,7 @@ module.exports = {
             .plugin('ScriptExtHtmlWebpackPlugin')
             .after('html')
             .use('script-ext-html-webpack-plugin', [{
-              // `runtime` must same as runtimeChunk name. default is `runtime`
+            // `runtime` must same as runtimeChunk name. default is `runtime`
               inline: /runtime\..*\.js$/
             }])
             .end()
@@ -132,8 +127,8 @@ module.exports = {
             })
           config.optimization.runtimeChunk('single'),
           {
-            from: path.resolve(__dirname, './public/robots.txt'), //防爬虫文件
-            to: './' //到根目录下
+             from: path.resolve(__dirname, './public/robots.txt'), //防爬虫文件
+             to: './' //到根目录下
           }
         }
       )
