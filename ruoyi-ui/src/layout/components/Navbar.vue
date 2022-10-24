@@ -5,7 +5,7 @@
     <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav"/>
     <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav"/>
 
-    <div class="right-menu">
+    <div class="right-menu" v-if="headRigth">
       <template v-if="device!=='mobile'">
         <search id="header-search" class="right-menu-item" />
         
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import TopNav from '@/components/TopNav'
 import Hamburger from '@/components/Hamburger'
@@ -74,6 +74,9 @@ export default {
       'avatar',
       'device'
     ]),
+    ...mapState({
+      headRigth: state => state.settings.headRigth,
+    }),
     setting: {
       get() {
         return this.$store.state.settings.showSettings

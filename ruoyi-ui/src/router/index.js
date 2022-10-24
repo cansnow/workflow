@@ -47,6 +47,21 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/design/:id?',
+    component: () => import('@/views/editManage/execlEditorPanel/index'),
+    hidden: true
+  },
+  {
+    path: '/Preview/:id?',
+    component: () => import('@/views/editManage/execlEditorPanel/preview/index'),
+    hidden: true
+  },
+  {
+    path: '/Renderer/:id',
+    component: () => import('@/views/editManage/execlEditorPanel/Renderer/index'),
+    hidden: true
+  },
+  {
     path: '/register',
     component: () => import('@/views/register'),
     hidden: true
@@ -61,6 +76,19 @@ export const constantRoutes = [
     component: () => import('@/views/error/401'),
     hidden: true
   },
+  // {
+  //   path: '',
+  //   component: Layout,
+  //   redirect: 'index',
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/views/index'),
+  //       name: 'Index',
+  //       meta: { title: '首页', icon: 'dashboard', affix: true }
+  //     }
+  //   ]
+  // },
   {
     path: '',
     component: Layout,
@@ -68,9 +96,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/index'),
+        component: () => import('@/views/editManage/excelList/index'),
         name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        meta: { title: '模板管理', icon: 'documentation', affix: true }
       }
     ]
   },
