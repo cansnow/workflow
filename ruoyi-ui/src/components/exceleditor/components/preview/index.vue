@@ -499,7 +499,7 @@ export default {
                       const index = _this.addData[_this.sheetIndex][u.itemTable].findIndex(item => item.id == c.fieldValue);
                       if (index != -1) {
                         const values = JSON.parse(JSON.stringify(u.fields));
-                        values.push(_this.addData[_this.sheetIndex][u.itemTable][index]);
+                        values.push({ fieldName: 'id', fieldValue: _this.addData[_this.sheetIndex][u.itemTable][index].id });
                         addInfo.push({
                           t: u.itemTable,
                           id: c.fieldValue,
