@@ -73,6 +73,7 @@ export default {
       // $sheet: null,
       cellCheck: true, // 单元格校验
       cellCheckStyle: {}, // 单元格样式缓存
+      tableUuid: {}, // 表名 uuid映射
     };
   },
   async mounted() {
@@ -285,7 +286,7 @@ export default {
                               }
                             } else {
                               fieldValue = cell.v; // 字段值
-                            }                          
+                            }
                           } else {
                             // 向右扩展
                             const extend = _this.extendInfo[_this.sheetIndex].row[rowIndex];
@@ -421,9 +422,16 @@ export default {
                   });
                 }
                 if (conditions.length > 0) {
+                  const table = {};
+                  if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(_this.tableUuid[item.table])) {
+                    Object.assign(table, { tid: _this.tableUuid[item.table] });
+                  } else {
+                    Object.assign(table, { table: _this.tableUuid[item.table] });
+                  }
                   updateData.push({
                     conditions,
-                    table: item.table,
+                    ...table,
+                    itemTable: item.table,
                     fields,
                     ifId: item.ifId
                   });
@@ -455,8 +463,14 @@ export default {
             const data = [];
             _.map(resData, (item, key) => {
               _.map(item, fileds => {
+                const table = {};
+                if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(_this.tableUuid[key])) {
+                  Object.assign(table, { tid: _this.tableUuid[key] });
+                } else {
+                  Object.assign(table, { table: _this.tableUuid[key] });
+                }
                 data.push({
-                  table: key,
+                  ...table,
                   singleFields: fileds,
                 })
               })
@@ -471,7 +485,8 @@ export default {
                 // 我们的表新增
                 if (!u.ifId && c.fieldName == 'id' && c.fieldValue == -1) {
                   addInfo.push({
-                    t: u.table,
+                    t: u.itemTable,
+                    tid: u.tid,
                     values: JSON.parse(JSON.stringify(u.fields)),
                   });
                   // updateData.splice(i, 1);
@@ -480,13 +495,16 @@ export default {
                 // 客户的表新增
                 if (u.ifId || u.table == 'person' || u.table == 'tea_sale') {
                   if (c.fieldName == 'id') {
-                    if (!!_this.addData[_this.sheetIndex] && !!_this.addData[_this.sheetIndex][u.table]) {
-                      const index = _this.addData[_this.sheetIndex][u.table].findIndex(item => item.id == c.fieldValue);
+                    if (!!_this.addData[_this.sheetIndex] && !!_this.addData[_this.sheetIndex][u.itemTable]) {
+                      const index = _this.addData[_this.sheetIndex][u.itemTable].findIndex(item => item.id == c.fieldValue);
                       if (index != -1) {
+                        const values = JSON.parse(JSON.stringify(u.fields));
+                        values.push(_this.addData[_this.sheetIndex][u.itemTable][index]);
                         addInfo.push({
-                          t: u.table,
+                          t: u.itemTable,
                           id: c.fieldValue,
-                          values: JSON.parse(JSON.stringify(u.fields)),
+                          tid: u.tid,
+                          values: values,
                         });
                         // updateData.splice(i, 1);
                         delUpdateData.push(i);
@@ -513,7 +531,7 @@ export default {
                     if (fi == -1) {
                       if (field == 'id') {
                         // 客户表需要id，我们的表不需要
-                        if (a.t == 'person' || a.t == 'tea_sale') {
+                        if (!!a.tid) {
                           const id = _this.guid();
                           fields.push({
                             fieldName: field,
@@ -528,8 +546,14 @@ export default {
                       }
                     }
                   });
+                  const table = {};
+                  if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(_this.tableUuid[a.t])) {
+                    Object.assign(table, { tid: _this.tableUuid[a.t] });
+                  } else {
+                    Object.assign(table, { table: _this.tableUuid[a.t] });
+                  }
                   data.push({
-                    table: a.t,
+                    ...table,
                     singleFields: fields,
                   });
                 });
@@ -568,6 +592,8 @@ export default {
                 return;
               }
             }
+
+            // 替换表名
             const submitData = {
               formDataVO: data,
               updateObj: updateData,
@@ -608,7 +634,6 @@ export default {
             console.log('temp', temp);
             console.log('data', data);
             updateFormData(data).then((res) => {
-              console.log('updateFormData', res);
               _this.$modal.msgSuccess('提交成功！！！');
             });
           }
@@ -921,10 +946,17 @@ export default {
             _this.addData[_this.sheetIndex][data.t].splice(index, 1)
           }
         }
+        const params = {};
+        if (!!data.p && !!data.p.tn && /^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(data.p.tn)) {
+          Object.assign(params, { tid: data.p.tn });
+        } else {
+          Object.assign(params, { table: data.t });
+        }
         if (ifDelApi) {
           const res = await deleteFormData([{
             conditions: data.cdi,
-            table: data.t
+            // table: data.t
+            ...params,
           }]).finally(() => {
             loading.close();
           });
@@ -955,7 +987,7 @@ export default {
           temp[field] = '';
         });
         //2. 设置id，用于提交数据时剔除修改项，加入新增项
-        if (data.t == 'person' || data.t == 'tea_sale') {
+        if (!!data.p && !!data.p.tn && /^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(data.p.tn)) {
           const id = _this.guid();
           Object.assign(temp, { id });
         } else {
@@ -1645,9 +1677,11 @@ export default {
             });
             const params = {...query};
             if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(item.field)) {
-              Object.assign(params, { table: item.fieldT });
+              Object.assign(params, { tid: item.fieldT });
+              this.tableUuid[item.field] = item.fieldT;
             } else {
               Object.assign(params, { table: item.field });
+              this.tableUuid[item.field] = item.fieldT;
             }
             const res = await getDBData(params);
             const dataSetListTemp = res.data.dataSetList;
@@ -1935,7 +1969,15 @@ export default {
               }
             });
 
-            const res = await getDBData({ table: item.fieldIndex, ...query });
+            const dbParams = {};
+            if (/^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(item.tableName)) {
+              Object.assign(dbParams, { tid: item.tableName });
+              this.tableUuid[item.fieldIndex] = item.tableName;
+            } else {
+              Object.assign(dbParams, { table: item.fieldIndex });
+              this.tableUuid[item.fieldIndex] = item.fieldIndex;
+            }            
+            const res = await getDBData({ ...dbParams, ...query }); // table: item.fieldIndex
             const dataSetListTemp = res.data.dataSetList;
             valueList = JSON.parse(JSON.stringify(dataSetListTemp[0].valueList)); // 变量集合
             this.dataSetList[dataSetListTemp[0].dataSetId] = JSON.parse(JSON.stringify(dataSetListTemp[0].valueList));

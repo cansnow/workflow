@@ -299,7 +299,9 @@ export default {
             
             // 按钮删除线
             this.$nextTick(() => {
-                this.$refs[this.cellType].$el.children[0].style.textDecoration = !!styleTemp.textDel ? 'line-through' : '';
+                if (!!this.$refs[this.cellType]) {
+                    this.$refs[this.cellType].$el.children[0].style.textDecoration = !!style.textDel ? 'line-through' : '';
+                }
             })
 
             return temp;
