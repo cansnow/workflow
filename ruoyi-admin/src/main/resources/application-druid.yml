@@ -12,10 +12,14 @@ spring:
             # 从库数据源
             slave:
                 # 从数据源开关/默认关闭
-                enabled: true
-                url: jdbc:mysql://47.104.250.219:3306/yx_report?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
-                username: report_dev
-                password: 123456
+#                enabled: true
+#                url: jdbc:mysql://47.104.250.219:3306/yx_report?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
+#                username: report_dev
+#                password: 123456
+                enabled: false
+                url:
+                username:
+                password:
             # 初始连接数
             initialSize: 5
             # 最小连接池数量
