@@ -5,7 +5,7 @@
             <div class="meg-workbook-btn">
                 <el-button type="default" size="small" @click="handleSave">保存</el-button>
                 <el-button type="primary" size="small" @click="handlePreview">预览</el-button>
-                <el-button  type="default" size="small" @click="handleRelease">发布</el-button>
+                <!-- <el-button  type="default" size="small" @click="handleRelease">发布</el-button> -->
             </div>
         </div>
         <!-- 多个sheet，防止重叠，将不显示的放到最外面 -->

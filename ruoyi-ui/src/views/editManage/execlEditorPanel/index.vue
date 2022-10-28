@@ -336,13 +336,15 @@ export default {
 			return temp;
 		},
 		/** 预览表单 */
-		handlePreview() {
-			// this.$router.push({path:'/home',query: {id:'1'}})
-			// this.$router.push({ path:'/Preview' });
-			// this.dialogVisible = true;
-			// this.ifPreview = true;
+		async handlePreview() {
+			// 保存数据
+			await this.handleSaveBtn();
+			// 跳转到渲染页面
+			let url2 = '';
+			url2 = this.$router.resolve({ path: '/Renderer/' + this.tempId });
+			window.open(url2.href, '_blank');
+			return;
 			let url = '';
-
 			const data = []
 			this.$refs.vspread.data.forEach((_, index) => {
 				data.push(this.getCurSaveData(index));
@@ -723,6 +725,46 @@ export default {
 		// 双击name
 		handleDblclickName() {
 			this.ifEditName = true;
+		},
+		async handleSaveBtn() {
+			const _this = this;
+			const loading = _this.$loading({
+				lock: true,
+				text: 'Loading',
+				// spinner: 'el-icon-loading',
+				// background: 'rgba(0, 0, 0, 0.7)'
+			});
+			const data = []
+			_this.$refs.vspread.data.forEach((_, index) => {
+				data.push(_this.getCurSaveData(index));
+			});
+			if (!!_this.tempId) {
+				Object.assign(_this.updateInfo, { data: JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'), });
+				// 修改
+				await updateTemplate(_this.updateInfo).finally(() => {
+					loading.close();
+				});
+				_this.$modal.msgSuccess('保存成功！');
+			} else {
+				_this.updateInfo = {
+					"description": "",
+					"link": location && location.origin ? location.origin + '/Renderer' : '/Renderer',
+					"sheet": _this.title,
+					"status": "0",
+					"title": _this.templateName,
+					"data": JSON.stringify(data).replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
+				};
+				const res = await addTemplate(_this.updateInfo).finally(() => {
+					loading.close();
+				});
+				if (res.code == 200) {
+					_this.tempId = res.data.id;
+					Object.assign(_this.updateInfo, {
+						link: _this.updateInfo.link + '/' + res.data.id,
+						id: res.data.id,
+					});						
+				}
+			}
 		},
 	},
 	mounted() {

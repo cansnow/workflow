@@ -541,7 +541,7 @@ export default {
                       } else {
                         fields.push({
                           fieldName: field,
-                          fieldValue: '1',
+                          fieldValue: '',
                         });
                       }
                     }
