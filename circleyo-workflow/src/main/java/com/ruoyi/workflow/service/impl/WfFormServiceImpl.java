@@ -25,6 +25,7 @@ import com.ruoyi.framework.config.DruidConfig;
 import com.ruoyi.workflow.domain.*;
 import com.ruoyi.workflow.domain.vo.ParamVo;
 import com.ruoyi.workflow.entity.JdbcEntity;
+import com.ruoyi.workflow.utils.DataSetDetailUtil;
 import com.ruoyi.workflow.utils.HttpUtils;
 import com.ruoyi.workflow.utils.JdbcUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,6 @@ import com.ruoyi.workflow.service.IWfFormService;
 public class WfFormServiceImpl implements IWfFormService {
     @Autowired
     private WfFormMapper wfFormMapper;
-//    @Autowired
-//    private RedisService redisService;
 
     @Override
     public List<GenTable> selectDbTableList(GenTable genTable) {
@@ -220,18 +219,13 @@ public class WfFormServiceImpl implements IWfFormService {
         r6.getChildren().add(r11);
         r2.getChildren().add(r6);
 
-        String res = HttpUtils.sendGet("http://admin.datains.cn/finance-admin/form/getDataSetTree",null);
-        JSONObject jsonObject = JSON.parseObject(res);
-        Integer code = (Integer) jsonObject.get("code");
-
-        if(code == 1000){
-            JSONArray dataArray = jsonObject.getJSONArray("data");
-//            JSONObject childrenJson = dataArray.getJSONObject(0);
-//            JSONArray childrenArray = childrenJson.getJSONArray("children");
+        //3.1 api
+        JSONArray dataArray = DataSetDetailUtil.getDataSetTree();
+        if(dataArray != null){
             dataArray.add(r1);
             return dataArray;
         }
-        result.add(r1);
+                result.add(r1);
         return result;
     }
 

@@ -1,47 +1,31 @@
 package com.ruoyi.workflow.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-//import com.ruoyi.common.core.utils.StringUtils;
-//import com.ruoyi.common.core.utils.poi.ExcelUtil;
-//import com.ruoyi.common.core.web.controller.BaseController;
-//import com.ruoyi.common.core.web.domain.AjaxResult;
-//import com.ruoyi.common.core.web.page.TableDataInfo;
-//import com.ruoyi.common.log.annotation.Log;
-//import com.ruoyi.common.log.enums.BusinessType;
-//import com.ruoyi.common.security.annotation.RequiresPermissions;
-import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
-import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.enums.BusinessType;
-//import com.ruoyi.common.annotation.RequiresPermissions;
-import com.ruoyi.workflow.domain.FormDataVO;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.workflow.domain.ConditionVO;
+import com.ruoyi.workflow.domain.FormDataVO;
 import com.ruoyi.workflow.domain.FormVO;
 import com.ruoyi.workflow.domain.Template;
 import com.ruoyi.workflow.entity.JdbcEntity;
 import com.ruoyi.workflow.service.ITemplateService;
 import com.ruoyi.workflow.utils.DataSetDetailUtil;
-import com.ruoyi.workflow.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.ruoyi.common.utils.PageUtils.startPage;
 
 /**
  * 模板Controller
  *
- * @author ruoyi
+ * @author circleyo
  * @date 2022-07-03
  */
 @RestController

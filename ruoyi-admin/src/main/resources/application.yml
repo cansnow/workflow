@@ -129,3 +129,9 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+workflow:
+  #盈运API地址
+  apiUrl: http://admin.datains.cn/finance-admin
+  #盈析API签名参数
+  apiSign: abcdefg
