@@ -1,9 +1,12 @@
 package com.ruoyi.workflow.service.impl;
 
+import java.io.PrintWriter;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -14,11 +17,16 @@ import com.alibaba.fastjson.JSONObject;
 //import com.ruoyi.system.api.model.LoginUser;
 import com.ruoyi.common.annotation.DataSource;
 import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.enums.DataSourceType;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.framework.config.DruidConfig;
 import com.ruoyi.workflow.domain.*;
 import com.ruoyi.workflow.domain.vo.ParamVo;
+import com.ruoyi.workflow.entity.JdbcEntity;
 import com.ruoyi.workflow.utils.HttpUtils;
+import com.ruoyi.workflow.utils.JdbcUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -329,6 +337,7 @@ public class WfFormServiceImpl implements IWfFormService {
         return result;
     }
 
+
     @Override
 //    @Slave
     @DataSource(value = DataSourceType.SLAVE)
@@ -348,5 +357,176 @@ public class WfFormServiceImpl implements IWfFormService {
 
         result.setDataSetList(dataSetList);
         return result;
+    }
+
+    //=================3.0 jdbc 动态读取数据源=================
+    @Autowired
+    DruidConfig druidConfig;
+
+    @Override
+//    @Slave
+//    @DataSource(value = DataSourceType.SLAVE)
+    public List<TableColumn> findFieldListJdbc(String table, JdbcEntity jdbcEntity) {
+        String jdbcSql = "select column_name, (case when (is_nullable = 'no' > column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type from information_schema.columns where table_schema = (select database()) and table_name = ('"+table+"') order by ordinal_position";
+        return JdbcUtils.jdbcTableColumn(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),jdbcSql);
+    }
+
+    @Override
+//    @Slave
+//    @DataSource(value = DataSourceType.SLAVE)
+    public UserDBVO userDataListParamJdbc(ParamVo paramVo, JdbcEntity jdbcEntity) {
+
+//        String classForName = "com.mysql.cj.jdbc.Driver";
+//        String url = "jdbc:mysql://127.0.0.1:3306/demo1?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8";
+//        String username = "root";
+//        String password = "123456";
+//        String sql = "select * from person where 1=1";
+        String sql = "select * from "+paramVo.getTable()+" where 1=1";
+
+        StringBuilder builder = new StringBuilder(sql);
+
+        Map map = paramVo.getMap();
+        for(Object key:map.keySet()){
+            String value = map.get(key).toString();
+            System.out.println("key="+key+", vlaue="+value);
+            if(!"null".equals(key) && !"null".equals(value)){
+                builder.append(" and "+key+"="+map.get(key));
+            }
+        }
+
+
+//        LoginUser loginUser = SecurityUtils.getLoginUser();
+        UserDBVO result=new UserDBVO();
+//        result.setConstants(new UserInfoVO(loginUser.getUserId(),loginUser.getUsername(),"",""));
+        List<DataSetVO> dataSetList=new ArrayList<>();
+        DataSetVO dateSet1=new DataSetVO();
+        dateSet1.setDataSetId(paramVo.getTable());
+//        List<Map> valueList1=this.wfFormMapper.selectTableDataListParam(paramVo);
+//        List<Map> valueList1 = JdbcUtils.jdbc(classForName,url,username,password,sql);
+        List<Map> valueList1 = JdbcUtils.jdbc(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),builder.toString());
+
+        dateSet1.setValueList(valueList1);
+
+        dataSetList.add(dateSet1);
+
+        result.setDataSetList(dataSetList);
+        return result;
+    }
+
+    public static void main(String[] args) {
+        try {
+            jd();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+//    public static  void  jd()throws Exception, SQLException, InstantiationException, IllegalAccessException
+//    {
+//        //加载数据库驱动包
+//        Class clas= Class.forName("com.mysql.cj.jdbc.Driver");
+//        Driver driver= (Driver) clas.newInstance();
+//        //注册驱动
+//        DriverManager.registerDriver(driver);
+//        System.out.println("数据库驱动加载成功");
+//        //建立数据库链接
+//        Connection connection= DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/demo1?user=data_platform&password=68063bdc0cbcd52b&useUnicode=true&characterEncoding=UTF-8","root","123456");
+//        //创建操作命令
+//        Statement statement=connection.createStatement();
+//        //执行SQL语句
+//        ResultSet resultSet=statement.executeQuery("select * from person ");
+//
+//        //处理结果集
+//        while(resultSet.next())
+//        {
+//            String name=resultSet.getString("id");
+//            System.out.println(String.format("data_platform:name=%s",name));
+//        }
+//        //关闭结果集
+//        if (resultSet !=null)
+//        {
+//            try {
+//                resultSet.close();
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        //关闭命令
+//        if (statement!=null)
+//        {
+//            try {
+//                statement.close();
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        //关闭连接命令
+//        if (connection!=null)
+//        {
+//            try {
+//                connection.close();
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+    public static  void  jd()throws Exception, SQLException, InstantiationException, IllegalAccessException
+    {
+        //加载数据库驱动包
+        Class clas= Class.forName("com.mysql.cj.jdbc.Driver");
+        Driver driver= (Driver) clas.newInstance();
+        //注册驱动
+        DriverManager.registerDriver(driver);
+        System.out.println("数据库驱动加载成功");
+        //建立数据库链接
+        Connection connection= DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/demo1?user=data_platform&password=68063bdc0cbcd52b&useUnicode=true&characterEncoding=UTF-8","root","123456");
+        //创建操作命令
+        Statement statement=connection.createStatement();
+        //执行SQL语句
+        ResultSet resultSet=statement.executeQuery("select * from person ");
+
+        List<Map<String,Object>>list=new ArrayList<Map<String,Object>>();
+        ResultSetMetaData md = resultSet.getMetaData(); //获得结果集结构信息,元数据
+        int columnCount = md.getColumnCount();   //获得列数
+        //处理结果集
+        while(resultSet.next())
+        {
+//            String name=resultSet.getString("id");
+//            System.out.println(String.format("data_platform:name=%s",name));
+            Map<String,Object> rowData = new HashMap<String,Object>();
+            for (int i = 1; i <= columnCount; i++) {
+                rowData.put(md.getColumnName(i), resultSet.getObject(i));
+            }
+            list.add(rowData);
+        }
+        System.out.println("list============="+list);
+        //关闭结果集
+        if (resultSet !=null)
+        {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        //关闭命令
+        if (statement!=null)
+        {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        //关闭连接命令
+        if (connection!=null)
+        {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

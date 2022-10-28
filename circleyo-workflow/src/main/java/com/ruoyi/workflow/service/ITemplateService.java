@@ -4,6 +4,7 @@ import com.ruoyi.workflow.domain.FormDataVO;
 import com.ruoyi.workflow.domain.ConditionVO;
 import com.ruoyi.workflow.domain.FormVO;
 import com.ruoyi.workflow.domain.Template;
+import com.ruoyi.workflow.entity.JdbcEntity;
 
 import java.util.List;
 
@@ -90,4 +91,11 @@ public interface ITemplateService
     int insrtFormDataSlaveNew(FormDataVO formDataVO);
 
     int insrtFormDataNew(FormDataVO formDataVO);
+
+    //3.0 jdbc
+    int insrtFormDataJdbc(FormDataVO formDataVO, JdbcEntity jdbcEntity);
+
+    int updateFormDatasJdbc(ConditionVO updates, JdbcEntity jdbcEntity);
+
+    int deleteFormDatasJdbc(ConditionVO delete, JdbcEntity jdbcEntity);
 }

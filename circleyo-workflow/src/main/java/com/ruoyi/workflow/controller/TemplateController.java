@@ -22,7 +22,9 @@ import com.ruoyi.workflow.domain.FormDataVO;
 import com.ruoyi.workflow.domain.ConditionVO;
 import com.ruoyi.workflow.domain.FormVO;
 import com.ruoyi.workflow.domain.Template;
+import com.ruoyi.workflow.entity.JdbcEntity;
 import com.ruoyi.workflow.service.ITemplateService;
+import com.ruoyi.workflow.utils.DataSetDetailUtil;
 import com.ruoyi.workflow.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -376,7 +378,7 @@ public class TemplateController extends BaseController
             for(ConditionVO update : updates){
                 System.out.println("table:"+update.getTable());
                 if(StringUtils.isNotEmpty(update.getTid())){
-                    String table = returnTable(update.getTid());
+                    String table = DataSetDetailUtil.returnTable(update.getTid());
                     if(StringUtils.isNotEmpty(table)){
                         update.setTable(table);
                         System.out.println("id修改从库");
@@ -419,11 +421,13 @@ public class TemplateController extends BaseController
             for(ConditionVO delete : deletes){
                 System.out.println("table:"+delete.getTable());
                 if(StringUtils.isNotEmpty(delete.getTid())){
-                    String table = returnTable(delete.getTid());
+                    String table = DataSetDetailUtil.returnTable(delete.getTid());
+                    JdbcEntity jdbcEntity = DataSetDetailUtil.returnJdbcEntity(delete.getTid());
                     if(StringUtils.isNotEmpty(table)){
                         delete.setTable(table);
-                        System.out.println("id插入从库List");
-                        sl.add(delete);
+                        System.out.println("id删除动态数据源List");
+                        templateService.deleteFormDatasJdbc(delete, jdbcEntity);
+//                        sl.add(delete);
                     }
                 }else{
                     if(StringUtils.isEmpty(delete.getTable())){
@@ -460,7 +464,9 @@ public class TemplateController extends BaseController
     public AjaxResult saveFormDataNew(@RequestBody FormVO formVO)
     {
         try{
-            return toAjax(saveFormDatasNew2(formVO));
+//            return toAjax(saveFormDatasNew2(formVO));
+            //3.0 jdbc
+            return toAjax(saveFormDatasJdbc(formVO));
         }catch (Exception e){
             System.out.println("报错！！！");
             e.printStackTrace();
@@ -473,7 +479,7 @@ public class TemplateController extends BaseController
         for (FormDataVO form : formVO.getFormDataVO()) {
             System.out.println("add table:"+form.getTable());
             if(StringUtils.isNotEmpty(form.getTid())){
-                String table = returnTable(form.getTid());
+                String table = DataSetDetailUtil.returnTable(form.getTid());
                 if(StringUtils.isNotEmpty(table)){
                     form.setTable(table);
                     System.out.println("id新增从库");
@@ -496,7 +502,7 @@ public class TemplateController extends BaseController
         for(ConditionVO update : formVO.getUpdateObj()){
             System.out.println("update table:"+update.getTable());
             if(StringUtils.isNotEmpty(update.getTid())){
-                String table = returnTable(update.getTid());
+                String table = DataSetDetailUtil.returnTable(update.getTid());
                 if(StringUtils.isNotEmpty(table)){
                     update.setTable(table);
                     System.out.println("id修改从库");
@@ -519,27 +525,60 @@ public class TemplateController extends BaseController
         return 1;
     }
 
-    public String returnTable(String id){
-        String res = HttpUtils.sendGet("http://admin.datains.cn/finance-admin/form/getDataSetDetail","id="+id);
-        JSONObject jsonObject = JSON.parseObject(res);
-        Integer code = (Integer) jsonObject.get("code");
-
-        if(code == 1000){
-            JSONObject json = jsonObject.getJSONObject("data");
-            String sql = json.getString("sql");
-
-            String[] tabs = sql.split("from ");
-            String tab = "";
-            if(tabs.length <= 1){
-                tab = sql.split("FROM ")[1].split(" ")[0];
+    //3.0 dbc
+    @Transactional(rollbackFor = Exception.class)
+    public int saveFormDatasJdbc(FormVO formVO) {
+        for (FormDataVO form : formVO.getFormDataVO()) {
+            System.out.println("add table:"+form.getTable());
+            if(StringUtils.isNotEmpty(form.getTid())){
+                String table = DataSetDetailUtil.returnTable(form.getTid());
+                JdbcEntity jdbcEntity = DataSetDetailUtil.returnJdbcEntity(form.getTid());
+                if(StringUtils.isNotEmpty(table)){
+                    form.setTable(table);
+                    System.out.println("id新增从库");
+//                    templateService.insrtFormDataSlaveNew(form);
+                    templateService.insrtFormDataJdbc(form, jdbcEntity);
+                }
             }else{
-                tab = tabs[1].split(" ")[0];
+                if(StringUtils.isEmpty(form.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(form.getTable())){
+                    System.out.println("新增从库");
+                    templateService.insrtFormDataSlaveNew(form);
+                }else{
+                    System.out.println("新增主库");
+                    templateService.insrtFormDataNew(form);
+                }
             }
-            System.out.println("sql:"+sql);
-            System.out.println("table:"+tab);
-            return tab;
-        }else{
-            return "";
         }
+        for(ConditionVO update : formVO.getUpdateObj()){
+            System.out.println("update table:"+update.getTable());
+            if(StringUtils.isNotEmpty(update.getTid())){
+                String table = DataSetDetailUtil.returnTable(update.getTid());
+                JdbcEntity jdbcEntity = DataSetDetailUtil.returnJdbcEntity(update.getTid());
+                if(StringUtils.isNotEmpty(table)){
+                    update.setTable(table);
+                    System.out.println("id修改从库");
+//                    templateService.updateFormDatasNewSlave(update);
+                    templateService.updateFormDatasJdbc(update, jdbcEntity);
+                }
+            }else{
+                if(StringUtils.isEmpty(update.getTable())){
+                    System.out.println("table字段为空");
+                    throw new RuntimeException("table字段为空");
+                }
+                if(!slaveTables.contains(update.getTable())){
+                    System.out.println("修改从库");
+                    templateService.updateFormDatasNewSlave(update);
+                }else {
+                    System.out.println("修改主库");
+                    templateService.updateFormDatasNew(update);
+                }
+            }
+        }
+        return 1;
     }
+
 }

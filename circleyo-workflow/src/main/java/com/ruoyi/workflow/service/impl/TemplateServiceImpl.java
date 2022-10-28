@@ -12,8 +12,10 @@ import com.ruoyi.common.enums.DataSourceType;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.workflow.domain.*;
+import com.ruoyi.workflow.entity.JdbcEntity;
 import com.ruoyi.workflow.mapper.TemplateMapper;
 import com.ruoyi.workflow.service.ITemplateService;
+import com.ruoyi.workflow.utils.JdbcUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -282,5 +284,66 @@ public class TemplateServiceImpl implements ITemplateService {
         form.setTable(formDataVO.getTable());
         templateMapper.insrtFormData(form);
         return 1;
+    }
+
+    //3.0 jdbc
+    @Override
+    public int insrtFormDataJdbc(FormDataVO formDataVO, JdbcEntity jdbcEntity) {
+//        FormDataVO form = new FormDataVO();
+//        form.setSingleFields(formDataVO.getSingleFields());
+//        form.setTable(formDataVO.getTable());
+//        templateMapper.insrtFormData(form);
+        List<FieldVO> list = new ArrayList<>();
+
+        String sql = "insert into " + formDataVO.getTable();
+        StringBuilder builder = new StringBuilder(sql);
+        builder.append(" (");
+        for(FieldVO singleFields : formDataVO.getSingleFields()){
+            if(!StringUtils.isEmpty(singleFields.getFieldName()) && !"null".equals(singleFields.getFieldName()) && singleFields.getFieldValue() != null && !"null".equals(singleFields.getFieldValue())){
+                builder.append(singleFields.getFieldName()+",");
+            }
+        }
+        builder.replace(builder.length()-1,builder.length(),")");
+        builder.append(" value (");
+        for(FieldVO singleFields : formDataVO.getSingleFields()){
+            if(!StringUtils.isEmpty(singleFields.getFieldName()) && !"null".equals(singleFields.getFieldName()) && singleFields.getFieldValue() != null && !"null".equals(singleFields.getFieldValue())){
+                builder.append("'"+singleFields.getFieldValue()+"',");
+            }
+        }
+        builder.replace(builder.length()-1,builder.length(),")");
+        return JdbcUtils.jdbcSave(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),builder.toString());
+    }
+
+    @Override
+    public int updateFormDatasJdbc(ConditionVO update, JdbcEntity jdbcEntity) {
+        String sql = "update " + update.getTable();
+        StringBuilder builder = new StringBuilder(sql);
+        builder.append(" set ");
+        for(FieldVO fieldVO : update.getFields()){
+            if(!StringUtils.isEmpty(fieldVO.getFieldName()) && !"null".equals(fieldVO.getFieldName()) && fieldVO.getFieldValue() != null && !"null".equals(fieldVO.getFieldValue())){
+                builder.append(fieldVO.getFieldName()+" = '"+fieldVO.getFieldValue()+"',");
+            }
+        }
+        builder.replace(builder.length()-1,builder.length(),"");
+        builder.append(" where 1=1");
+        for(FieldVO fieldVO : update.getConditions()){
+            if(!StringUtils.isEmpty(fieldVO.getFieldName()) && !"null".equals(fieldVO.getFieldName()) && fieldVO.getFieldValue() != null && !"null".equals(fieldVO.getFieldValue())){
+                builder.append(" and "+ fieldVO.getFieldName()+" = '"+fieldVO.getFieldValue()+"'");
+            }
+        }
+        return JdbcUtils.jdbcSave(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),builder.toString());
+    }
+
+    @Override
+    public int deleteFormDatasJdbc(ConditionVO delete, JdbcEntity jdbcEntity) {
+        String sql = "delete from " + delete.getTable();
+        StringBuilder builder = new StringBuilder(sql);
+        builder.append(" where 1=1");
+        for(FieldVO fieldVO : delete.getConditions()){
+            if(!StringUtils.isEmpty(fieldVO.getFieldName()) && !"null".equals(fieldVO.getFieldName()) && fieldVO.getFieldValue() != null && !"null".equals(fieldVO.getFieldValue())){
+                builder.append(" and "+ fieldVO.getFieldName()+" = '"+fieldVO.getFieldValue()+"'");
+            }
+        }
+        return JdbcUtils.jdbcSave(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),builder.toString());
     }
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.ruoyi.workflow.domain.*;
 import com.ruoyi.workflow.domain.vo.ParamVo;
+import com.ruoyi.workflow.entity.JdbcEntity;
 
 /**
  * 工作流表单Service接口
@@ -113,4 +114,14 @@ public interface IWfFormService
     UserDBVO userDataListParam(ParamVo paramVo);
 
     UserDBVO userDataListParamSlave(ParamVo paramVo);
+
+    //3.0 jdbc
+    /**
+     * 获取表对应的字段
+     * @param table 表名称
+     * @return 表字段
+     */
+    List<TableColumn> findFieldListJdbc(String table, JdbcEntity jdbcEntity);
+
+    UserDBVO userDataListParamJdbc(ParamVo paramVo, JdbcEntity jdbcEntity);
 }
