@@ -111,6 +111,56 @@
         </div>
       </template>
     </div>
+    <!-- 数据校验 -->
+    <div class="overall_title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">数据校验</span>
+      <el-button type="text" @click="open(3)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
+    <!-- <div style="margin-left: 2px;">
+      <template v-if="roleList.length > 0">
+        <div v-for="(dItem, index) in roleList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
+          <div>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditSearch(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSearchSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelSearch(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div> -->
+    <!-- 条件格式 -->
+    <div class="overall_title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">条件格式</span>
+      <el-button type="text" @click="open(4)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
+    <!-- <div style="margin-left: 2px;">
+      <template v-if="roleList.length > 0">
+        <div v-for="(dItem, index) in roleList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
+          <div>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditSearch(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSearchSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelSearch(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div> -->
     <div class="overall_title">冻结行列</div>
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="冻结列">
@@ -123,11 +173,13 @@
     <Dialog
       :title="title"
       :dialogVisible="dialogVisible"
-      :width="dialogType == 0 ? '30%' : '40%'"
+      :width="dialogType == 0 || dialogType == 3 || dialogType == 4 ? '30%' : '40%'"
       @handleClose="handleClose"
       @handleIsOk="handleIsOk">
       <Form v-show="dialogType == 0" ref="form" />
       <Data v-show="dialogType == 1 || dialogType == 2" :dialogType="dialogType" :del="dialogType" ref="Data" />
+      <conditionRule v-show="dialogType == 3" ref="conditionRule" />
+      <conditionStyle v-show="dialogType == 4" ref="conditionStyle" />
 		</Dialog>
   </div>
 </template>
@@ -136,12 +188,16 @@
 import Form from './src/form.vue';
 import Data from './src/data.vue';
 import Dialog from '../dialog/index.vue';
+import conditionRule from './src/conditionRule.vue';
+import conditionStyle from './src/conditionStyle.vue';
 export default {
   inject: ['$rightPanel'],
   components: {
     Form,
     Data,
     Dialog,
+    conditionRule,
+    conditionStyle,
   },
   data() {
     return {
@@ -149,6 +205,7 @@ export default {
       formList: [], // 权限规则
       dataList: [], // 回写规则
       searchList: [], // 查询规则
+      roleList: [], // 数据校验
       dialogVisible: false,
       title: '',
       index: -1,
@@ -290,7 +347,9 @@ export default {
           this.formList.splice(this.index, 1, form);
           this.index = -1;
         }
-      } else {
+      } 
+      
+      if (this.dialogType == 1 || this.dialogType == 2) {
         this.$refs.Data.resetData();
         if (this.dialogType == 1) {
           this.dataList = _.map(this.dataList, item => {
@@ -350,6 +409,11 @@ export default {
           case 2:
             this.title = '查询规则';
             break;
+          case 3:
+            this.title = "数据校验";
+            break;
+          case 4:
+            this.title = "条件格式";
         }
       }
     },

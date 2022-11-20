@@ -198,6 +198,10 @@ export default {
             freezeColumn: 0,
             // 冻结列
             freezeRow: 0,
+            // 数据校验
+            rules: {},
+            // 条件格式
+            conditions: {},
         };
     },
     computed: {
