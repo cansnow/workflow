@@ -149,13 +149,13 @@ export default {
       },
       setData(data) {
         this.resetData();
-        Object.assign(this.from, JSON.parse(JSON.stringify(data)));
+        Object.assign(this.form, JSON.parse(JSON.stringify(data)));
         this.index = data.index;
       },
       resetData() {
         this.activeName = 'setting';
         this.index = -1;
-        Object.assign(this.from, {
+        Object.assign(this.form, {
           title: '',
           content: '',
           pos: '',

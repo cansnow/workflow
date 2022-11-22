@@ -252,6 +252,10 @@ export default {
           if (this.dialogType == 1 || this.dialogType == 2) {
             this.$refs.Data.setCellValue(newValue);
           }
+          // 数据校验
+          if (this.dialogType == 3) {
+            this.$refs.conditionRule.setCellValue(newValue);
+          }
           // 条件格式
           if (this.dialogType == 4) {
             this.$refs.conditionStyle.setCellValue(newValue);
