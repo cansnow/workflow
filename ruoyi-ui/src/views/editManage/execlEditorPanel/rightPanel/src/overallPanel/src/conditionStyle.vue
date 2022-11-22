@@ -126,6 +126,7 @@ export default {
           textDel: undefined,
         },
       });
+      this.index = -1;
     },
     handleClick(name) {
       const style = this.form.style;

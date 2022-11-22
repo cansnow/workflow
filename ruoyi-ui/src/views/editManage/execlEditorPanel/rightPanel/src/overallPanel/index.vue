@@ -118,24 +118,24 @@
         <i class="mdi mdi-plus"></i>
       </el-button>
     </div>
-    <!-- <div style="margin-left: 2px;">
+    <div style="margin-left: 2px;">
       <template v-if="roleList.length > 0">
         <div v-for="(dItem, index) in roleList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
-          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ roleName[dItem.condition] }}</span>
           <div>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditSearch(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditRole(index)">
               <i class="mdi mdi-text-box-edit"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSearchSort">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleRoleSort">
               <i class="mdi mdi-sort"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelSearch(index)">
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelRole(index)">
               <i class="mdi mdi-close"></i>
             </el-button>
           </div>
         </div>
       </template>
-    </div> -->
+    </div>
     <!-- 条件格式 -->
     <div class="overall_title" style="display: flex; align-items: center;">
       <span style="flex: 1;">条件格式</span>
@@ -220,6 +220,16 @@ export default {
       freezeColumn: 0,
       freezeRow: 0,
       options: [], // 回写规则数据集
+      roleName: {
+        int: '整数',
+        float: '小数',
+        datetime: '日期',
+        length: '文本长度',
+        phone: '手机号',
+        emil: '邮箱',
+        IDCard: '身份证号',
+        custom: '自定义正则表达式',
+      },
     };
   },
   computed: {
@@ -302,6 +312,7 @@ export default {
       this.dataList = data.dataList;
       this.searchList = data.searchList;
       this.conditions = data.conditions;
+      this.roleList = data.roleList;
       this.start = data.start;
       this.end = data.end;
       this.freezeColumn = data.freezeColumn;
@@ -315,6 +326,7 @@ export default {
         dataList: this.dataList,
         searchList: this.searchList,
         conditions: this.conditions, // 条件格式
+        roleList: this.roleList, // 数据校验
         start: this.start,
         end: this.end,
         pos: this.pos,
@@ -364,6 +376,27 @@ export default {
       this.conditions.splice(index, 1);
       this.$emit('ovserallData', this.getData());
     },
+
+    handleEditRole(index) {
+      if (this.dialogVisible) {
+        return;
+      }
+      this.open(3);
+      this.$nextTick(() => {
+        const temp = this.roleList[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.conditionRule.setData(temp);
+        this.roleList.splice(index, 1, temp);
+        this.title = '编辑数据校验';
+      });
+    },
+    handleRoleSort() {
+      this.roleList.reverse();
+    },
+    handleDelRole(index) {
+      this.roleList.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
+    },
     /** 取消 */
     handleClose() {
       if (this.dialogType == 0) {
@@ -387,6 +420,13 @@ export default {
             return Object.assign({}, item, { disabled: false });
           });
         }
+      }
+
+      if (this.dialogType == 3) {
+        this.$refs.conditionRule.resetData();
+        this.roleList = _.map(this.roleList, item => {
+          return Object.assign({}, item, { disabled: false });
+        });
       }
 
       if (this.dialogType == 4) {
@@ -427,6 +467,22 @@ export default {
           this.searchList.push(data);
         } else {
           this.searchList.splice(data.index, 1, data);
+        }
+      }
+
+      // 数据校验
+      if (this.dialogType == 3) {
+        const data = this.$refs.conditionRule.getData();
+        if (data.index == -1) {
+          if (data.condition != 'none') {
+            this.roleList.push(data);
+          }
+        } else {
+          if (data.condition != 'none') {
+            this.roleList.splice(data.index, 1, data);
+          } else {
+            this.roleList.splice(data.index, 1);
+          }
         }
       }
 

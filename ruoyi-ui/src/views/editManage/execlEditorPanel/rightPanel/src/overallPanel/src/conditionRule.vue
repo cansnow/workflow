@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-tabs v-model="activeName" @tab-click="handleClick">
+    <el-tabs v-model="activeName">
       <el-tab-pane label="设置" name="setting">
         <div style="display: flex;">
           <div style="display: flex; width: 100%;">
@@ -46,7 +46,7 @@
                 <div style="flex: auto;">
                   <el-input  v-model="form.start" :placeholder="placeholder(0)"></el-input>
                 </div>
-                <div v-if="(form.Judge == 'Between' || form.Judge == 'NoBetween') && form.condition != 'custom'" style="width: 50%; margin-left: 20px;">
+                <div v-if="(form.Judge == 'and' || form.Judge == 'not') && form.condition != 'custom'" style="width: 50%; margin-left: 20px;">
                   <el-input  v-model="form.end" :placeholder="placeholder(1)"></el-input>
                 </div>                
               </div>
@@ -56,7 +56,7 @@
         <div v-if="form.condition != 'none'" style="display: flex; align-items: center; margin-top: 10px">
           <div style="margin-right: 30px; width: 40px;">位置</div>
           <div style="flex: auto;">
-            <el-input v-model="form.pos" placeholder="请输入内容"></el-input>
+            <el-input v-model="form.pos" placeholder="请输入内容" readonly></el-input>
           </div>
         </div>
       </el-tab-pane>
@@ -90,8 +90,8 @@ export default {
         activeName: 'setting',
         options: [
           { label: '无', value: 'none' },
-          { label: '整数', value: 'Int' },
-          { label: '小数', value: 'Float' },
+          { label: '整数', value: 'int' },
+          { label: '小数', value: 'float' },
           { label: '日期', value: 'datetime' },
           { label: '文本长度', value: 'length' },
           { label: '手机号', value: 'phone' },
@@ -100,24 +100,25 @@ export default {
           { label: '自定义正则表达式', value: 'custom' },
         ],
         optionsJudge: [
-          { label: '介于', value: 'Between' },
-          { label: '未介于', value: 'NoBetween' },
-          { label: '等于', value: 'Equal' },
-          { label: '不等于', value: 'NoEqual' },
-          { label: '大于', value: 'Greater' },
-          { label: '小于', value: 'Less' },
-          { label: '大于等于', value: 'GreaterEqual' },
-          { label: '小于等于', value: 'LessEqual' },
+          { label: '介于', value: 'and' },
+          { label: '未介于', value: 'not' },
+          { label: '等于', value: '==' },
+          { label: '不等于', value: '!=' },
+          { label: '大于', value: '>' },
+          { label: '小于', value: '<' },
+          { label: '大于等于', value: '>=' },
+          { label: '小于等于', value: '<=' },
         ],
         form: {
           title: '',
           content: '',
           pos: '',
           condition: 'none',
-          Judge: 'Between',
+          Judge: 'and',
           start: '',
           end: '',
         },
+        index: -1,
       };
     },
     computed: {
@@ -144,25 +145,29 @@ export default {
     methods: {
       // 获取数据
       getData() {
-        return JSON.parse(JSON.stringify(this.form));
+        return JSON.parse(JSON.stringify({ ...this.form, index: this.index }));
       },
       setData(data) {
         this.resetData();
         Object.assign(this.from, JSON.parse(JSON.stringify(data)));
+        this.index = data.index;
       },
       resetData() {
         this.activeName = 'setting';
+        this.index = -1;
         Object.assign(this.from, {
           title: '',
           content: '',
           pos: '',
           condition: 'none',
-          Judge: 'Between',
+          Judge: 'and',
           start: '',
           end: '',
         })
       },
-      handleClick() {},
+      setCellValue(pos) {
+        this.form.pos = pos;
+      },
     }
   };
 </script>

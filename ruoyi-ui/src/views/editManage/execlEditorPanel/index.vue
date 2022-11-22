@@ -225,6 +225,7 @@ export default {
 				dataList: [], // 回写规则
 				searchList: [], // 搜索规则
 				conditions: [], // 条件格式
+				roleList: [], // 数据校验
 				start: '', // 开始行列
 				end: '', // 结束行列
 				dataOptions: [], // 数据面板选项
@@ -240,6 +241,7 @@ export default {
 					dataList: tempData.dataList, // 回写规则
 					searchList: tempData.searchList, // 搜索规则
 					conditions: tempData.conditions, // 条件格式
+					roleList: tempData.roleList, // 数据校验
 					dataOptions: tempData.dataOptions, // 数据面板选项
 					start: tempData.start, // 开始行列
 					end: tempData.end, // 结束行列
@@ -330,6 +332,7 @@ export default {
 					dataList: this.sheetData[sIndex].dataList, // 回写规则
 					searchList: this.sheetData[sIndex].searchList, // 搜索规则
 					conditions: this.sheetData[sIndex].conditions, // 条件格式
+					roleList: this.sheetData[sIndex].roleList, // 数据校验
 					start: this.sheetData[sIndex].start,
 					dataOptions: this.sheetData[sIndex].dataOptions, // 数据面板选项
 					end: this.sheetData[sIndex].end,
@@ -796,6 +799,7 @@ export default {
 					dataList: data.dataList.length > 0 ?  data.dataList : temp.dataList,
 					searchList: data.searchList.length > 0 ? data.searchList : temp.searchList,
 					conditions: data.conditions.length > 0 ? data.conditions: temp.conditions,
+					roleList: data.roleList.length > 0 ? data.roleList : temp.roleList,
 					start: data.start == '' ? temp.start : data.start,
 					end: data.end == '' ? temp.end : data.end,
 					pos: data.pos || temp.pos || 'center',
@@ -921,6 +925,7 @@ export default {
 							dataList: item.dataList || [],
 							searchList: item.searchList || [],
 							conditions: item.conditions || [],
+							roleList: item.roleList || [],
 							dataOptions: item.dataOptions || [],
 							pos: item.pos || 'center',
 						});
