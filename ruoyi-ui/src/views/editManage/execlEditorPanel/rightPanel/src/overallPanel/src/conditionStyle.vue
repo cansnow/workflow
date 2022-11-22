@@ -11,14 +11,19 @@
     <div style="display: flex; width: 100%; margin-top: 10px;">
       <div style="margin-right: 20px; width: 50px; line-height: 36px;">范围</div>
       <div style="display: flex; flex-wrap: wrap; width: calc(100% - 70px);">
-        <el-input v-model="form.range"></el-input>
+        <el-input v-model="form.range" readonly></el-input>
       </div>
     </div>
     <!-- 样式 -->
     <div style="display: flex; width: 100%; margin-top: 10px;">
       <div style="margin-right: 20px; width: 50px; line-height: 36px;">格式</div>
       <div style="display: flex; flex-wrap: wrap; width: calc(100% - 70px);">
-        <div style="width: 100%; line-height: 32px; height: 32px; border: 1px #ddd solid; border-radius: 4px; padding-left: 10px;" :style="form.style">格式样式</div>
+        <div 
+          style="width: 100%; line-height: 32px; height: 32px; border: 1px #ddd solid; border-radius: 4px; padding-left: 10px;" 
+          :style="form.style"
+        >
+          <span :style="!!form.style.textDel ? { textDecoration: 'line-through' } : {}">格式样式</span>
+        </div>
         <div style="margin-top: 10px; width: 100%; display: flex; justify-content: space-between;">
           <div v-for="(tool, name) in toolbars" :key="name">
             <Dropdown class="meg-menu-op meg-menu-op-color" v-if="name == 'color' || name == 'bgColor'">
@@ -47,8 +52,16 @@ export default {
       form: {
         expression: '',
         range: '',
-        style: {},
+        style: {
+          color: undefined,
+          backgroundColor: undefined,
+          textDecoration: undefined,
+          fontWeight: undefined,
+          fontStyle: undefined,
+          textDel: undefined,
+        },
       },
+      index: -1,
       toolbars: {
         bold:{
           icon: 'mdi mdi-format-bold',
@@ -90,9 +103,30 @@ export default {
     };
   },
   methods: {
-    getData() {},
-    setData() {},
-    resetData() {},
+    getData() {
+      return { ...this.form, index: this.index };
+    },
+    setCellValue(pos) {
+      this.form.range = pos;
+    },
+    setData(data) {
+      Object.assign(this.form, data);
+      this.index = data.index;
+    },
+    resetData() {
+      Object.assign(this.form, {
+        expression: '',
+        range: '',
+        style: {
+          color: undefined,
+          backgroundColor: undefined,
+          textDecoration: undefined,
+          fontWeight: undefined,
+          fontStyle: undefined,
+          textDel: undefined,
+        },
+      });
+    },
     handleClick(name) {
       const style = this.form.style;
       switch (name) {
@@ -103,13 +137,32 @@ export default {
           Object.assign(style, { backgroundColor: this.toolbars[name].value });
           break;
         case 'underline':
-          Object.assign(style, { textDecoration: name });
+          if (!!style.textDecoration) {
+            Object.assign(style, { textDecoration: undefined });
+          } else {
+            Object.assign(style, { textDecoration: name });
+          }
           break;
         case 'bold':
-          Object.assign(style, { fontWeight: name });
+          if (!!style.fontWeight) {
+            Object.assign(style, { fontWeight: undefined });
+          } else {
+            Object.assign(style, { fontWeight: name });
+          }
           break;
         case 'italic':
-          Object.assign(style, { fontStyle: name });
+          if (!!style.fontStyle) {
+            Object.assign(style, { fontStyle: undefined });
+          } else {
+            Object.assign(style, { fontStyle: name });
+          }
+          break;
+        case 'strikethrough':
+          if (!!style.textDel) {
+            Object.assign(style, { textDel: undefined });
+          } else {
+            Object.assign(style, { textDel: name });
+          }
           break;
       }
       Object.assign(this.form, { style });

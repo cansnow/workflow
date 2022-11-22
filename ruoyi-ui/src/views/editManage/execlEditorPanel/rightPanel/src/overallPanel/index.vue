@@ -143,24 +143,24 @@
         <i class="mdi mdi-plus"></i>
       </el-button>
     </div>
-    <!-- <div style="margin-left: 2px;">
-      <template v-if="roleList.length > 0">
-        <div v-for="(dItem, index) in roleList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
-          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ dItem.dataName || dItem.title }}</span>
+    <div style="margin-left: 2px;">
+      <template v-if="conditions.length > 0">
+        <div v-for="(item, index) in conditions" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ item.expression }}</span>
           <div>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditSearch(index)">
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="() => handleEditCondition(index)">
               <i class="mdi mdi-text-box-edit"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleSearchSort">
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="handleConditionSort">
               <i class="mdi mdi-sort"></i>
             </el-button>
-            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelSearch(index)">
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="() => handleDelCondition(index)">
               <i class="mdi mdi-close"></i>
             </el-button>
           </div>
         </div>
       </template>
-    </div> -->
+    </div>
     <div class="overall_title">冻结行列</div>
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="冻结列">
@@ -206,6 +206,7 @@ export default {
       dataList: [], // 回写规则
       searchList: [], // 查询规则
       roleList: [], // 数据校验
+      conditions: [], // 条件格式
       dialogVisible: false,
       title: '',
       index: -1,
@@ -240,6 +241,10 @@ export default {
           // 回写规则
           if (this.dialogType == 1 || this.dialogType == 2) {
             this.$refs.Data.setCellValue(newValue);
+          }
+          // 条件格式
+          if (this.dialogType == 4) {
+            this.$refs.conditionStyle.setCellValue(newValue);
           }
         }
         // 设置回写单元格
@@ -296,6 +301,7 @@ export default {
       });
       this.dataList = data.dataList;
       this.searchList = data.searchList;
+      this.conditions = data.conditions;
       this.start = data.start;
       this.end = data.end;
       this.freezeColumn = data.freezeColumn;
@@ -308,6 +314,7 @@ export default {
         formList: this.formList,
         dataList: this.dataList,
         searchList: this.searchList,
+        conditions: this.conditions, // 条件格式
         start: this.start,
         end: this.end,
         pos: this.pos,
@@ -337,6 +344,26 @@ export default {
       this.searchList.splice(index, 1);
       this.$emit('ovserallData', this.getData());
     },
+    handleEditCondition(index) {
+      if (this.dialogVisible) {
+        return;
+      }
+      this.open(4);
+      this.$nextTick(() => {
+        const temp = this.conditions[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.conditionStyle.setData(temp);
+        this.conditions.splice(index, 1, temp);
+        this.title = '编辑条件格式';
+      });
+    },
+    handleConditionSort() {
+      this.conditions.reverse();
+    },
+    handleDelCondition(index) {
+      this.conditions.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
+    },
     /** 取消 */
     handleClose() {
       if (this.dialogType == 0) {
@@ -361,6 +388,13 @@ export default {
           });
         }
       }
+
+      if (this.dialogType == 4) {
+        this.$refs.conditionStyle.resetData();
+        this.conditions = _.map(this.conditions, item => {
+          return Object.assign({}, item, { disabled: false });
+        });
+      }
       this.dialogVisible = false;
       this.$emit('ovserallData', this.getData());
     },
@@ -374,23 +408,38 @@ export default {
           Object.assign(form, { disabled: false });
           this.formList.splice(form.index, 1, form);
         }
-      } else {
-        if (this.dialogType == 1) {
-          const data = this.$refs.Data.getFieldData();
-          if (data.index == -1) {
-            this.dataList.push(data);
-          } else {
-            this.dataList.splice(data.index, 1, data);
-          }
+      }
+
+      // 回写规则
+      if (this.dialogType == 1) {
+        const data = this.$refs.Data.getFieldData();
+        if (data.index == -1) {
+          this.dataList.push(data);
         } else {
-          const data = this.$refs.Data.getFieldData();
-          if (data.index == -1) {
-            this.searchList.push(data);
-          } else {
-            this.searchList.splice(data.index, 1, data);
-          }
+          this.dataList.splice(data.index, 1, data);
         }
       }
+      // 查询规则
+      if (this.dialogType == 2){
+        const data = this.$refs.Data.getFieldData();
+        Object.assign(data, { disabled: false });
+        if (data.index == -1) {
+          this.searchList.push(data);
+        } else {
+          this.searchList.splice(data.index, 1, data);
+        }
+      }
+
+      // 条件格式
+      if (this.dialogType == 4) {
+        const data = this.$refs.conditionStyle.getData();
+        if (data.index == -1) {
+          this.conditions.push(data);
+        } else {
+          this.conditions.splice(data.index, 1, data);
+        }
+      }
+
       this.handleClose();
     },
     /** 打开弹窗 */

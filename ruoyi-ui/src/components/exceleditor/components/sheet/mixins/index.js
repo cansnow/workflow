@@ -14,6 +14,8 @@ import grid from './grid';
 import gridRows from './gridRows';
 import styles from './styles';
 import cellFormat from './cellFormat';
+import conditions from './conditions';
+import rules from './rules';
 
 export const mixins = [
     layoutMixin,
@@ -32,4 +34,6 @@ export const mixins = [
     gridRows,
     styles,
     cellFormat,
+    conditions,
+    rules,
 ];
