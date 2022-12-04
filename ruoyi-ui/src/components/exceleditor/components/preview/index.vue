@@ -32,6 +32,12 @@
           />
         </div>
       </div>
+      <el-dialog
+        :title="roleTitle"
+        :visible.sync="roleErrorShow"
+        width="30%">
+        {{ roleContent }}
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -49,7 +55,9 @@ import {
   deleteFormData, 
   getTableFieldByName,
 } from '@/api/editManage';
+import roleListMixin from './roleListMixin';
 export default {
+  mixins: [roleListMixin],
   components: { Sheet },
   data() {
     return {
@@ -139,6 +147,9 @@ export default {
         // 提交
         if (res.p.t == 'submit') {
           // 根据回写规则提交数据
+          if (!this.roles()) {
+            return;
+          }
           // 表单校验
           _this.cellCheck = true;
           _.each(_this.$curSheet().cells, (cell, key) => {
@@ -2543,6 +2554,7 @@ export default {
               sheetData[i].dataList,
               sheetData[i].conditions,
             );
+            this.roleList = sheetData[i].roleList;
 
             // 删除空单元格
             _.map(temp.cells, (item, key) => {
