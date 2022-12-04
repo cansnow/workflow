@@ -1091,7 +1091,7 @@ export default {
       }
       return ifStart;
     },
-    async formatCellData(data, formList, Range, searchList, dataList) {
+    async formatCellData(data, formList, Range, searchList, dataList, conditions) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -1756,6 +1756,107 @@ export default {
         console.log('cellLinks', cellLinks);
       }
 
+      // 设置条件格式
+      if (conditions && conditions.length > 0) {
+        _.map(conditions, item => {
+          let range = item.range;
+          if (range.includes(':')) {
+            range = range.split(':')[0]
+          }
+          const pos = this.formatData(range);
+          // 表达式
+          let expression = item.expression;
+          // 获取判断条件，获取变量
+          _.map(this.constants, (value, key) => {
+            if (key.indexOf('key_') != -1) {
+              // 判断是否包含替换变量
+              if (expression.indexOf(value) != -1) {
+                // 获取值的key
+                const valueKey = key.replace('key_', 'value_');
+                // ${USER_ID} == admin => '"admin" == "admin"';
+                expression = expression.replace(value, this.constants[valueKey]);
+              }
+            }
+          });
+          if (/\$|\{|\}/g.test(expression)) {
+            // 单元格取值
+            const cellsEx = expression.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+            _.map(cellsEx, cellItem => {
+              const str = cellItem.replaceAll(/\$|\{|\}/g, '');
+              // 单个单元格
+              if (str.indexOf(':') == -1) {
+                const pos = this.formatData(str);
+                const cell = cells[pos.rowIndex][pos.columnIndex]
+                // 字段值 cell.v;
+                if (!!cell) {
+                  expression = expression.replace(cellItem, cell.v);
+                }
+              } else {
+                // 多个单元格
+                const strList = str.split(':');
+                const start = _this.formatData(strList[0]);
+                const end = _this.formatData(strList[1]);
+                const values = [];
+                for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                  for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                    const cell = cells[i][j];
+                    if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                      values.push(cell.v);
+                    }
+                  }
+                }
+                expression = expression.replace(cellItem, values);
+              }
+            });
+
+          }
+          const ifStart = this.getResult(expression);
+          // 条件成立
+          if (ifStart) {
+            const styleName = this.getNewStyleName(styles);
+            const option = Object.assign({
+              backgroundColor:undefined,
+              border:undefined,
+              borderColor:undefined,
+              color:undefined,
+              fontFamily:undefined,
+              fontSize:undefined,
+              fontStyle:undefined,
+              fontWeight:undefined,
+              textAlign:undefined,
+              textDecoration:undefined,
+              textIndent:undefined,
+              verticalAlign:undefined,
+              whiteSpace:undefined,
+            }, {
+              ...item.style,
+            });
+            styles[styleName] = option;
+            const temp = { s: styleName };
+            if (!!cells[pos.rowIndex]) {
+              if (cells[pos.rowIndex].length > pos.columnIndex) {
+                const tempCell = cells[pos.rowIndex][pos.columnIndex];
+                cells[pos.rowIndex].splice(pos.columnIndex, 1, Object.assign(tempCell, temp));
+              } else {
+                for (let i = cells[pos.rowIndex].length; i < pos.columnIndex; i++) {
+                  cells[pos.rowIndex].push(null);
+                }
+                cells[pos.rowIndex].push(temp);
+              }
+            } else {
+              const tempList = [];
+              for(let i = 0; i < pos.columnIndex; i++) {
+                tempList.push(null);
+              }
+              tempList.push(temp);
+              cells[pos.rowIndex] = tempList;
+            }
+          }
+          
+        })
+        
+      }
+
       // expression pos
       const disabledList2 = []
       // 获取单元格判断禁用
@@ -2392,6 +2493,18 @@ export default {
         styles,
       };
     },
+    getNewStyleName(style) {
+      const data = Object.keys(style);
+      const titles = _.filter(_.map(data, item => {
+          if (item.indexOf('s') != -1) {
+              return item.replace(/[^0-9]/g,'');
+          }
+      }), item => !!item).sort((a, b) => b - a);
+      if (titles.length <= 0) {
+          return `s${data.length + 1}`;
+      }
+      return `s${parseInt(titles[0]) + 1}`;
+    },
     init() {
         let _this = this;
         _this.update(this.$piniastore.$state);
@@ -2421,13 +2534,14 @@ export default {
         // sheet 数据集
         const sheetData = state.previewData.data;
         if (!!sheetData && sheetData.length > 0) {
-          for (let i = 0; i < sheetData.length; i++) {            
+          for (let i = 0; i < sheetData.length; i++) {          
             const temp = await this.formatCellData(
               sheetData[i].cells,
               sheetData[i].formList,
               { end: sheetData[i].end, start: sheetData[i].start || 'A1' },
               sheetData[i].searchList,
-              sheetData[i].dataList
+              sheetData[i].dataList,
+              sheetData[i].conditions,
             );
 
             // 删除空单元格
