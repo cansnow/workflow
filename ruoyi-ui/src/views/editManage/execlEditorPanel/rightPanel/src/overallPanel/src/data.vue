@@ -85,6 +85,17 @@
           />
         </template>
       </el-table-column>
+      <el-table-column label="生成值" align="center" prop="createValue">
+        <template slot-scope="scope">
+          <div class="rowColumn" @click="() => handleCreateValue(scope)">
+            <el-input
+              :style="scope.row.ifClick ? { border: '1px solid #1890ff', borderRadius: '4px' } : ''"
+              v-model="scope.row.createValue"
+              clearable
+            />
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column
         label="操作"
         align="center"

@@ -56,8 +56,9 @@ import {
   getTableFieldByName,
 } from '@/api/editManage';
 import roleListMixin from './roleListMixin';
+import createValueMixin from './createValueMixin';
 export default {
-  mixins: [roleListMixin],
+  mixins: [roleListMixin,createValueMixin],
   components: { Sheet },
   data() {
     return {
@@ -994,8 +995,32 @@ export default {
       if (!!data && !!data.t && !!_this.tableField[data.t]) {
         const temp = {};
         //1. 获取字段，组合新数据
+        //1.1 默认值
+        let dataTemp = null;
+        const dataList = _this.previewData.data[_this.sheetIndex.substring(1)].dataList;
+        if (dataList.length > 0) {
+          dataTemp = dataList[0];
+        }
         _.map(_this.tableField[data.t], field => {
-          temp[field] = '';
+          let tempValue = '';
+          if (!!dataTemp) {
+            const fieldConfig = dataTemp.filedList.find(item => item.filed == field);
+            if (!!fieldConfig?.createValue) {
+              tempValue = fieldConfig?.createValue;
+              // 日期
+              tempValue = tempValue.replaceAll('${yyyyMMdd}', _this.dateFormat('YYYYmmdd', new Date()));
+              // uuid
+              tempValue = tempValue.replaceAll('${uuid}', _this.guid());
+              // n位序列
+              const len = _this.addData[_this.sheetIndex] && _this.addData[_this.sheetIndex][data.t] ? _this.addData[_this.sheetIndex][data.t].length : 0;
+              const sequence = tempValue.match(/\$\{sequence[(0-9]*\)\}/g);
+              if (!!sequence && sequence.length > 0) {
+                const digit = sequence[0].replace(/[^0-9]/g,'');
+                tempValue = tempValue.replaceAll('${sequence('+digit+')}', _this.getCount(len, digit));
+              }
+            }
+          }
+          temp[field] = tempValue;
         });
         //2. 设置id，用于提交数据时剔除修改项，加入新增项
         if (!!data.p && !!data.p.tn && /^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(data.p.tn)) {
