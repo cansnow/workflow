@@ -589,8 +589,117 @@ export default {
 									label: item[data.apiLabel || data.apiValue]
 								});
 							});
+
+							if (!!data.Sublevel && !!data.Parent) {
+								// 树形
+								if (
+									data.selectType == 'treeSelectMultiple' ||
+									data.selectType == 'treeSelect'
+								) {
+									// Parent Sublevel
+									// [{"id":1,"label":"一级 1","children":[{"id":4,"label":"二级 1-1","children":[{"id":9,"label":"三级 1-1-1"},{"id":10,"label":"三级 1-1-2"}]}]}]
+									const optionsTemp = [];
+									const optoinsSet = {};
+									_.map(data.defaultSelect, item => {
+										if (optionsTemp.length == 0) {
+											const tempP = data.defaultSelect.find(f => f[data.Sublevel] == item[data.Parent]);
+											optoinsSet[item.id] = item.id;
+											if (!!tempP) {
+												optoinsSet[tempP.id] = tempP.id;
+												const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Parent] && fi.id != item.id);
+												const tempO = {
+													id: tempP[data.apiValue || data.apiLabel],
+													label: tempP[data.apiLabel || data.apiValue],
+													children: [
+														{
+															id: item[data.apiValue || data.apiLabel],
+															label: item[data.apiLabel || data.apiValue],
+														},
+														..._.map(childrens, c => {
+															optoinsSet[c.id] = c.id;
+															return {
+																id: c[data.apiValue || data.apiLabel],
+																label: c[data.apiLabel || data.apiValue],
+															}
+														})
+													],
+												}
+												optionsTemp.push(tempO);
+											} else {
+												const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Sublevel]);
+												const tempO = {
+													id: item[data.apiValue || data.apiLabel],
+													label: item[data.apiLabel || data.apiValue],
+													children: _.map(childrens, c => {
+														optoinsSet[c.id] = c.id;
+														return {
+															id: c[data.apiValue || data.apiLabel],
+															label: c[data.apiLabel || data.apiValue],
+														}
+													})
+												}
+												optionsTemp.push(tempO);
+											}
+										} else {
+											if (!optoinsSet[item.id]) {
+												const tempP = data.defaultSelect.find(f => f[data.Sublevel] == item[data.Parent]);
+												optoinsSet[item.id] = item.id;
+												if (!!tempP) {
+													optoinsSet[tempP.id] = tempP.id;
+													const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Parent] && fi.id != item.id);
+													const tempO = {
+														id: tempP[data.apiValue || data.apiLabel],
+														label: tempP[data.apiLabel || data.apiValue],
+														children: [
+															{
+																id: item[data.apiValue || data.apiLabel],
+																label: item[data.apiLabel || data.apiValue],
+															},
+															..._.map(childrens, c => {
+																optoinsSet[c.id] = c.id;
+																return {
+																	id: c[data.apiValue || data.apiLabel],
+																	label: c[data.apiLabel || data.apiValue],
+																}
+															})
+														],
+													}
+													optionsTemp.push(tempO);
+												} else {
+													const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Sublevel]);
+													const tempO = {
+														id: item[data.apiValue || data.apiLabel],
+														label: item[data.apiLabel || data.apiValue],
+														children: _.map(childrens, c => {
+															optoinsSet[c.id] = c.id;
+															return {
+																id: c[data.apiValue || data.apiLabel],
+																label: c[data.apiLabel || data.apiValue],
+															}
+														})
+													}
+													optionsTemp.push(tempO);
+												}
+											}
+										}
+									});
+									options = optionsTemp;
+								}
+							}
+
+						} else {
+							if (
+								data.selectType != 'treeSelectMultiple' ||
+								data.selectType != 'treeSelect'
+							) {
+								_.map(data.defaultSelect, item => {
+									options.push({ 
+										value: item[Object.keys(item)[0]],
+										label: item[Object.keys(item)[0]]
+									});
+								});
+							}
 						}
-						// options = data.defaultSelect;
 					}
 					
 					// 多选 v 是数组
@@ -658,7 +767,7 @@ export default {
 				}
 				if (data.componentType == 'select') {
 					if (data.selectSrc != 'custom') {
-						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel, apiT: data.apiT });
+						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel, Parent: data.Parent, Sublevel: data.Sublevel, apiT: data.apiT });
 					}
 					Object.assign(props, { ds: data.selectSrc });
 				}
