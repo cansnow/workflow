@@ -111,6 +111,56 @@
         </div>
       </template>
     </div>
+    <!-- 数据校验 -->
+    <div class="overall_title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">数据校验</span>
+      <el-button type="text" @click="open(3)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
+    <div style="margin-left: 2px;">
+      <template v-if="roleList.length > 0">
+        <div v-for="(dItem, index) in roleList" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ roleName[dItem.condition] }}</span>
+          <div>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleEditRole(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="handleRoleSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" :disabled="dItem.disabled && dialogVisible" @click="() => handleDelRole(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div>
+    <!-- 条件格式 -->
+    <div class="overall_title" style="display: flex; align-items: center;">
+      <span style="flex: 1;">条件格式</span>
+      <el-button type="text" @click="open(4)">
+        <i class="mdi mdi-plus"></i>
+      </el-button>
+    </div>
+    <div style="margin-left: 2px;">
+      <template v-if="conditions.length > 0">
+        <div v-for="(item, index) in conditions" :key="index" style="margin: 5px 0; display: flex; justify-content: space-between;">
+          <span style="display: flex; align-items: center; max-width: 60%; overflow: hidden;">{{ item.expression }}</span>
+          <div>
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="() => handleEditCondition(index)">
+              <i class="mdi mdi-text-box-edit"></i>
+            </el-button>
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="handleConditionSort">
+              <i class="mdi mdi-sort"></i>
+            </el-button>
+            <el-button type="text" :disabled="item.disabled && dialogVisible" @click="() => handleDelCondition(index)">
+              <i class="mdi mdi-close"></i>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </div>
     <div class="overall_title">冻结行列</div>
     <el-form label-width="80px" label-position="left" size="mini">
       <el-form-item label="冻结列">
@@ -123,11 +173,13 @@
     <Dialog
       :title="title"
       :dialogVisible="dialogVisible"
-      :width="dialogType == 0 ? '30%' : '40%'"
+      :width="dialogType == 0 || dialogType == 3 || dialogType == 4 ? '30%' : '40%'"
       @handleClose="handleClose"
       @handleIsOk="handleIsOk">
       <Form v-show="dialogType == 0" ref="form" />
       <Data v-show="dialogType == 1 || dialogType == 2" :dialogType="dialogType" :del="dialogType" ref="Data" />
+      <conditionRule v-show="dialogType == 3" ref="conditionRule" />
+      <conditionStyle v-show="dialogType == 4" ref="conditionStyle" />
 		</Dialog>
   </div>
 </template>
@@ -136,12 +188,16 @@
 import Form from './src/form.vue';
 import Data from './src/data.vue';
 import Dialog from '../dialog/index.vue';
+import conditionRule from './src/conditionRule.vue';
+import conditionStyle from './src/conditionStyle.vue';
 export default {
   inject: ['$rightPanel'],
   components: {
     Form,
     Data,
     Dialog,
+    conditionRule,
+    conditionStyle,
   },
   data() {
     return {
@@ -149,6 +205,8 @@ export default {
       formList: [], // 权限规则
       dataList: [], // 回写规则
       searchList: [], // 查询规则
+      roleList: [], // 数据校验
+      conditions: [], // 条件格式
       dialogVisible: false,
       title: '',
       index: -1,
@@ -162,6 +220,16 @@ export default {
       freezeColumn: 0,
       freezeRow: 0,
       options: [], // 回写规则数据集
+      roleName: {
+        int: '整数',
+        float: '小数',
+        datetime: '日期',
+        length: '文本长度',
+        phone: '手机号',
+        emil: '邮箱',
+        IDCard: '身份证号',
+        custom: '自定义正则表达式',
+      },
     };
   },
   computed: {
@@ -183,6 +251,14 @@ export default {
           // 回写规则
           if (this.dialogType == 1 || this.dialogType == 2) {
             this.$refs.Data.setCellValue(newValue);
+          }
+          // 数据校验
+          if (this.dialogType == 3) {
+            this.$refs.conditionRule.setCellValue(newValue);
+          }
+          // 条件格式
+          if (this.dialogType == 4) {
+            this.$refs.conditionStyle.setCellValue(newValue);
           }
         }
         // 设置回写单元格
@@ -239,6 +315,8 @@ export default {
       });
       this.dataList = data.dataList;
       this.searchList = data.searchList;
+      this.conditions = data.conditions;
+      this.roleList = data.roleList;
       this.start = data.start;
       this.end = data.end;
       this.freezeColumn = data.freezeColumn;
@@ -251,6 +329,8 @@ export default {
         formList: this.formList,
         dataList: this.dataList,
         searchList: this.searchList,
+        conditions: this.conditions, // 条件格式
+        roleList: this.roleList, // 数据校验
         start: this.start,
         end: this.end,
         pos: this.pos,
@@ -280,6 +360,47 @@ export default {
       this.searchList.splice(index, 1);
       this.$emit('ovserallData', this.getData());
     },
+    handleEditCondition(index) {
+      if (this.dialogVisible) {
+        return;
+      }
+      this.open(4);
+      this.$nextTick(() => {
+        const temp = this.conditions[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.conditionStyle.setData(temp);
+        this.conditions.splice(index, 1, temp);
+        this.title = '编辑条件格式';
+      });
+    },
+    handleConditionSort() {
+      this.conditions.reverse();
+    },
+    handleDelCondition(index) {
+      this.conditions.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
+    },
+
+    handleEditRole(index) {
+      if (this.dialogVisible) {
+        return;
+      }
+      this.open(3);
+      this.$nextTick(() => {
+        const temp = this.roleList[index];
+        Object.assign(temp, { index: index, disabled: true });
+        this.$refs.conditionRule.setData(temp);
+        this.roleList.splice(index, 1, temp);
+        this.title = '编辑数据校验';
+      });
+    },
+    handleRoleSort() {
+      this.roleList.reverse();
+    },
+    handleDelRole(index) {
+      this.roleList.splice(index, 1);
+      this.$emit('ovserallData', this.getData());
+    },
     /** 取消 */
     handleClose() {
       if (this.dialogType == 0) {
@@ -290,7 +411,9 @@ export default {
           this.formList.splice(this.index, 1, form);
           this.index = -1;
         }
-      } else {
+      } 
+      
+      if (this.dialogType == 1 || this.dialogType == 2) {
         this.$refs.Data.resetData();
         if (this.dialogType == 1) {
           this.dataList = _.map(this.dataList, item => {
@@ -301,6 +424,20 @@ export default {
             return Object.assign({}, item, { disabled: false });
           });
         }
+      }
+
+      if (this.dialogType == 3) {
+        this.$refs.conditionRule.resetData();
+        this.roleList = _.map(this.roleList, item => {
+          return Object.assign({}, item, { disabled: false });
+        });
+      }
+
+      if (this.dialogType == 4) {
+        this.$refs.conditionStyle.resetData();
+        this.conditions = _.map(this.conditions, item => {
+          return Object.assign({}, item, { disabled: false });
+        });
       }
       this.dialogVisible = false;
       this.$emit('ovserallData', this.getData());
@@ -315,23 +452,54 @@ export default {
           Object.assign(form, { disabled: false });
           this.formList.splice(form.index, 1, form);
         }
-      } else {
-        if (this.dialogType == 1) {
-          const data = this.$refs.Data.getFieldData();
-          if (data.index == -1) {
-            this.dataList.push(data);
-          } else {
-            this.dataList.splice(data.index, 1, data);
+      }
+
+      // 回写规则
+      if (this.dialogType == 1) {
+        const data = this.$refs.Data.getFieldData();
+        if (data.index == -1) {
+          this.dataList.push(data);
+        } else {
+          this.dataList.splice(data.index, 1, data);
+        }
+      }
+      // 查询规则
+      if (this.dialogType == 2){
+        const data = this.$refs.Data.getFieldData();
+        Object.assign(data, { disabled: false });
+        if (data.index == -1) {
+          this.searchList.push(data);
+        } else {
+          this.searchList.splice(data.index, 1, data);
+        }
+      }
+
+      // 数据校验
+      if (this.dialogType == 3) {
+        const data = this.$refs.conditionRule.getData();
+        if (data.index == -1) {
+          if (data.condition != 'none') {
+            this.roleList.push(data);
           }
         } else {
-          const data = this.$refs.Data.getFieldData();
-          if (data.index == -1) {
-            this.searchList.push(data);
+          if (data.condition != 'none') {
+            this.roleList.splice(data.index, 1, data);
           } else {
-            this.searchList.splice(data.index, 1, data);
+            this.roleList.splice(data.index, 1);
           }
         }
       }
+
+      // 条件格式
+      if (this.dialogType == 4) {
+        const data = this.$refs.conditionStyle.getData();
+        if (data.index == -1) {
+          this.conditions.push(data);
+        } else {
+          this.conditions.splice(data.index, 1, data);
+        }
+      }
+
       this.handleClose();
     },
     /** 打开弹窗 */
@@ -350,6 +518,11 @@ export default {
           case 2:
             this.title = '查询规则';
             break;
+          case 3:
+            this.title = "数据校验";
+            break;
+          case 4:
+            this.title = "条件格式";
         }
       }
     },

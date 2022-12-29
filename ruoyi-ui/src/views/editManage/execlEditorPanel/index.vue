@@ -224,6 +224,8 @@ export default {
 				formList: [], // 权限规则
 				dataList: [], // 回写规则
 				searchList: [], // 搜索规则
+				conditions: [], // 条件格式
+				roleList: [], // 数据校验
 				start: '', // 开始行列
 				end: '', // 结束行列
 				dataOptions: [], // 数据面板选项
@@ -238,6 +240,8 @@ export default {
 					formList: tempData.formList, // 权限规则
 					dataList: tempData.dataList, // 回写规则
 					searchList: tempData.searchList, // 搜索规则
+					conditions: tempData.conditions, // 条件格式
+					roleList: tempData.roleList, // 数据校验
 					dataOptions: tempData.dataOptions, // 数据面板选项
 					start: tempData.start, // 开始行列
 					end: tempData.end, // 结束行列
@@ -327,6 +331,8 @@ export default {
 					formList: this.sheetData[sIndex].formList, // 权限规则
 					dataList: this.sheetData[sIndex].dataList, // 回写规则
 					searchList: this.sheetData[sIndex].searchList, // 搜索规则
+					conditions: this.sheetData[sIndex].conditions, // 条件格式
+					roleList: this.sheetData[sIndex].roleList, // 数据校验
 					start: this.sheetData[sIndex].start,
 					dataOptions: this.sheetData[sIndex].dataOptions, // 数据面板选项
 					end: this.sheetData[sIndex].end,
@@ -583,8 +589,117 @@ export default {
 									label: item[data.apiLabel || data.apiValue]
 								});
 							});
+
+							if (!!data.Sublevel && !!data.Parent) {
+								// 树形
+								if (
+									data.selectType == 'treeSelectMultiple' ||
+									data.selectType == 'treeSelect'
+								) {
+									// Parent Sublevel
+									// [{"id":1,"label":"一级 1","children":[{"id":4,"label":"二级 1-1","children":[{"id":9,"label":"三级 1-1-1"},{"id":10,"label":"三级 1-1-2"}]}]}]
+									const optionsTemp = [];
+									const optoinsSet = {};
+									_.map(data.defaultSelect, item => {
+										if (optionsTemp.length == 0) {
+											const tempP = data.defaultSelect.find(f => f[data.Sublevel] == item[data.Parent]);
+											optoinsSet[item.id] = item.id;
+											if (!!tempP) {
+												optoinsSet[tempP.id] = tempP.id;
+												const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Parent] && fi.id != item.id);
+												const tempO = {
+													id: tempP[data.apiValue || data.apiLabel],
+													label: tempP[data.apiLabel || data.apiValue],
+													children: [
+														{
+															id: item[data.apiValue || data.apiLabel],
+															label: item[data.apiLabel || data.apiValue],
+														},
+														..._.map(childrens, c => {
+															optoinsSet[c.id] = c.id;
+															return {
+																id: c[data.apiValue || data.apiLabel],
+																label: c[data.apiLabel || data.apiValue],
+															}
+														})
+													],
+												}
+												optionsTemp.push(tempO);
+											} else {
+												const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Sublevel]);
+												const tempO = {
+													id: item[data.apiValue || data.apiLabel],
+													label: item[data.apiLabel || data.apiValue],
+													children: _.map(childrens, c => {
+														optoinsSet[c.id] = c.id;
+														return {
+															id: c[data.apiValue || data.apiLabel],
+															label: c[data.apiLabel || data.apiValue],
+														}
+													})
+												}
+												optionsTemp.push(tempO);
+											}
+										} else {
+											if (!optoinsSet[item.id]) {
+												const tempP = data.defaultSelect.find(f => f[data.Sublevel] == item[data.Parent]);
+												optoinsSet[item.id] = item.id;
+												if (!!tempP) {
+													optoinsSet[tempP.id] = tempP.id;
+													const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Parent] && fi.id != item.id);
+													const tempO = {
+														id: tempP[data.apiValue || data.apiLabel],
+														label: tempP[data.apiLabel || data.apiValue],
+														children: [
+															{
+																id: item[data.apiValue || data.apiLabel],
+																label: item[data.apiLabel || data.apiValue],
+															},
+															..._.map(childrens, c => {
+																optoinsSet[c.id] = c.id;
+																return {
+																	id: c[data.apiValue || data.apiLabel],
+																	label: c[data.apiLabel || data.apiValue],
+																}
+															})
+														],
+													}
+													optionsTemp.push(tempO);
+												} else {
+													const childrens = data.defaultSelect.filter(fi => fi[data.Parent] == item[data.Sublevel]);
+													const tempO = {
+														id: item[data.apiValue || data.apiLabel],
+														label: item[data.apiLabel || data.apiValue],
+														children: _.map(childrens, c => {
+															optoinsSet[c.id] = c.id;
+															return {
+																id: c[data.apiValue || data.apiLabel],
+																label: c[data.apiLabel || data.apiValue],
+															}
+														})
+													}
+													optionsTemp.push(tempO);
+												}
+											}
+										}
+									});
+									options = optionsTemp;
+								}
+							}
+
+						} else {
+							if (
+								data.selectType != 'treeSelectMultiple' ||
+								data.selectType != 'treeSelect'
+							) {
+								_.map(data.defaultSelect, item => {
+									options.push({ 
+										value: item[Object.keys(item)[0]],
+										label: item[Object.keys(item)[0]]
+									});
+								});
+							}
 						}
-						// options = data.defaultSelect;
 					}
 					
 					// 多选 v 是数组
@@ -652,7 +767,7 @@ export default {
 				}
 				if (data.componentType == 'select') {
 					if (data.selectSrc != 'custom') {
-						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel, apiT: data.apiT });
+						Object.assign(props, { api: data.api, apiValue: data.apiValue, apiLabel: data.apiLabel, Parent: data.Parent, Sublevel: data.Sublevel, apiT: data.apiT });
 					}
 					Object.assign(props, { ds: data.selectSrc });
 				}
@@ -792,6 +907,8 @@ export default {
 					formList: data.formList.length > 0 ?  data.formList : temp.formList,
 					dataList: data.dataList.length > 0 ?  data.dataList : temp.dataList,
 					searchList: data.searchList.length > 0 ? data.searchList : temp.searchList,
+					conditions: data.conditions.length > 0 ? data.conditions: temp.conditions,
+					roleList: data.roleList.length > 0 ? data.roleList : temp.roleList,
 					start: data.start == '' ? temp.start : data.start,
 					end: data.end == '' ? temp.end : data.end,
 					pos: data.pos || temp.pos || 'center',
@@ -916,6 +1033,8 @@ export default {
 							formList: item.formList || [],
 							dataList: item.dataList || [],
 							searchList: item.searchList || [],
+							conditions: item.conditions || [],
+							roleList: item.roleList || [],
 							dataOptions: item.dataOptions || [],
 							pos: item.pos || 'center',
 						});

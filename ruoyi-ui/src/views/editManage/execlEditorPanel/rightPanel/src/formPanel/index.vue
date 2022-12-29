@@ -148,6 +148,18 @@
 							</el-select>
 						</el-form-item>
 					</template>
+					<template v-if="form.selectSrc == 'api' && !!form.api">
+						<el-form-item label="父级">
+							<el-select v-model="form.Parent" @change="change" placeholder="请选择" style="width: 100%">
+								<el-option :label="item.resourcename" :value="item.relativeData" v-for="(item, index) in apiOptions[form.api] || []" :key="index" />
+							</el-select>
+						</el-form-item>
+						<el-form-item label="匹配项">
+							<el-select v-model="form.Sublevel" @change="change" placeholder="请选择" style="width: 100%">
+								<el-option :label="item.resourcename" :value="item.relativeData" v-for="(item, index) in apiOptions[form.api] || []" :key="index" />
+							</el-select>
+						</el-form-item>
+					</template>
 				</template>
 				<template v-if="form.componentType == 'input' || form.componentType == 'select'">
 					<el-form-item label="默认值">
@@ -255,6 +267,8 @@ export default {
 				api: '', // 数据集
 				apiValue: '', // 数据集值
 				apiLabel: '', // 数据值显示
+				Parent: '', // 父级
+				Sublevel: '', // 子级
 				apiT: '', // 数据表名
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
@@ -463,9 +477,9 @@ export default {
 			const tableName = this.apiOptions[this.form.api][0].tempTableName;
 			const temp = {};
 			if (!!tableName) {
-				Object.assign(temp, { table: tableName });
+				Object.assign(temp, { tid: tableName });
 			} else {
-				Object.assign(temp, { table: this.form.api });
+				Object.assign(temp, { tid: this.form.api });
 			}
 			getDBData(temp).then((res) => {
 				console.log('res', res);
@@ -476,6 +490,8 @@ export default {
 			});
 			this.form.apiValue = '';
 			this.form.apiLabel = '';
+			this.form.Parent = '';
+			this.form.Sublevel = '';
 			this.form.apiT = tableName || this.form.api;
 			this.change();
 		},
@@ -545,6 +561,8 @@ export default {
 				api: '', // 数据集
 				apiValue: '', // 数据集值
 				apiLabel: '', // 数据值显示
+				Parent: '', // 父级
+				Sublevel: '', // 子级
 				apiT: '', // 数据表名
 				defaultSelect: '', // 自定义选项
 				formFiled: '', //表单字段
@@ -631,6 +649,8 @@ export default {
 							api: data.p.api,
 							apiValue: data.p.apiValue,
 							apiLabel: data.p.apiLabel,
+							Parent: data?.Parent || '', // 父级
+							Sublevel: data?.Sublevel || '', // 子级
 							apiT: data.p.apiT,
 						});
 					}

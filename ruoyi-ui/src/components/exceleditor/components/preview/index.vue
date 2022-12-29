@@ -32,6 +32,12 @@
           />
         </div>
       </div>
+      <el-dialog
+        :title="roleTitle"
+        :visible.sync="roleErrorShow"
+        width="30%">
+        {{ roleContent }}
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -49,7 +55,10 @@ import {
   deleteFormData, 
   getTableFieldByName,
 } from '@/api/editManage';
+import roleListMixin from './roleListMixin';
+import createValueMixin from './createValueMixin';
 export default {
+  mixins: [roleListMixin,createValueMixin],
   components: { Sheet },
   data() {
     return {
@@ -139,6 +148,9 @@ export default {
         // 提交
         if (res.p.t == 'submit') {
           // 根据回写规则提交数据
+          if (!this.roles()) {
+            return;
+          }
           // 表单校验
           _this.cellCheck = true;
           _.each(_this.$curSheet().cells, (cell, key) => {
@@ -983,8 +995,32 @@ export default {
       if (!!data && !!data.t && !!_this.tableField[data.t]) {
         const temp = {};
         //1. 获取字段，组合新数据
+        //1.1 默认值
+        let dataTemp = null;
+        const dataList = _this.previewData.data[_this.sheetIndex.substring(1)].dataList;
+        if (dataList.length > 0) {
+          dataTemp = dataList[0];
+        }
         _.map(_this.tableField[data.t], field => {
-          temp[field] = '';
+          let tempValue = '';
+          if (!!dataTemp) {
+            const fieldConfig = dataTemp.filedList.find(item => item.filed == field);
+            if (!!fieldConfig?.createValue) {
+              tempValue = fieldConfig?.createValue;
+              // 日期
+              tempValue = tempValue.replaceAll('${yyyyMMdd}', _this.dateFormat('YYYYmmdd', new Date()));
+              // uuid
+              tempValue = tempValue.replaceAll('${uuid}', _this.guid());
+              // n位序列
+              const len = _this.addData[_this.sheetIndex] && _this.addData[_this.sheetIndex][data.t] ? _this.addData[_this.sheetIndex][data.t].length : 0;
+              const sequence = tempValue.match(/\$\{sequence[(0-9]*\)\}/g);
+              if (!!sequence && sequence.length > 0) {
+                const digit = sequence[0].replace(/[^0-9]/g,'');
+                tempValue = tempValue.replaceAll('${sequence('+digit+')}', _this.getCount(len, digit));
+              }
+            }
+          }
+          temp[field] = tempValue;
         });
         //2. 设置id，用于提交数据时剔除修改项，加入新增项
         if (!!data.p && !!data.p.tn && /^[0-9a-f]{8}[0-9a-f]{4}[1-5][0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i.test(data.p.tn)) {
@@ -1091,7 +1127,7 @@ export default {
       }
       return ifStart;
     },
-    async formatCellData(data, formList, Range, searchList, dataList) {
+    async formatCellData(data, formList, Range, searchList, dataList, conditions) {
       // 行的信息
       const rows = [];
       // 列的信息
@@ -1756,6 +1792,107 @@ export default {
         console.log('cellLinks', cellLinks);
       }
 
+      // 设置条件格式
+      if (conditions && conditions.length > 0) {
+        _.map(conditions, item => {
+          let range = item.range;
+          if (range.includes(':')) {
+            range = range.split(':')[0]
+          }
+          const pos = this.formatData(range);
+          // 表达式
+          let expression = item.expression;
+          // 获取判断条件，获取变量
+          _.map(this.constants, (value, key) => {
+            if (key.indexOf('key_') != -1) {
+              // 判断是否包含替换变量
+              if (expression.indexOf(value) != -1) {
+                // 获取值的key
+                const valueKey = key.replace('key_', 'value_');
+                // ${USER_ID} == admin => '"admin" == "admin"';
+                expression = expression.replace(value, this.constants[valueKey]);
+              }
+            }
+          });
+          if (/\$|\{|\}/g.test(expression)) {
+            // 单元格取值
+            const cellsEx = expression.match(/\$\{[a-zA-Z]*[0-9]*\:[a-zA-Z]*[0-9]*\}|\$\{[a-zA-Z]*[0-9]*\}/g);
+            _.map(cellsEx, cellItem => {
+              const str = cellItem.replaceAll(/\$|\{|\}/g, '');
+              // 单个单元格
+              if (str.indexOf(':') == -1) {
+                const pos = this.formatData(str);
+                const cell = cells[pos.rowIndex][pos.columnIndex]
+                // 字段值 cell.v;
+                if (!!cell) {
+                  expression = expression.replace(cellItem, cell.v);
+                }
+              } else {
+                // 多个单元格
+                const strList = str.split(':');
+                const start = _this.formatData(strList[0]);
+                const end = _this.formatData(strList[1]);
+                const values = [];
+                for (let i = start.rowIndex; i <= end.rowIndex; i++) {
+                  for(let j = start.columnIndex; j <= end.columnIndex; j++) {
+                    const cell = cells[i][j];
+                    if (!!cell && typeof cell.v != 'undefined' && cell.v != null ) {
+                      values.push(cell.v);
+                    }
+                  }
+                }
+                expression = expression.replace(cellItem, values);
+              }
+            });
+
+          }
+          const ifStart = this.getResult(expression);
+          // 条件成立
+          if (ifStart) {
+            const styleName = this.getNewStyleName(styles);
+            const option = Object.assign({
+              backgroundColor:undefined,
+              border:undefined,
+              borderColor:undefined,
+              color:undefined,
+              fontFamily:undefined,
+              fontSize:undefined,
+              fontStyle:undefined,
+              fontWeight:undefined,
+              textAlign:undefined,
+              textDecoration:undefined,
+              textIndent:undefined,
+              verticalAlign:undefined,
+              whiteSpace:undefined,
+            }, {
+              ...item.style,
+            });
+            styles[styleName] = option;
+            const temp = { s: styleName };
+            if (!!cells[pos.rowIndex]) {
+              if (cells[pos.rowIndex].length > pos.columnIndex) {
+                const tempCell = cells[pos.rowIndex][pos.columnIndex];
+                cells[pos.rowIndex].splice(pos.columnIndex, 1, Object.assign(tempCell, temp));
+              } else {
+                for (let i = cells[pos.rowIndex].length; i < pos.columnIndex; i++) {
+                  cells[pos.rowIndex].push(null);
+                }
+                cells[pos.rowIndex].push(temp);
+              }
+            } else {
+              const tempList = [];
+              for(let i = 0; i < pos.columnIndex; i++) {
+                tempList.push(null);
+              }
+              tempList.push(temp);
+              cells[pos.rowIndex] = tempList;
+            }
+          }
+          
+        })
+        
+      }
+
       // expression pos
       const disabledList2 = []
       // 获取单元格判断禁用
@@ -2392,6 +2529,18 @@ export default {
         styles,
       };
     },
+    getNewStyleName(style) {
+      const data = Object.keys(style);
+      const titles = _.filter(_.map(data, item => {
+          if (item.indexOf('s') != -1) {
+              return item.replace(/[^0-9]/g,'');
+          }
+      }), item => !!item).sort((a, b) => b - a);
+      if (titles.length <= 0) {
+          return `s${data.length + 1}`;
+      }
+      return `s${parseInt(titles[0]) + 1}`;
+    },
     init() {
         let _this = this;
         _this.update(this.$piniastore.$state);
@@ -2421,14 +2570,16 @@ export default {
         // sheet 数据集
         const sheetData = state.previewData.data;
         if (!!sheetData && sheetData.length > 0) {
-          for (let i = 0; i < sheetData.length; i++) {            
+          for (let i = 0; i < sheetData.length; i++) {          
             const temp = await this.formatCellData(
               sheetData[i].cells,
               sheetData[i].formList,
               { end: sheetData[i].end, start: sheetData[i].start || 'A1' },
               sheetData[i].searchList,
-              sheetData[i].dataList
+              sheetData[i].dataList,
+              sheetData[i].conditions,
             );
+            this.roleList = sheetData[i].roleList;
 
             // 删除空单元格
             _.map(temp.cells, (item, key) => {
