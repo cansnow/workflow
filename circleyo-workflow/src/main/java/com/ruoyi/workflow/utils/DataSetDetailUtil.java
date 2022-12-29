@@ -89,6 +89,7 @@ public class DataSetDetailUtil {
             jdbcEntity.setLinkurl(linkurl);
             jdbcEntity.setUsername(username);
             jdbcEntity.setPassword(password);
+            jdbcEntity.setLinktype(linktype);
             return jdbcEntity;
         }
         return null;

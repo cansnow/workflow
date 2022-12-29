@@ -6,6 +6,7 @@ public class JdbcEntity {
     private String username;
     private String password;
     private String sql;
+    private String linktype;
 
     public String getClassforName() {
         return classforName;
@@ -45,5 +46,13 @@ public class JdbcEntity {
 
     public void setSql(String sql) {
         this.sql = sql;
+    }
+
+    public String getLinktype() {
+        return linktype;
+    }
+
+    public void setLinktype(String linktype) {
+        this.linktype = linktype;
     }
 }

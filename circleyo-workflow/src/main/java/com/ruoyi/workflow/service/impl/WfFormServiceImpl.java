@@ -186,6 +186,49 @@ public class WfFormServiceImpl implements IWfFormService {
         return result;
     }
 
+//    @Override
+//    public Object dataListObject() {
+//        List<ResourceVO> result = new ArrayList<>();
+//        RelativeData rel1 = new RelativeData("sql=========Table");
+//        RelativeData rel2 = new RelativeData("excel");
+//        RelativeData rel3 = new RelativeData("sqlTable");
+//        RelativeData rel4 = new RelativeData("sqlTable");
+//        ResourceVO r1 = new ResourceVO("2", "数据集", 1L, null,null);
+//        ResourceVO r2 = new ResourceVO("eff75208b8b547ea84bed4a54051192a", "工作台", 5L, null,null);
+//        ResourceVO r3 = new ResourceVO("089a61206f9a4fefb7a92a8444af9137", "sql查询", 5L, null,null);
+//        ResourceVO r4 = new ResourceVO("be6beb23790443c1b854a871b5ad6aa5", "DataMart查询", 5L, null,null);
+//        ResourceVO r5 = new ResourceVO("a96125427e854a3ebe7514c2b80d9e6c", "语言", 4L, null,"lang");
+//        ResourceVO r6 = new ResourceVO("a5a9c13e52e940e6bd1c7254ed73b998", "ddd", 5L, null,null);
+//        ResourceVO r7 = new ResourceVO("726465814a47490396e16bda49f9eb1b", "A", 5L, null,null);
+//        ResourceVO r8 = new ResourceVO("6cad66f2ee3b4414a51e5eea6b99a1ad", "eeeee", 5L, null,null);
+//        ResourceVO r9 = new ResourceVO("ee3d8d1a51f74e2c9ce8118f923e3079", "eeeee-复制", 4L, null,"coffee");
+//        ResourceVO r10 = new ResourceVO("36f7be4cc95742cdafcd13ada110c7c5", "茶叶销售", 4L, null,"tea_sale");
+//        ResourceVO r11 = new ResourceVO("f5325f13de7b4cc681b77aa1fc380136", "职员信息", 4L, null,"person");
+//        r5.setRelativeData(rel1);
+//        r7.setRelativeData(rel2);
+//        r8.setRelativeData(rel3);
+//        r9.setRelativeData(rel4);
+//        r1.getChildren().add(r2);
+//        r2.getChildren().add(r3);
+//        r2.getChildren().add(r4);
+//        r4.getChildren().add(r5);
+//        r6.getChildren().add(r7);
+//        r6.getChildren().add(r8);
+//        r6.getChildren().add(r9);
+//        r6.getChildren().add(r10);
+//        r6.getChildren().add(r11);
+//        r2.getChildren().add(r6);
+//
+//        //3.1 api
+//        JSONArray dataArray = DataSetDetailUtil.getDataSetTree();
+//        if(dataArray != null){
+//            dataArray.add(r1);
+//            return dataArray;
+//        }
+//                result.add(r1);
+//        return result;
+//    }
+
     @Override
     public Object dataListObject() {
         List<ResourceVO> result = new ArrayList<>();
@@ -222,10 +265,10 @@ public class WfFormServiceImpl implements IWfFormService {
         //3.1 api
         JSONArray dataArray = DataSetDetailUtil.getDataSetTree();
         if(dataArray != null){
-            dataArray.add(r1);
+//            dataArray.add(r1);
             return dataArray;
         }
-                result.add(r1);
+        result.add(r1);
         return result;
     }
 
@@ -361,7 +404,11 @@ public class WfFormServiceImpl implements IWfFormService {
 //    @Slave
 //    @DataSource(value = DataSourceType.SLAVE)
     public List<TableColumn> findFieldListJdbc(String table, JdbcEntity jdbcEntity) {
-        String jdbcSql = "select column_name, (case when (is_nullable = 'no' > column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type from information_schema.columns where table_schema = (select database()) and table_name = ('"+table+"') order by ordinal_position";
+//        String jdbcSql = "select column_name, (case when (is_nullable = 'no' > column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type from information_schema.columns where table_schema = (select database()) and table_name = ('"+table+"') order by ordinal_position";
+        String jdbcSql = "select column_name, (case when (is_nullable = 'no' && column_key != 'PRI') then '1' else null end) as is_required, (case when column_key = 'PRI' then '1' else '0' end) as is_pk, ordinal_position as sort, column_comment, (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type from information_schema.columns where table_schema = (select database()) and table_name = ('"+table+"') order by ordinal_position";
+        if("postgresql".equals(jdbcEntity.getLinktype())){
+            jdbcSql = "select '' AS is_increment,a.attnum AS sort,a.attname AS column_name,format_type(a.atttypid,a.atttypmod) as column_type,(case when (select count(*) from pg_constraint where conrelid = a.attrelid and conkey[1]=attnum and contype='p')>0  then '1' else '0' end) as is_pk,(case when a.attnotnull=true  then '1' else '0' end) as is_required,col_description(a.attrelid,a.attnum) as column_comment from pg_attribute a where attstattarget=-1 and attrelid = (select oid from pg_class where relname ='"+table+"')";
+        }
         return JdbcUtils.jdbcTableColumn(jdbcEntity.getClassforName(),jdbcEntity.getLinkurl(),jdbcEntity.getUsername(),jdbcEntity.getPassword(),jdbcSql);
     }
 
