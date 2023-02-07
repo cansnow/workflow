@@ -14,8 +14,8 @@
       >
         <div
           style="margin: auto; height: 100%"
-          :style="{ 
-            width: item.info.pos == 'center' ? 
+          :style="{
+            width: item.info.pos == 'center' ?
             `${(item.info.screenW > (maxWidth || 0) ? item.info.screenW : maxWidth) > screenWidth ? screenWidth : (item.info.screenW > (maxWidth || 0) ? item.info.screenW : maxWidth) + 50 || 1400}px`
             : null
           }"
@@ -47,12 +47,12 @@ import Sheet from './Sheet.vue';
 import '../../helpers/lodashMixins';
 import testData from './testData';
 import { validPhone, validIDCard, validEmail } from '@/utils/validate';
-import { 
-  saveFormData, 
-  getDBData, 
-  updateFormDataNew as updateFormData, 
-  getConstants, 
-  deleteFormData, 
+import {
+  saveFormData,
+  getDBData,
+  updateFormDataNew as updateFormData,
+  getConstants,
+  deleteFormData,
   getTableFieldByName,
 } from '@/api/editManage';
 import roleListMixin from './roleListMixin';
@@ -70,7 +70,7 @@ export default {
       dataSetList: {}, // 数据
       query: {}, // 参数
       tableField: {}, // 表字段
-      ifEdit: false, 
+      ifEdit: false,
       screenWidth: 0,
       cellFormData: [],// 没用到，单元格回写规则
 
@@ -117,7 +117,7 @@ export default {
          */
       });
     }
-    this.init();    
+    this.init();
     this.screenWidth = document.body.clientWidth
     window.onresize = () => {
         return (() => {
@@ -128,7 +128,7 @@ export default {
   watch: {
     sheetIndex(newV) {
       if (!!this.data[newV.substring(1)]) {
-        this.$curSheet().maxWidth = this.data[newV.substring(1)].info.screenW;        
+        this.$curSheet().maxWidth = this.data[newV.substring(1)].info.screenW;
         this.$curSheet().maxHeight = this.data[newV.substring(1)].info.screenH;
       }
     },
@@ -226,7 +226,7 @@ export default {
                         _this.cellCheckStyle[index + '' + key] = JSON.parse(JSON.stringify(style.option));
                       }
                     }
-                    
+
                     _this.$curSheet().setAreaStyle(exSelect, style => {
                         style.setOption({
                           borderColor: 'red',
@@ -347,7 +347,7 @@ export default {
                       });
                       fieldValue = _this.constants[valueKey] || '';
                     }
-      
+
                     return {
                       fieldName: fObj.filed, // 字段名
                       fieldValue: fieldValue, // 字段值
@@ -360,7 +360,7 @@ export default {
                     const keys = _.chain(item.filedList).filter(f => f.key).map(f => f.filed).value();
                     Object.assign(temp, { ifKey: true, keys });
                   }
-                  
+
                   const ifExtend = fields.findIndex(field => field.ifExtend);
                   if (ifExtend != -1) {
                     // 有扩展
@@ -430,7 +430,7 @@ export default {
                         fieldValue,
                       });
                     }
-                    
+
                     const id = fields.findIndex(f => f.fieldName == 'id');
                     if (id != -1) {
                       fields.splice(id, 1);
@@ -700,7 +700,7 @@ export default {
                             } else {
                               fieldValue = cell.v; // 字段值
                             }
-                            
+
                           } else {
                             // 向右扩展
                             const extend = _this.extendInfo[_this.sheetIndex].row[rowIndex];
@@ -745,7 +745,7 @@ export default {
                       });
                       fieldValue = _this.constants[valueKey] || '';
                     }
-      
+
                     return {
                       fieldName: fObj.filed, // 字段名
                       fieldValue, // 字段值
@@ -828,7 +828,7 @@ export default {
             }
           }
         }
-        
+
         // 搜索
         if (res.p.t == 'search') {
           const searchList = _this.data[_this.sheetIndex.substring(1)].info.searchList;
@@ -869,7 +869,7 @@ export default {
                   temp[fObj.filed] = fieldValue;
 
                   Object.assign(_this.query, temp);
-    
+
                   return {
                     fieldName: fObj.filed, // 字段名
                     fieldValue, // 字段值
@@ -953,7 +953,7 @@ export default {
       if (!!data && !!data.cdi && !!data.t && !!data.i) {
         let ifDelApi = true;
         if (
-          (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) && 
+          (data.t == 'person' || data.t == 'tea_sale' || data.i == -1) &&
           (typeof _this.addData[_this.sheetIndex] != 'undefined' && typeof _this.addData[_this.sheetIndex][data.t] != 'undefined')
         ) {
           const index = _this.addData[_this.sheetIndex][data.t].findIndex(item => item.id == data.i);
@@ -977,7 +977,7 @@ export default {
             loading.close();
           });
           console.log('deleteFormData', res);
-        }        
+        }
         _this.$modal.msgSuccess('删除成功！');
         // 重置
         _this.dataSetList = {};
@@ -1179,7 +1179,7 @@ export default {
         'borderColor',
         'borderBold',
       ];
-      
+
       _.each(data, (item) => {
         /** 行信息 */
         if (typeof(rows[item.pos.start.rowIndex]) == 'undefined') {
@@ -1189,7 +1189,7 @@ export default {
               rows.push(null);
             }
           }
-          rows.push({ hpx: item.height, h: !!item.hh ? true : undefined });  
+          rows.push({ hpx: item.height, h: !!item.hh ? true : undefined });
         }
         /** 列信息 */
         if (typeof(columns[item.pos.start.columnIndex]) == 'undefined') {
@@ -1199,7 +1199,7 @@ export default {
               columns.push(null);
             }
           }
-          columns.push({ wpx: item.width, h: !!item.wh ? true : undefined });          
+          columns.push({ wpx: item.width, h: !!item.wh ? true : undefined });
         } else {
           if (columns[item.pos.start.columnIndex] == null) {
             columns[item.pos.start.columnIndex] = { wpx: item.width, h: !!item.wh ? true : undefined };
@@ -1577,7 +1577,7 @@ export default {
           }
         });
       }
-      
+
       // 权限规则
       if (formList && formList.length > 0) {
         // temp.cells
@@ -1682,7 +1682,7 @@ export default {
             // TODO 记录已有数据
             valueList = this.dataSetList[item.field];
           } else {
-            
+
             if (typeof this.tableField[item.field] == 'undefined') {
               // TODO 判断是否uuid，如果是uuid则取fieldT，否则取field
               // uuid 正则：/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -1892,9 +1892,9 @@ export default {
               cells[pos.rowIndex] = tempList;
             }
           }
-          
+
         })
-        
+
       }
 
       // expression pos
@@ -1971,7 +1971,7 @@ export default {
                 Object.assign(p, { r });
                 Object.assign(cellDTemp, { p });
                 cells[pos.start.rowIndex].splice(pos.start.columnIndex, 1, cellDTemp);
-              }            
+              }
             }
           }
         });
@@ -2117,7 +2117,7 @@ export default {
             } else {
               Object.assign(dbParams, { table: item.fieldIndex });
               this.tableUuid[item.fieldIndex] = item.fieldIndex;
-            }            
+            }
             const res = await getDBData({ ...dbParams, ...query }); // table: item.fieldIndex
             const dataSetListTemp = res.data.dataSetList;
             valueList = JSON.parse(JSON.stringify(dataSetListTemp[0].valueList)); // 变量集合
@@ -2132,7 +2132,7 @@ export default {
           ) {
             valueList.push(...this.addData[this.sheetIndex][item.fieldIndex]);
           }
-          const len = valueList.length; // 长度
+          const len = valueList ? valueList.length : 0; // 长度
           // 获取填充数据
           const tempList = [];
           const cellColumnIndex = typeof extendInfo.row[rowIndex] == 'undefined' ? columnIndex : columnIndex + extendInfo.row[rowIndex].count;
@@ -2156,7 +2156,7 @@ export default {
               if (!item.noReplace) {
                 Object.assign(template, { v: value[item.field] });
               }
-              
+
               // 判断是否超链接单元格
               if (!!item.ct && typeof cellLinks[rowIndex + '' + columnIndex] != 'undefined') {
                 const cellLink = cellLinks[rowIndex + '' + columnIndex];
@@ -2214,7 +2214,7 @@ export default {
               select: 'select',
               selectMultiple: 'select',
             };
-            
+
             if (!!itemTypes[item.c]) {
               if ((item.extendType == 'none' && index == 0) || item.extendType != 'none') {
                 const pos = {
@@ -2256,7 +2256,7 @@ export default {
               }
             }
 
-            // 隐藏单元格 
+            // 隐藏单元格
             _.map(disabledList2, hdl => {
               if (!(/\$|\{|\}/g.test(hdl.expression))) {
                 const ifStart = this.getResult(hdl.expression);
@@ -2290,7 +2290,7 @@ export default {
               }
             }
 
-            // 隐藏单元格 
+            // 隐藏单元格
             _.map(hiddenList2, hdl => {
               if (!(/\$|\{|\}/g.test(hdl.expression))) {
                 const ifStart = this.getResult(hdl.expression);
@@ -2309,7 +2309,7 @@ export default {
                 }
               }
             });
-          }     
+          }
 
           // none 无 bottom 向下 right 向右
           if (item.extendType == 'bottom') {
@@ -2374,7 +2374,7 @@ export default {
                 // 修改扩展行高
                 if (typeof(rows[posBom + index]) == 'undefined') {
                   rows.push({ hpx: rowHeight });
-                  rowsReplace.push(null);         
+                  rowsReplace.push(null);
                 } else {
                   rowsReplace.push(rows[posBom + index] != null ? JSON.parse(JSON.stringify(rows[posBom + index])) : null);
                   rows.splice(posBom + index, 1, {hpx: rowHeight});
@@ -2408,7 +2408,7 @@ export default {
                   // 修改向下行高
                   if (typeof(rows[key]) == 'undefined') {
                     rows.push(rowsReplace[replaceIndex]);
-                    rowsReplace.push(null);         
+                    rowsReplace.push(null);
                   } else {
                     rowsReplace.push(rows[key] != null ? JSON.parse(JSON.stringify(rows[key])) : null);
                     if (rows[key] != null && rowsReplace[replaceIndex] != null) {
@@ -2484,7 +2484,7 @@ export default {
                 extendInfo.row[rowIndex].record.push({
                   startCol: columnIndex + colCountMerges,
                   count: len - 1,
-                });                
+                });
               }
               if (!!cells[cellRowIndex]) {
                 if (cells[cellRowIndex].length < pos) {
@@ -2574,7 +2574,7 @@ export default {
         // sheet 数据集
         const sheetData = state.previewData.data;
         if (!!sheetData && sheetData.length > 0) {
-          for (let i = 0; i < sheetData.length; i++) {          
+          for (let i = 0; i < sheetData.length; i++) {
             const temp = await this.formatCellData(
               sheetData[i].cells,
               sheetData[i].formList,
@@ -2707,7 +2707,7 @@ export default {
   // border: 1px solid #ddd;
 
   &_title {
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
     height: 40px;

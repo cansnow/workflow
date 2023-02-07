@@ -58,52 +58,54 @@ export default {
     roles() {
       const cells = this.$curSheet().cells;
       const roleList = this.roleList;
-      for(let i = 0; i < roleList.length; i++) {
-        const item = roleList[i];
-        const pos = this.formatData(item.pos);
-        const tempCell = cells[pos.rowIndex][pos.columnIndex];
-        if(tempCell) {
-          switch(item.condition) {
-            case 'int':
-              break;
-            case 'float':
-              break;
-            case 'datetime':
-              break;
-            case 'length':
-              break;
-            case 'phone':
-              if (!this.validPhone(tempCell.v)) {
-                this.roleTitle = item.title;
-                this.roleContent = item.content;
-                this.roleErrorShow = true;
-                return false;
-              }
-              break;
-            case 'emil':
-              if (!validEmail(tempCell.v)) {
-                this.roleTitle = item.title;
-                this.roleContent = item.content;
-                this.roleErrorShow = true;
-                return false;
-              }
-              break;
-            case 'IDCard':
-              if (!IDCard(tempCell.v)) {
-                this.roleTitle = item.title;
-                this.roleContent = item.content;
-                this.roleErrorShow = true;
-                return false;
-              }
-              break;
-            case 'custom':
-              if (item.start && !new RegExp(item.start).test(tempCell.v)) {
-                this.roleTitle = item.title;
-                this.roleContent = item.content;
-                this.roleErrorShow = true;
-                return false;
-              }
-              break;
+      if(roleList){
+        for(let i = 0; i < roleList.length; i++) {
+          const item = roleList[i];
+          const pos = this.formatData(item.pos);
+          const tempCell = cells[pos.rowIndex][pos.columnIndex];
+          if(tempCell) {
+            switch(item.condition) {
+              case 'int':
+                break;
+              case 'float':
+                break;
+              case 'datetime':
+                break;
+              case 'length':
+                break;
+              case 'phone':
+                if (!this.validPhone(tempCell.v)) {
+                  this.roleTitle = item.title;
+                  this.roleContent = item.content;
+                  this.roleErrorShow = true;
+                  return false;
+                }
+                break;
+              case 'emil':
+                if (!validEmail(tempCell.v)) {
+                  this.roleTitle = item.title;
+                  this.roleContent = item.content;
+                  this.roleErrorShow = true;
+                  return false;
+                }
+                break;
+              case 'IDCard':
+                if (!IDCard(tempCell.v)) {
+                  this.roleTitle = item.title;
+                  this.roleContent = item.content;
+                  this.roleErrorShow = true;
+                  return false;
+                }
+                break;
+              case 'custom':
+                if (item.start && !new RegExp(item.start).test(tempCell.v)) {
+                  this.roleTitle = item.title;
+                  this.roleContent = item.content;
+                  this.roleErrorShow = true;
+                  return false;
+                }
+                break;
+            }
           }
         }
       }
