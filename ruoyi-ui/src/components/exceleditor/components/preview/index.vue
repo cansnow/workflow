@@ -25,7 +25,7 @@
             :ref="'sheet_'+index"
             :options="item.data"
             :sheetIndex="index"
-            @clikcCellBtn="clikcCellBtn"
+            @clikcCellBtn="clikcCellBtnEvent"
             @clikcCellLink="clikcCellLink"
             @doDeleteData="doDeleteData"
             @doAddData="doAddData"
@@ -137,6 +137,10 @@ export default {
     $curSheet() {
       return this.$refs['sheet' + this.sheetIndex][0];
     },
+    // 按钮点击事件
+    clikcCellBtnEvent(res) {
+		this.clikcCellBtn(res);
+	},
     // 按钮点击事件
     async clikcCellBtn(res) {
       const _this = this;
