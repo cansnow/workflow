@@ -57,6 +57,7 @@ import {
 } from '@/api/editManage';
 import roleListMixin from './roleListMixin';
 import createValueMixin from './createValueMixin';
+import plugins from "@/utils/plugins";
 export default {
   mixins: [roleListMixin,createValueMixin],
   components: { Sheet },
@@ -139,8 +140,8 @@ export default {
     },
     // 按钮点击事件
     clikcCellBtnEvent(res) {
-		this.clikcCellBtn(res);
-	},
+      this.clikcCellBtn(res);
+    },
     // 按钮点击事件
     async clikcCellBtn(res) {
       const _this = this;
@@ -295,7 +296,7 @@ export default {
                                   // 向下取行
                                   const pos = { rowIndex: rowIndex + i, columnIndex };
                                   const cell = _this.$curSheet().getPosCell(pos);
-                                  console.log('cell', cell);
+                                  //console.log('cell', cell);
                                   values.push(cell.v);
                                 }
                                 fieldValue = values; // 获取扩展集合数据
@@ -379,12 +380,12 @@ export default {
                         }
                       });
                       Object.assign(temp, { fields: fieldsTemp });
-                      console.log('temp', temp);
+                      //console.log('temp', temp);
                       responseData.push(JSON.parse(JSON.stringify(temp)));
                     });
                   } else {
                     Object.assign(temp, { fields });
-                    console.log('temp', temp);
+                    //console.log('temp', temp);
                     responseData.push(temp);
                   }
                 }
@@ -610,10 +611,16 @@ export default {
             }
 
             // 替换表名
-            const submitData = {
+            let submitData = {
               formDataVO: data,
               updateObj: updateData,
             };
+            var ret = plugins.beforeSubmit(submitData);
+            submitData = ret.data;
+            console.log(ret)
+            if(ret.result === false){
+              return false;
+            }
             await saveFormData(submitData).then((res) => {
               console.log('saveFormData', res);
               _this.$modal.msgSuccess('提交成功！！！');
@@ -1294,11 +1301,11 @@ export default {
           typeof temp.p.tn != 'undefined' &&
           inRangeInside
         ) {
-          console.log('temp', temp);
-          console.log('temp.p.f', temp.p.f);
+          //console.log('temp', temp);
+          //console.log('temp.p.f', temp.p.f);
           if (temp.p.f.indexOf('.') != -1 && temp.p.f.indexOf('dataSetList') != -1) {
             const fList = temp.p.f.split('.');
-            console.log('fList', fList);
+            //console.log('fList', fList);
             const itemPost = item.pos;
             if (fList[0] == 'dataSetList') {
               const conditions = [];
@@ -1793,7 +1800,7 @@ export default {
           });
           Object.assign(cellLinks[key], { posList });
         });
-        console.log('cellLinks', cellLinks);
+        //console.log('cellLinks', cellLinks);
       }
 
       // 设置条件格式
@@ -2057,7 +2064,7 @@ export default {
 
       // 设置扩展
       if (extendList.length > 0) {
-        console.log('extendList', extendList);
+        //console.log('extendList', extendList);
         // 扩展行列记录
         // {column:{0:{count:25,record:[{startRow: 0,count: 25}]}}}
         const extendInfo = {

@@ -2,8 +2,8 @@ import request from '@/utils/request';
 
 /**
  * 获取文件列表
- * @param {*} query 
- * @returns 
+ * @param {*} query
+ * @returns
  */
 export function fileList(query) {
   return request({
@@ -14,7 +14,7 @@ export function fileList(query) {
 }
 
 /**
- * 
+ *
  */
 export function getConstants(query) {
   return request({
@@ -29,21 +29,33 @@ export function getConstants(query) {
  * @returns 数据集
  */
 export function getDBData(query) {
-  return request({
-    url: '/wfForm/user/db/list',
-    method: 'post',
-    params: query,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    interval: true,
+  return new Promise((resolve,reject)=>{
+    request({
+      url: '/wfForm/user/db/list',
+      method: 'post',
+      params: query,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      interval: true,
+    }).then(res=>{
+      if(!window.serverData){
+        window.serverData = []
+      }
+      window.serverData[query.tid] = res.data.dataSetList
+      console.log(query)
+      console.log(res)
+      resolve(res)
+    }).catch(e=>{
+      reject(e)
+    })
   })
 }
 
 /**
  * 回写删除接口
  * @param {*} data
- * @returns 
+ * @returns
  */
  export function deleteFormData(data) {
   return request({
@@ -55,8 +67,8 @@ export function getDBData(query) {
 
 /**
  * 回写更新接口
- * @param {*} data 
- * @returns 
+ * @param {*} data
+ * @returns
  */
  export function updateFormData(data) {
   return request({
@@ -68,8 +80,8 @@ export function getDBData(query) {
 
 /**
  * 回写更新接口2
- * @param {*} data 
- * @returns 
+ * @param {*} data
+ * @returns
  */
  export function updateFormDataNew(data) {
   return request({
@@ -81,8 +93,8 @@ export function getDBData(query) {
 
 /**
  * 回写提交接口, 新增，修改
- * @param {*} data 
- * @returns 
+ * @param {*} data
+ * @returns
  */
  export function saveFormData(data) {
   return request({
@@ -94,8 +106,8 @@ export function getDBData(query) {
 
 /**
  * 回写提交接口
- * @param {*} data 
- * @returns 
+ * @param {*} data
+ * @returns
  */
 export function saveFormData_old(data) {
   return request({
@@ -107,8 +119,8 @@ export function saveFormData_old(data) {
 
 /**
  * 获取表单列表
- * @param {*} query 
- * @returns 
+ * @param {*} query
+ * @returns
  */
 export function templateList(query) {
   return request({
@@ -120,8 +132,8 @@ export function templateList(query) {
 
 /**
  * 新增表单
- * @param {*} data 
- * @returns 
+ * @param {*} data
+ * @returns
  */
 export function addTemplate(data) {
   return request({
@@ -133,8 +145,8 @@ export function addTemplate(data) {
 
 /**
  * 查询所有表
- * @param {*} query 
- * @returns 
+ * @param {*} query
+ * @returns
  */
 export function getDBTable(query) {
   return request({
@@ -147,7 +159,7 @@ export function getDBTable(query) {
 /**
  * 查询表字段
  * @param {*} query { table: '' }
- * @returns 
+ * @returns
  */
 export function getTableFieldByName_old(query) {
   return request({
@@ -164,7 +176,7 @@ export function getTableFieldByName_old(query) {
 /**
  * 查询表字段
  * @param {*} query { table: '' }
- * @returns 
+ * @returns
  */
 export function getTableFieldByName(query) {
   return request({
@@ -181,7 +193,7 @@ export function getTableFieldByName(query) {
 /**
  * 表单修改
  * @param {*} data { id: '' }
- * @returns 
+ * @returns
  */
 export function updateTemplate(data) {
   return request({
@@ -194,7 +206,7 @@ export function updateTemplate(data) {
 /**
  * 表单删除
  * @param {*} id
- * @returns 
+ * @returns
  */
 export function delTemplateById(id) {
   return request({
@@ -208,8 +220,8 @@ export function delTemplateById(id) {
 
 /**
  * 表单详情
- * @param {*} id 
- * @returns 
+ * @param {*} id
+ * @returns
  */
 export function getTemplateInfoById(id) {
   return request({
